@@ -28,7 +28,7 @@ copy_one_optional() {
   local src="$1"
   local dest_name="$2"
   if [ -z "$src" ] || [ ! -f "$src" ]; then
-    echo "Skip (optional): $dest_name — run pio run -t mergebin and copy merged to out/ if you need it"
+    echo "Skip (optional): $dest_name — use sh build.sh build-firmware <env> (companion_radio_usb_tcp* runs mergebin into out/) or pio run -t mergebin -e <env>"
     return 0
   fi
   cp "$src" "prebuilt/$dest_name"
@@ -39,11 +39,15 @@ copy_one_optional() {
 # Use newest by mtime so we copy latest build when multiple same-version bins exist
 V4_PLAIN=$(ls -t out/heltec_v4_companion_radio_usb_tcp-${VERSION}-*.bin 2>/dev/null | grep -v merged | head -1)
 V4_MERGED=$(ls -t out/heltec_v4_companion_radio_usb_tcp-${VERSION}-*-merged.bin 2>/dev/null | head -1)
+V4TFT_TOUCH_PLAIN=$(ls -t out/heltec_v4_tft_companion_radio_usb_tcp_touch-${VERSION}-*.bin 2>/dev/null | grep -v merged | head -1)
+V4TFT_TOUCH_MERGED=$(ls -t out/heltec_v4_tft_companion_radio_usb_tcp_touch-${VERSION}-*-merged.bin 2>/dev/null | head -1)
 V3_PLAIN=$(ls -t out/Heltec_v3_companion_radio_usb_tcp-${VERSION}-*.bin 2>/dev/null | grep -v merged | head -1)
 V3_MERGED=$(ls -t out/Heltec_v3_companion_radio_usb_tcp-${VERSION}-*-merged.bin 2>/dev/null | head -1)
 
 copy_one "$V4_PLAIN"   "heltec_v4_companion_radio_usb_tcp.bin"
 copy_one_optional "$V4_MERGED"  "heltec_v4_companion_radio_usb_tcp-merged.bin"
+copy_one_optional "$V4TFT_TOUCH_PLAIN" "heltec_v4_tft_companion_radio_usb_tcp_touch.bin"
+copy_one_optional "$V4TFT_TOUCH_MERGED" "heltec_v4_tft_companion_radio_usb_tcp_touch-merged.bin"
 copy_one "$V3_PLAIN"   "Heltec_v3_companion_radio_usb_tcp.bin"
 copy_one_optional "$V3_MERGED"  "Heltec_v3_companion_radio_usb_tcp-merged.bin"
 

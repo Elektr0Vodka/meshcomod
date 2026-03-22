@@ -2,6 +2,9 @@
 #include <helpers/TxtDataHelpers.h>
 #include "../MyMesh.h"
 #include "target.h"
+#if defined(HAS_HELTEC_V4_CAP_TOUCH) && defined(ESP32)
+  #include <helpers/input/HeltecV4CapTouch.h>
+#endif
 #ifdef ESP32
   #include <Esp.h>
 #endif
@@ -757,6 +760,9 @@ void UITask::begin(DisplayDriver* display, SensorManager* sensors, NodePrefs* no
 #if defined(PIN_USER_BTN_ANA)
   analog_btn.begin();
 #endif
+#if defined(HAS_HELTEC_V4_CAP_TOUCH) && defined(ESP32)
+  heltecV4CapTouchBegin();
+#endif
 
   _node_prefs = node_prefs;
 
@@ -975,6 +981,16 @@ void UITask::loop() {
     expander.digitalWrite(EXP_PIN_BACKLIGHT, !touch_state);
 #endif
     next_backlight_btn_check = millis() + 300;
+  }
+#endif
+#if defined(HAS_HELTEC_V4_CAP_TOUCH) && defined(ESP32)
+  if (c == 0) {
+    int tev = heltecV4CapTouchCheck();
+    if (tev == BUTTON_EVENT_CLICK) {
+      c = checkDisplayOn(KEY_NEXT);
+    } else if (tev == BUTTON_EVENT_LONG_PRESS) {
+      c = handleLongPress(KEY_ENTER);
+    }
   }
 #endif
 

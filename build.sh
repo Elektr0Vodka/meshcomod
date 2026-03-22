@@ -175,9 +175,17 @@ build_firmware() {
   # build firmware target
   $PIO_CMD run -e $1
 
-  # App image only in out/ (flash at partition app offset). For a single merged file use: pio run -t mergebin -e <env>
+  # App image only in out/ (flash at partition app offset).
   if [ "$ENV_PLATFORM" == "ESP32_PLATFORM" ]; then
     cp .pio/build/$1/firmware.bin out/${FIRMWARE_FILENAME}.bin 2>/dev/null || true
+    # Meshcomod USB+TCP companions (OLED + TFT+touch): same flashing flow as docs / flasher.meshcomod — merged image at 0x0
+    if [[ "$1" == *companion_radio_usb_tcp* ]]; then
+      if $PIO_CMD run -t mergebin -e "$1"; then
+        if [ -f ".pio/build/$1/firmware-merged.bin" ]; then
+          cp ".pio/build/$1/firmware-merged.bin" "out/${FIRMWARE_FILENAME}-merged.bin" 2>/dev/null || true
+        fi
+      fi
+    fi
   fi
 
   # build .uf2 for nrf52 boards, copy .uf2 and .zip to out folder (e.g: RAK_4631_Repeater-v1.0.0-SHA.uf2)

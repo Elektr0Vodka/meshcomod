@@ -106,6 +106,7 @@ Flash a prebuilt firmware. No local build needed.
 
 - Heltec V4 (non-merged): [`prebuilt/heltec_v4_companion_radio_usb_tcp.bin`](prebuilt/heltec_v4_companion_radio_usb_tcp.bin)
 - Heltec V4 (merged): [`prebuilt/heltec_v4_companion_radio_usb_tcp-merged.bin`](prebuilt/heltec_v4_companion_radio_usb_tcp-merged.bin)
+- Heltec V4 **TFT + capacitive touch** meshcomod (build locally; optional prebuilt when released): env `heltec_v4_tft_companion_radio_usb_tcp_touch` — CHSC6x on GPIO 47/48 (RST 44), same USB/TCP/BLE/WebSocket companion as OLED meshcomod.
 - Heltec V3 (non-merged): [`prebuilt/Heltec_v3_companion_radio_usb_tcp.bin`](prebuilt/Heltec_v3_companion_radio_usb_tcp.bin)
 - Heltec V3 (merged): [`prebuilt/Heltec_v3_companion_radio_usb_tcp-merged.bin`](prebuilt/Heltec_v3_companion_radio_usb_tcp-merged.bin)
 
@@ -183,7 +184,7 @@ Clone the repository and enter the **MeshCore** directory (this folder). Then se
 - V4 uses lowercase env names: `heltec_v4_...`
 - V3 uses capital H env names: `Heltec_v3_...`
 
-#### Heltec V4 (copy-paste)
+#### Heltec V4 meshcomod (OLED) — copy-paste
 
 ```bash
 cd MeshCore
@@ -193,9 +194,19 @@ export FIRMWARE_VERSION=v1.14.0.27
 sh build.sh build-firmware heltec_v4_companion_radio_usb_tcp
 ```
 
-Merged image output:
-- `out/heltec_v4_companion_radio_usb_tcp-<version>-<sha>-merged.bin`
-- `.pio/build/heltec_v4_companion_radio_usb_tcp/firmware-merged.bin`
+#### Heltec V4 meshcomod (TFT + capacitive touch expansion kit)
+
+Same **WiFi-at-build**, **version**, **`build.sh`**, and **`out/`** layout as OLED V4 above — only the **env name** changes (ST7789 + CHSC6x + full multi-transport companion).
+
+```bash
+cd MeshCore
+export WIFI_SSID="YourNetworkName"
+export WIFI_PWD="YourPassword"
+export FIRMWARE_VERSION=v1.14.0.27
+sh build.sh build-firmware heltec_v4_tft_companion_radio_usb_tcp_touch
+```
+
+**Outputs** (both targets): app-only `out/<env>-<version>-<sha>.bin` and **merged** `out/<env>-<version>-<sha>-merged.bin` (flash from **0x0**, same as prebuilt meshcomod flow). Runtime WiFi override uses the same tools as OLED: flasher WiFi GUI, console.meshcomod.com, or Meshcomod chat `wifi set` / `wifi apply`.
 
 #### Heltec V3 (copy-paste)
 
