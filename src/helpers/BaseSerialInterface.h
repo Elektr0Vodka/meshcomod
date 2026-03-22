@@ -53,4 +53,7 @@ public:
   // CONTACT/END go to the same client that got START even if checkRecvFrame overwrites target.
   virtual int getReplyTarget() const { return -1; }
   virtual void setReplyTarget(int target) { (void)target; }
+
+  /** If false, writeFrameToAll may only reach the reply-target client; callers must not advance all sync cursors after a push. */
+  virtual bool companionUnsolicitedPushesBroadcastToAll() const { return true; }
 };

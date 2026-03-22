@@ -794,16 +794,18 @@ int MyMesh::getFromOfflineQueue(uint8_t frame[]) {
   return 0; // queue is empty
 }
 
-void MyMesh::addToHistoryRing(const uint8_t frame[], int len) {
-  if (len <= 0 || len > MAX_FRAME_SIZE) return;
+uint32_t MyMesh::addToHistoryRing(const uint8_t frame[], int len) {
+  if (len <= 0 || len > MAX_FRAME_SIZE) return 0;
   HistoryEntry& e = history_ring[history_head];
   e.len = (uint8_t)len;
   memcpy(e.buf, frame, len);
+  uint32_t assigned = history_next_seq;
   e.seq = history_next_seq++;
   history_head = (history_head + 1) % HISTORY_RING_SIZE;
   if (history_count < HISTORY_RING_SIZE) {
     history_count++;
   }
+  return assigned;
 }
 
 static bool clientIdEqual(const char* a, const char* b) {
@@ -1177,10 +1179,13 @@ void MyMesh::queueMessage(const ContactInfo &from, uint8_t txt_type, mesh::Packe
   }
   memcpy(&out_frame[i], text, tlen);
   i += tlen;
-  addToHistoryRing(out_frame, i);
+  uint32_t hist_seq = addToHistoryRing(out_frame, i);
 
   if (_serial->isConnected()) {
-    _serial->writeFrameToAll(out_frame, i);  // push full contact message to all clients (USB, BLE, TCP)
+    if (_serial->writeFrameToAll(out_frame, i) == (size_t)i && hist_seq != 0 &&
+        _serial->companionUnsolicitedPushesBroadcastToAll()) {
+      advanceAllHistoryClientsToSeq(hist_seq);
+    }
     uint8_t frame[1];
     frame[0] = PUSH_CODE_MSG_WAITING; // send push 'tickle'
     _serial->writeFrameToAll(frame, 1);
@@ -1274,9 +1279,12 @@ void MyMesh::onChannelMessageRecv(const mesh::GroupChannel &channel, mesh::Packe
   }
   memcpy(&out_frame[i], text, tlen);
   i += tlen;
-  addToHistoryRing(out_frame, i);
+  uint32_t hist_seq = addToHistoryRing(out_frame, i);
   if (_serial->isConnected()) {
-    _serial->writeFrameToAll(out_frame, i);  // push full channel message to all clients (USB, BLE, TCP)
+    if (_serial->writeFrameToAll(out_frame, i) == (size_t)i && hist_seq != 0 &&
+        _serial->companionUnsolicitedPushesBroadcastToAll()) {
+      advanceAllHistoryClientsToSeq(hist_seq);
+    }
     uint8_t frame[1];
     frame[0] = PUSH_CODE_MSG_WAITING; // send push 'tickle'
     _serial->writeFrameToAll(frame, 1);

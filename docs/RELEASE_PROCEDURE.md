@@ -2,7 +2,7 @@
 
 Use this for every new fix or release. **Rule: every release gets a new version number; never overwrite an existing version’s binaries.**
 
-Current latest version in the repo: **v1.14.0.19** (bump to next, e.g. v1.14.0.20).
+Current latest version in the repo: **v1.14.0.34** (bump to next for the following release).
 
 ---
 
@@ -49,6 +49,9 @@ sh scripts/copy-release-bins.sh v1.14.0.20
 
 - **`prebuilt/releases/v1.14.0.20/notes.md`**  
   Add release notes (highlights, fixes, build date).
+
+- **meshcomod-client (optional, local flasher)**  
+  If you use **MeshCore** and **meshcomod-client** side by side, run from meshcomod-client root: **`node scripts/sync-meshcore-prebuilt-for-flasher.mjs`** (or **`npm run dev`** in **`apps/web-flasher`**, which runs this in **`predev`**). That copies **`MeshCore/prebuilt`** into the flasher’s **`public/firmware-download/`** and merges version folders into the dropdown before **`ALLFATHER-BV/meshcomod`** on GitHub is updated. Production **flasher.meshcomod.com** still requires **`git push`** so GitHub serves the new **`prebuilt/releases/`** tree.
 
 - **`RELEASES.md`**  
   Add a new section at the **top** (below “Release process”):

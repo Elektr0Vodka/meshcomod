@@ -16,6 +16,22 @@ Versioned prebuilts are listed here so you can **roll back** if a newer release 
 
 ---
 
+## v1.14.0.34 — 2026-03-22
+
+**Firmware version:** v1.14.0.34 (meshcomod on upstream 1.14+).
+
+**Highlights:**
+- **meshcore-cli over TCP:** Fixes duplicate message lines ([issue #3](https://github.com/ALLFATHER-BV/meshcomod/issues/3)) by advancing sync history after a successful broadcast push of chat/channel frames, so `CMD_SYNC_NEXT_MESSAGE` does not re-deliver what you already received on the live push. Skips this when companion broadcast-to-all is disabled so other clients do not miss messages on sync.
+
+**Prebuilt binaries (use [flasher.meshcomod.com](https://flasher.meshcomod.com) — Easy mode auto-downloads versions; for manual upload, use Custom firmware):**
+
+| Device   | Merged (recommended) | Non-merged |
+|----------|----------------------|------------|
+| Heltec V4 | [heltec_v4_companion_radio_usb_tcp-merged.bin](prebuilt/releases/v1.14.0.34/heltec_v4_companion_radio_usb_tcp-merged.bin) | [heltec_v4_companion_radio_usb_tcp.bin](prebuilt/releases/v1.14.0.34/heltec_v4_companion_radio_usb_tcp.bin) |
+| Heltec V3 | [Heltec_v3_companion_radio_usb_tcp-merged.bin](prebuilt/releases/v1.14.0.34/Heltec_v3_companion_radio_usb_tcp-merged.bin) | [Heltec_v3_companion_radio_usb_tcp.bin](prebuilt/releases/v1.14.0.34/Heltec_v3_companion_radio_usb_tcp.bin) |
+
+---
+
 ## v1.14.0.33 — 2026-03-21
 
 **Firmware version:** v1.14.0.33 (meshcomod on upstream 1.14+).

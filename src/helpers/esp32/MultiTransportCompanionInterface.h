@@ -60,6 +60,7 @@ public:
   bool isWriteBusy() const override;
   size_t writeFrame(const uint8_t src[], size_t len) override;
   size_t writeFrameToAll(const uint8_t src[], size_t len) override;
+  bool companionUnsolicitedPushesBroadcastToAll() const override { return _broadcast; }
   size_t checkRecvFrame(uint8_t dest[]) override;
 
   void setCurrentClientId(const char* id) override;

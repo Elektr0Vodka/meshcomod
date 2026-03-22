@@ -8,11 +8,11 @@
 #define FIRMWARE_VER_CODE 26
 
 #ifndef FIRMWARE_BUILD_DATE
-#define FIRMWARE_BUILD_DATE "21 Mar 2026"
+#define FIRMWARE_BUILD_DATE "22 Mar 2026"
 #endif
 
 #ifndef FIRMWARE_VERSION
-#define FIRMWARE_VERSION "v1.14.0.33"
+#define FIRMWARE_VERSION "v1.14.0.34"
 #endif
 
 #if defined(NRF52_PLATFORM) || defined(STM32_PLATFORM)
@@ -190,7 +190,8 @@ private:
   void updateContactFromFrame(ContactInfo &contact, uint32_t& last_mod, const uint8_t *frame, int len);
   void addToOfflineQueue(const uint8_t frame[], int len);
   int getFromOfflineQueue(uint8_t frame[]);
-  void addToHistoryRing(const uint8_t frame[], int len);
+  /** Appends frame to ring; returns assigned seq, or 0 if rejected. */
+  uint32_t addToHistoryRing(const uint8_t frame[], int len);
   /** Get next history frame for client. If do_advance is false, does not advance last_delivered_seq (call commitHistoryForClient after successful write). */
   int getNextFromHistoryForClient(const char* client_id, uint8_t frame[], uint32_t* out_seq = nullptr, bool do_advance = true);
   void commitHistoryForClient(const char* client_id, uint32_t seq);
