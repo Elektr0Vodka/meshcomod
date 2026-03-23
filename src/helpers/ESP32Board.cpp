@@ -21,8 +21,51 @@ char g_meshcore_http_ota_display_line[28] = {0};
 #include <HTTPClient.h>
 #include <WiFiClientSecure.h>
 #include <Update.h>
+#include <esp_system.h>
 
 static volatile bool s_http_ota_reboot_pending = false;
+static bool s_http_ota_busy = false;
+
+namespace {
+
+struct HttpOtaBusyGuard {
+  bool* flag;
+  explicit HttpOtaBusyGuard(bool* f) : flag(f) { *flag = true; }
+  ~HttpOtaBusyGuard() { *flag = false; }
+};
+
+static bool httpOtaExtractHost(const char* url, char* host, size_t cap) {
+  const char* u = url;
+  if (strncmp(u, "https://", 8) == 0)
+    u += 8;
+  else if (strncmp(u, "http://", 7) == 0)
+    u += 7;
+  else
+    return false;
+  size_t i = 0;
+  while (u[i] && u[i] != '/' && u[i] != '?' && u[i] != '#' && u[i] != ':') {
+    if (i + 1 >= cap) return false;
+    host[i] = u[i];
+    i++;
+  }
+  host[i] = '\0';
+  return i > 0;
+}
+
+static void httpOtaEmitHostLookup(const char* url_label, const char* url) {
+  char host[64];
+  if (!httpOtaExtractHost(url, host, sizeof(host))) return;
+  IPAddress ip;
+  char line[112];
+  if (WiFi.hostByName(host, ip)) {
+    snprintf(line, sizeof(line), "OTA: diag %s %s -> %s", url_label, host, ip.toString().c_str());
+  } else {
+    snprintf(line, sizeof(line), "OTA: diag %s %s -> DNS fail", url_label, host);
+  }
+  meshcoreRepeaterTcpOtaEmitLine(line);
+}
+
+}  // namespace
 
 static void httpOtaDisplayReset() {
   g_meshcore_http_ota_display_active = 0;
@@ -157,6 +200,31 @@ static bool meshcoreRawGithubToMeshcomodProxy(const char* url, bool repeater_hos
   return n > 0 && (size_t)n < cap;
 }
 
+void ESP32Board::emitHttpOtaNetDiagnosticLines() {
+  if (WiFi.status() != WL_CONNECTED) {
+    meshcoreRepeaterTcpOtaEmitLine("OTA: diag wifi=disconnected");
+    return;
+  }
+  char line[120];
+  snprintf(line, sizeof(line), "OTA: diag heap=%u ip=%s", (unsigned)esp_get_free_heap_size(),
+           WiFi.localIP().toString().c_str());
+  meshcoreRepeaterTcpOtaEmitLine(line);
+  snprintf(line, sizeof(line), "OTA: diag gw=%s dns=%s rssi=%d", WiFi.gatewayIP().toString().c_str(),
+           WiFi.dnsIP().toString().c_str(), (int)WiFi.RSSI());
+  meshcoreRepeaterTcpOtaEmitLine(line);
+  static const char* const kHosts[] = {"raw.githubusercontent.com", "cdn.jsdelivr.net", "repeater.meshcomod.com",
+                                         "flasher.meshcomod.com", "github.com"};
+  for (size_t i = 0; i < sizeof(kHosts) / sizeof(kHosts[0]); i++) {
+    IPAddress ip;
+    if (WiFi.hostByName(kHosts[i], ip)) {
+      snprintf(line, sizeof(line), "OTA: diag %s -> %s", kHosts[i], ip.toString().c_str());
+    } else {
+      snprintf(line, sizeof(line), "OTA: diag %s -> DNS fail", kHosts[i]);
+    }
+    meshcoreRepeaterTcpOtaEmitLine(line);
+  }
+}
+
 bool ESP32Board::startOTAUpdate(const char* id, char reply[]) {
   inhibit_sleep = true;   // prevent sleep during OTA
   WiFi.softAP("MeshCore-OTA", NULL);
@@ -220,6 +288,11 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
     strcpy(reply, "ERR: WiFi not connected");
     return true;
   }
+  if (s_http_ota_busy) {
+    strcpy(reply, "ERR: OTA already running");
+    return true;
+  }
+  HttpOtaBusyGuard ota_busy_guard(&s_http_ota_busy);
 
   inhibit_sleep = true;
 
@@ -257,6 +330,17 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
     proxy_fls_http = ota_url_proxy_fls_http;
   }
 
+  {
+    char dline[120];
+    snprintf(dline, sizeof(dline), "OTA: diag heap=%u ip=%s", (unsigned)esp_get_free_heap_size(),
+             WiFi.localIP().toString().c_str());
+    meshcoreRepeaterTcpOtaEmitLine(dline);
+    snprintf(dline, sizeof(dline), "OTA: diag gw=%s dns=%s rssi=%d", WiFi.gatewayIP().toString().c_str(),
+             WiFi.dnsIP().toString().c_str(), (int)WiFi.RSSI());
+    meshcoreRepeaterTcpOtaEmitLine(dline);
+    httpOtaEmitHostLookup("fetch", fetch_url);
+  }
+
   WiFiClientSecure client;
   client.setInsecure();
   client.setTimeout(90000);
@@ -287,11 +371,16 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
       delay(200 * (attempt - 1));
       yield();
     }
-    if (!https.begin(client, target_url)) return HTTPC_ERROR_CONNECTION_REFUSED;
+    if (!https.begin(client, target_url)) {
+      client.stop();
+      delay(15);
+      return HTTPC_ERROR_CONNECTION_REFUSED;
+    }
     return https.GET();
   };
 
   auto getWithRetries = [&](const char* target_url) -> int {
+    httpOtaEmitHostLookup("try", target_url);
     int c = beginAndGet(target_url, 1);
     if (c < 0) {
       String err = https.errorToString(c);
@@ -299,14 +388,22 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
       snprintf(err_line, sizeof(err_line), "OTA: connect err %d %s", c, err.c_str());
       meshcoreRepeaterTcpOtaEmitLine(err_line);
       https.end();
+      client.stop();
+      delay(15);
       c = beginAndGet(target_url, 2);
       if (c < 0) {
         err = https.errorToString(c);
         snprintf(err_line, sizeof(err_line), "OTA: connect err %d %s", c, err.c_str());
         meshcoreRepeaterTcpOtaEmitLine(err_line);
         https.end();
+        client.stop();
+        delay(15);
         c = beginAndGet(target_url, 3);
       }
+    }
+    if (c < 0) {
+      https.end();
+      client.stop();
     }
     return c;
   };
@@ -322,12 +419,38 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
   int code = getWithRetries(fetch_url);
   if (code < 0) {
     https.end();
+    client.stop();
+    delay(15);
     int c = tryFallback(alt_fetch_url, "OTA: trying jsdelivr mirror");
     if (c == HTTP_CODE_OK) code = c;
-    if (code < 0) { https.end(); c = tryFallback(proxy_rep_https, "OTA: trying repeater proxy"); if (c == HTTP_CODE_OK) code = c; }
-    if (code < 0) { https.end(); c = tryFallback(proxy_fls_https, "OTA: trying flasher proxy"); if (c == HTTP_CODE_OK) code = c; }
-    if (code < 0) { https.end(); c = tryFallback(proxy_rep_http, "OTA: trying repeater proxy (http)"); if (c == HTTP_CODE_OK) code = c; }
-    if (code < 0) { https.end(); c = tryFallback(proxy_fls_http, "OTA: trying flasher proxy (http)"); if (c == HTTP_CODE_OK) code = c; }
+    if (code < 0) {
+      https.end();
+      client.stop();
+      delay(15);
+      c = tryFallback(proxy_rep_https, "OTA: trying repeater proxy");
+      if (c == HTTP_CODE_OK) code = c;
+    }
+    if (code < 0) {
+      https.end();
+      client.stop();
+      delay(15);
+      c = tryFallback(proxy_fls_https, "OTA: trying flasher proxy");
+      if (c == HTTP_CODE_OK) code = c;
+    }
+    if (code < 0) {
+      https.end();
+      client.stop();
+      delay(15);
+      c = tryFallback(proxy_rep_http, "OTA: trying repeater proxy (http)");
+      if (c == HTTP_CODE_OK) code = c;
+    }
+    if (code < 0) {
+      https.end();
+      client.stop();
+      delay(15);
+      c = tryFallback(proxy_fls_http, "OTA: trying flasher proxy (http)");
+      if (c == HTTP_CODE_OK) code = c;
+    }
   }
 
   if (code != HTTP_CODE_OK) {
@@ -338,6 +461,7 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
       snprintf(reply, 128, "ERR: HTTP %d", code);
     }
     https.end();
+    client.stop();
     httpOtaDisplayReset();
     return true;
   }
@@ -347,6 +471,7 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
   if (!stream) {
     strcpy(reply, "ERR: no stream");
     https.end();
+    client.stop();
     httpOtaDisplayReset();
     return true;
   }
@@ -357,6 +482,7 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
   if (!Update.begin(clen > 0 ? (size_t)clen : UPDATE_SIZE_UNKNOWN)) {
     snprintf(reply, 128, "ERR: %s", Update.errorString());
     https.end();
+    client.stop();
     httpOtaDisplayReset();
     return true;
   }
@@ -370,6 +496,7 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
     if (millis() - t0 > 180000UL) {
       Update.abort();
       https.end();
+      client.stop();
       httpOtaDisplayReset();
       strcpy(reply, "ERR: timeout");
       meshcoreRepeaterTcpOtaEmitLine("OTA: ERR timeout");
@@ -393,6 +520,7 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
       snprintf(reply, 128, "ERR: write %s", Update.errorString());
       Update.abort();
       https.end();
+      client.stop();
       httpOtaDisplayReset();
       meshcoreRepeaterTcpOtaEmitLine("OTA: ERR flash write");
       return true;
@@ -442,6 +570,8 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char reply[]) {
   (void)reply;
   return false;
 }
+
+void ESP32Board::emitHttpOtaNetDiagnosticLines() {}
 
 void ESP32Board::pollHttpOtaReboot() {}
 #endif

@@ -123,6 +123,7 @@ public:
 
   bool startOTAUpdate(const char* id, char reply[]) override;
   bool startHttpOtaFromUrl(const char* url, char reply[]) override;
+  void emitHttpOtaNetDiagnosticLines() override;
   void pollHttpOtaReboot() override;
 
   void setInhibitSleep(bool inhibit) {
