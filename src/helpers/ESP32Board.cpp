@@ -133,6 +133,30 @@ static bool meshcoreRawGithubToJsdelivr(const char* url, char* out, size_t cap) 
   return n > 0 && (size_t)n < cap;
 }
 
+/**
+ * `https://raw.githubusercontent.com/owner/repo/main/path` ->
+ * `https://repeater.meshcomod.com/firmware-download/path` (or flasher.meshcomod.com).
+ * The meshcomod nginx proxy maps /firmware-download/* to ALLFATHER-BV/meshcomod main/* on GitHub raw.
+ */
+static bool meshcoreRawGithubToMeshcomodProxy(const char* url, bool repeater_host, bool use_https, char* out,
+                                              size_t cap) {
+  static const char rawgh[] = "https://raw.githubusercontent.com/";
+  const size_t rawgh_len = sizeof(rawgh) - 1;
+  if (strncmp(url, rawgh, rawgh_len) != 0) return false;
+  const char* p = url + rawgh_len;
+
+  static const char prefix[] = "ALLFATHER-BV/meshcomod/main/";
+  const size_t prefix_len = sizeof(prefix) - 1;
+  if (strncmp(p, prefix, prefix_len) != 0) return false;
+  const char* rel = p + prefix_len;
+  if (!rel[0]) return false;
+
+  const char* scheme = use_https ? "https" : "http";
+  const char* host = repeater_host ? "repeater.meshcomod.com" : "flasher.meshcomod.com";
+  int n = snprintf(out, cap, "%s://%s/firmware-download/%s", scheme, host, rel);
+  return n > 0 && (size_t)n < cap;
+}
+
 bool ESP32Board::startOTAUpdate(const char* id, char reply[]) {
   inhibit_sleep = true;   // prevent sleep during OTA
   WiFi.softAP("MeshCore-OTA", NULL);
@@ -204,13 +228,33 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
 
   static char ota_url_buf[512];
   static char ota_url_alt_buf[512];
+  static char ota_url_proxy_rep_https[512];
+  static char ota_url_proxy_fls_https[512];
+  static char ota_url_proxy_rep_http[512];
+  static char ota_url_proxy_fls_http[512];
   const char* fetch_url = url_trim;
   const char* alt_fetch_url = nullptr;
+  const char* proxy_rep_https = nullptr;
+  const char* proxy_fls_https = nullptr;
+  const char* proxy_rep_http = nullptr;
+  const char* proxy_fls_http = nullptr;
   if (meshcoreGithubRawToRawUsercontent(url_trim, ota_url_buf, sizeof(ota_url_buf))) {
     fetch_url = ota_url_buf;
   }
   if (meshcoreRawGithubToJsdelivr(fetch_url, ota_url_alt_buf, sizeof(ota_url_alt_buf))) {
     alt_fetch_url = ota_url_alt_buf;
+  }
+  if (meshcoreRawGithubToMeshcomodProxy(fetch_url, true, true, ota_url_proxy_rep_https, sizeof(ota_url_proxy_rep_https))) {
+    proxy_rep_https = ota_url_proxy_rep_https;
+  }
+  if (meshcoreRawGithubToMeshcomodProxy(fetch_url, false, true, ota_url_proxy_fls_https, sizeof(ota_url_proxy_fls_https))) {
+    proxy_fls_https = ota_url_proxy_fls_https;
+  }
+  if (meshcoreRawGithubToMeshcomodProxy(fetch_url, true, false, ota_url_proxy_rep_http, sizeof(ota_url_proxy_rep_http))) {
+    proxy_rep_http = ota_url_proxy_rep_http;
+  }
+  if (meshcoreRawGithubToMeshcomodProxy(fetch_url, false, false, ota_url_proxy_fls_http, sizeof(ota_url_proxy_fls_http))) {
+    proxy_fls_http = ota_url_proxy_fls_http;
   }
 
   WiFiClientSecure client;
@@ -267,16 +311,23 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
     return c;
   };
 
+  auto tryFallback = [&](const char* candidate_url, const char* announce) -> int {
+    if (!candidate_url || strcmp(fetch_url, candidate_url) == 0) return -1;
+    if (announce) meshcoreRepeaterTcpOtaEmitLine(announce);
+    int c = getWithRetries(candidate_url);
+    if (c == HTTP_CODE_OK) fetch_url = candidate_url;
+    return c;
+  };
+
   int code = getWithRetries(fetch_url);
   if (code < 0) {
     https.end();
-    if (alt_fetch_url && strcmp(fetch_url, alt_fetch_url) != 0) {
-      meshcoreRepeaterTcpOtaEmitLine("OTA: trying jsdelivr mirror");
-      code = getWithRetries(alt_fetch_url);
-      if (code == HTTP_CODE_OK) {
-        fetch_url = alt_fetch_url;
-      }
-    }
+    int c = tryFallback(alt_fetch_url, "OTA: trying jsdelivr mirror");
+    if (c == HTTP_CODE_OK) code = c;
+    if (code < 0) { https.end(); c = tryFallback(proxy_rep_https, "OTA: trying repeater proxy"); if (c == HTTP_CODE_OK) code = c; }
+    if (code < 0) { https.end(); c = tryFallback(proxy_fls_https, "OTA: trying flasher proxy"); if (c == HTTP_CODE_OK) code = c; }
+    if (code < 0) { https.end(); c = tryFallback(proxy_rep_http, "OTA: trying repeater proxy (http)"); if (c == HTTP_CODE_OK) code = c; }
+    if (code < 0) { https.end(); c = tryFallback(proxy_fls_http, "OTA: trying flasher proxy (http)"); if (c == HTTP_CODE_OK) code = c; }
   }
 
   if (code != HTTP_CODE_OK) {
