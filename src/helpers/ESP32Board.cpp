@@ -52,6 +52,28 @@ static bool httpOtaExtractHost(const char* url, char* host, size_t cap) {
   return i > 0;
 }
 
+static bool httpOtaUrlLooksMergedBin(const char* url) {
+  if (!url) return false;
+  const char* marker = strstr(url, "-merged.bin");
+  if (marker) return true;
+  marker = strstr(url, "_merged.bin");
+  return marker != nullptr;
+}
+
+/** ESP32/ESP32-S3 app image header magic (first byte of .bin). */
+static bool httpOtaLooksLikeEsp32AppImage(const uint8_t* data, size_t len) {
+  return len >= 1 && data[0] == (uint8_t)0xE9;
+}
+
+static bool httpOtaResponseLooksLikeFirmwareBody(HTTPClient& http) {
+  if (!http.hasHeader("Content-Type")) return true;
+  String ct = http.header("Content-Type");
+  ct.toLowerCase();
+  if (ct.indexOf("text/html") >= 0) return false;
+  if (ct.indexOf("application/json") >= 0) return false;
+  return true;
+}
+
 static void httpOtaEmitHostLookup(const char* url_label, const char* url) {
   char host[64];
   if (!httpOtaExtractHost(url, host, sizeof(host))) return;
@@ -284,6 +306,11 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
     strcpy(reply, "ERR: URL not allowed");
     return true;
   }
+  if (httpOtaUrlLooksMergedBin(url_trim)) {
+    strcpy(reply, "ERR: use non-merged .bin for ota url");
+    meshcoreRepeaterTcpOtaEmitLine("OTA: ERR merged bin not allowed for OTA");
+    return true;
+  }
   if (WiFi.status() != WL_CONNECTED) {
     strcpy(reply, "ERR: WiFi not connected");
     return true;
@@ -430,44 +457,58 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
     return c;
   };
 
-  int code = getWithRetries(fetch_url);
-  if (code < 0) {
+  /* For ALLFATHER meshcomod main firmware, companion networks often reach http://repeater|flasher.meshcomod.com
+     while raw GitHub / HTTPS to the same hosts refuse. Try HTTP proxies first, then remaining mirrors. */
+  auto closeHttpClients = [&]() {
     https.end();
     tls_client.stop();
     plain_client.stop();
     delay(15);
-    int c = tryFallback(alt_fetch_url, "OTA: trying jsdelivr mirror");
-    if (c == HTTP_CODE_OK) code = c;
+  };
+
+  auto fetchFrom = [&](const char* candidate_url, const char* announce) -> int {
+    if (!candidate_url) return -1;
+    if (announce) meshcoreRepeaterTcpOtaEmitLine(announce);
+    closeHttpClients();
+    int c = getWithRetries(candidate_url);
+    if (c == HTTP_CODE_OK) fetch_url = candidate_url;
+    return c;
+  };
+
+  int code = -1;
+  if (proxy_rep_http) {
+    meshcoreRepeaterTcpOtaEmitLine("OTA: fetch order http-proxy-first");
+    code = fetchFrom(proxy_rep_http, "OTA: repeater http");
+    if (code != HTTP_CODE_OK) code = fetchFrom(proxy_fls_http, "OTA: flasher http");
+    if (code != HTTP_CODE_OK) code = fetchFrom(fetch_url, "OTA: raw github");
+    if (code != HTTP_CODE_OK) code = fetchFrom(alt_fetch_url, "OTA: jsdelivr");
+    if (code != HTTP_CODE_OK) code = fetchFrom(proxy_rep_https, "OTA: repeater https");
+    if (code != HTTP_CODE_OK) code = fetchFrom(proxy_fls_https, "OTA: flasher https");
+  } else {
+    code = getWithRetries(fetch_url);
     if (code < 0) {
-      https.end();
-      tls_client.stop();
-      plain_client.stop();
-      delay(15);
-      c = tryFallback(proxy_rep_https, "OTA: trying repeater proxy");
+      closeHttpClients();
+      int c = tryFallback(alt_fetch_url, "OTA: trying jsdelivr mirror");
       if (c == HTTP_CODE_OK) code = c;
     }
     if (code < 0) {
-      https.end();
-      tls_client.stop();
-      plain_client.stop();
-      delay(15);
-      c = tryFallback(proxy_fls_https, "OTA: trying flasher proxy");
+      closeHttpClients();
+      int c = tryFallback(proxy_rep_https, "OTA: trying repeater proxy");
       if (c == HTTP_CODE_OK) code = c;
     }
     if (code < 0) {
-      https.end();
-      tls_client.stop();
-      plain_client.stop();
-      delay(15);
-      c = tryFallback(proxy_rep_http, "OTA: trying repeater proxy (http)");
+      closeHttpClients();
+      int c = tryFallback(proxy_fls_https, "OTA: trying flasher proxy");
       if (c == HTTP_CODE_OK) code = c;
     }
     if (code < 0) {
-      https.end();
-      tls_client.stop();
-      plain_client.stop();
-      delay(15);
-      c = tryFallback(proxy_fls_http, "OTA: trying flasher proxy (http)");
+      closeHttpClients();
+      int c = tryFallback(proxy_rep_http, "OTA: trying repeater proxy (http)");
+      if (c == HTTP_CODE_OK) code = c;
+    }
+    if (code < 0) {
+      closeHttpClients();
+      int c = tryFallback(proxy_fls_http, "OTA: trying flasher proxy (http)");
       if (c == HTTP_CODE_OK) code = c;
     }
   }
@@ -479,6 +520,16 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
     } else {
       snprintf(reply, 128, "ERR: HTTP %d", code);
     }
+    https.end();
+    tls_client.stop();
+    plain_client.stop();
+    httpOtaDisplayReset();
+    return true;
+  }
+
+  if (!httpOtaResponseLooksLikeFirmwareBody(https)) {
+    strcpy(reply, "ERR: HTTP body not firmware");
+    meshcoreRepeaterTcpOtaEmitLine("OTA: ERR bad content-type");
     https.end();
     tls_client.stop();
     plain_client.stop();
@@ -500,7 +551,8 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
   httpOtaDisplaySet(0, "OTA: install started");
   meshcoreRepeaterTcpOtaEmitLine("OTA: HTTP OK, flashing");
 
-  if (!Update.begin(clen > 0 ? (size_t)clen : UPDATE_SIZE_UNKNOWN)) {
+  /* Unknown length uses full OTA partition; avoids bad Content-Length from proxies breaking Update. */
+  if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
     snprintf(reply, 128, "ERR: %s", Update.errorString());
     https.end();
     tls_client.stop();
@@ -509,7 +561,7 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
     return true;
   }
 
-  uint8_t buf[512];
+  uint8_t buf[2048];
   int remaining = clen;
   unsigned long t0 = millis();
   size_t total_written = 0;
@@ -539,6 +591,17 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
     int rd = stream->readBytes(buf, to_read);
     if (rd <= 0) break;
 
+    if (total_written == 0 && !httpOtaLooksLikeEsp32AppImage(buf, (size_t)rd)) {
+      strcpy(reply, "ERR: not ESP32 firmware (.bin)");
+      Update.abort();
+      https.end();
+      tls_client.stop();
+      plain_client.stop();
+      httpOtaDisplayReset();
+      meshcoreRepeaterTcpOtaEmitLine("OTA: ERR bad image magic");
+      return true;
+    }
+
     if (Update.write(buf, (size_t)rd) != (size_t)rd) {
       snprintf(reply, 128, "ERR: write %s", Update.errorString());
       Update.abort();
@@ -546,7 +609,9 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
       tls_client.stop();
       plain_client.stop();
       httpOtaDisplayReset();
-      meshcoreRepeaterTcpOtaEmitLine("OTA: ERR flash write");
+      char err_line[96];
+      snprintf(err_line, sizeof(err_line), "OTA: ERR flash write (%s)", Update.errorString());
+      meshcoreRepeaterTcpOtaEmitLine(err_line);
       return true;
     }
 
@@ -555,6 +620,27 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
 
     httpOtaEmitProgressThrottled(clen, total_written, "OTA: downloading");
     yield();
+  }
+
+  if (clen > 0 && total_written != (size_t)clen) {
+    snprintf(reply, 128, "ERR: incomplete %u/%d B", (unsigned)total_written, clen);
+    Update.abort();
+    https.end();
+    tls_client.stop();
+    plain_client.stop();
+    httpOtaDisplayReset();
+    meshcoreRepeaterTcpOtaEmitLine("OTA: ERR size mismatch");
+    return true;
+  }
+  if (total_written < 65536) {
+    strcpy(reply, "ERR: download too small");
+    Update.abort();
+    https.end();
+    tls_client.stop();
+    plain_client.stop();
+    httpOtaDisplayReset();
+    meshcoreRepeaterTcpOtaEmitLine("OTA: ERR download too small");
+    return true;
   }
 
   https.end();

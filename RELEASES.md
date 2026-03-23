@@ -16,6 +16,27 @@ Versioned prebuilts are listed here so you can **roll back** if a newer release 
 
 ---
 
+## v1.14.0.48 — 2026-03-23
+
+**Firmware version:** v1.14.0.48 (meshcomod on upstream 1.14+).
+
+**Highlights:**
+- **Companion OTA fetch path simplified to what works:** for meshcomod main firmware URLs, OTA now tries **HTTP meshcomod proxies first** (`http://repeater.meshcomod.com` then `http://flasher.meshcomod.com`), then other mirrors.
+- **Download/flash hardening:** rejects non-firmware bodies by content-type, verifies ESP image magic (`0xE9`) at stream start, uses `Update.begin(UPDATE_SIZE_UNKNOWN)`, and validates final size.
+- **Merged-bin guard kept:** `ota url` rejects `*-merged.bin` and requires non-merged app image.
+- **No TCP/WSS teardown:** app session behavior unchanged.
+- **Target parity:** V4 OLED, V4 TFT+touch, and V3 companion binaries (merged + non-merged).
+
+**Prebuilt binaries (use [flasher.meshcomod.com](https://flasher.meshcomod.com) — Easy mode auto-downloads versions; for manual upload, use Custom firmware):**
+
+| Device | Merged (recommended) | Non-merged |
+|--------|----------------------|------------|
+| Heltec V4 (OLED) | [heltec_v4_companion_radio_usb_tcp-merged.bin](prebuilt/releases/v1.14.0.48/heltec_v4_companion_radio_usb_tcp-merged.bin) | [heltec_v4_companion_radio_usb_tcp.bin](prebuilt/releases/v1.14.0.48/heltec_v4_companion_radio_usb_tcp.bin) |
+| Heltec V4 TFT + touch | [heltec_v4_tft_companion_radio_usb_tcp_touch-merged.bin](prebuilt/releases/v1.14.0.48/heltec_v4_tft_companion_radio_usb_tcp_touch-merged.bin) | [heltec_v4_tft_companion_radio_usb_tcp_touch.bin](prebuilt/releases/v1.14.0.48/heltec_v4_tft_companion_radio_usb_tcp_touch.bin) |
+| Heltec V3 | [Heltec_v3_companion_radio_usb_tcp-merged.bin](prebuilt/releases/v1.14.0.48/Heltec_v3_companion_radio_usb_tcp-merged.bin) | [Heltec_v3_companion_radio_usb_tcp.bin](prebuilt/releases/v1.14.0.48/Heltec_v3_companion_radio_usb_tcp.bin) |
+
+---
+
 ## v1.14.0.47 — 2026-03-24
 
 **Firmware version:** v1.14.0.47 (meshcomod on upstream 1.14+).

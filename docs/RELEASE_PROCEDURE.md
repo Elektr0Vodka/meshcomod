@@ -2,7 +2,7 @@
 
 Use this for every new fix or release. **Rule: every release gets a new version number; never overwrite an existing version’s binaries.**
 
-Current latest version in the repo: **v1.14.0.47** (bump to next for the following release).
+Current latest version in the repo: **v1.14.0.48** (bump to next for the following release).
 
 ---
 
