@@ -616,7 +616,7 @@ bool MyMesh::handleMeshcomodCommand(const char* text, int text_len) {
       s_meshcomod_ota_task_done = false;
       s_meshcomod_ota_task_running = true;
       pushMeshcomodReply("OTA requested. Download/flash started...");
-      BaseType_t task_ok = xTaskCreate(meshcomodOtaTask, "meshcomod_ota", 12288, ctx, 1, NULL);
+      BaseType_t task_ok = xTaskCreate(meshcomodOtaTask, "meshcomod_ota", 24576, ctx, 1, NULL);
       if (task_ok != pdPASS) {
         s_meshcomod_ota_task_running = false;
         free(ctx);
@@ -3285,7 +3285,6 @@ void MyMesh::loop() {
         snprintf(line, sizeof(line), "OTA: %u%% %s", (unsigned)g_meshcore_http_ota_display_pct,
                  g_meshcore_http_ota_display_line[0] ? g_meshcore_http_ota_display_line : "working");
       }
-      pushMeshcomodReply(line, true);
       if (_serial->isConnected()) {
         int j = 0;
         out_frame[j++] = PUSH_CODE_BINARY_RESPONSE;
@@ -3307,7 +3306,6 @@ void MyMesh::loop() {
   if (s_meshcomod_ota_task_done) {
     s_meshcomod_ota_task_done = false;
     const char* final_line = s_meshcomod_ota_task_reply[0] ? s_meshcomod_ota_task_reply : "OTA finished";
-    pushMeshcomodReply(final_line);
     if (_serial->isConnected()) {
       int j = 0;
       out_frame[j++] = PUSH_CODE_BINARY_RESPONSE;
