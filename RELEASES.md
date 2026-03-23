@@ -16,13 +16,32 @@ Versioned prebuilts are listed here so you can **roll back** if a newer release 
 
 ---
 
+## v1.14.0.38 — 2026-03-23
+
+**Firmware version:** v1.14.0.38 (meshcomod on upstream 1.14+).
+
+**Highlights:**
+- **Companion OTA stability:** deterministic **`flasher.meshcomod.com` HTTPS** fetch for meshcomod main firmware paths, with **raw GitHub fallback only** (no jsDelivr / repeater / HTTP mirror chain).
+- **57% class failures:** preflight **OTA partition size**, reject **HTML** and **merged** images, detect **truncation / size mismatch**; richer **`OTA:`** logs (URL tail, `Content-Type`, `Content-Length`, firmware signature, `Update` error + offset on flash write failure).
+- **Target parity:** V4 OLED, V4 TFT+touch, and V3 companion binaries (merged + non-merged).
+
+**Prebuilt binaries (use [flasher.meshcomod.com](https://flasher.meshcomod.com) — Easy mode auto-downloads versions; for manual upload, use Custom firmware):**
+
+| Device | Merged (recommended) | Non-merged |
+|--------|----------------------|------------|
+| Heltec V4 (OLED) | [heltec_v4_companion_radio_usb_tcp-merged.bin](prebuilt/releases/v1.14.0.38/heltec_v4_companion_radio_usb_tcp-merged.bin) | [heltec_v4_companion_radio_usb_tcp.bin](prebuilt/releases/v1.14.0.38/heltec_v4_companion_radio_usb_tcp.bin) |
+| Heltec V4 TFT + touch | [heltec_v4_tft_companion_radio_usb_tcp_touch-merged.bin](prebuilt/releases/v1.14.0.38/heltec_v4_tft_companion_radio_usb_tcp_touch-merged.bin) | [heltec_v4_tft_companion_radio_usb_tcp_touch.bin](prebuilt/releases/v1.14.0.38/heltec_v4_tft_companion_radio_usb_tcp_touch.bin) |
+| Heltec V3 | [Heltec_v3_companion_radio_usb_tcp-merged.bin](prebuilt/releases/v1.14.0.38/Heltec_v3_companion_radio_usb_tcp-merged.bin) | [Heltec_v3_companion_radio_usb_tcp.bin](prebuilt/releases/v1.14.0.38/Heltec_v3_companion_radio_usb_tcp.bin) |
+
+---
+
 ## v1.14.0.37 — 2026-03-23
 
 **Firmware version:** v1.14.0.37 (meshcomod on upstream 1.14+).
 
 **Highlights:**
 - **Release line reset:** removed failed release artifacts after `v1.14.0.36` and restarted clean from `v1.14.0.37`.
-- **Companion OTA rollback to baseline path:** restored `ESP32Board` OTA transport logic to the pre-regression baseline used before the mirror-chain churn.
+- **Companion OTA rollback to baseline path:** restored `ESP32Board` OTA transport logic to the pre-regression baseline used before the mirror-chain churn. **Superseded for OTA behaviour by v1.14.0.38** (deterministic flasher path + stricter validation).
 - **Target parity:** V4 OLED, V4 TFT+touch, and V3 companion binaries (merged + non-merged).
 
 **Prebuilt binaries (use [flasher.meshcomod.com](https://flasher.meshcomod.com) — Easy mode auto-downloads versions; for manual upload, use Custom firmware):**
