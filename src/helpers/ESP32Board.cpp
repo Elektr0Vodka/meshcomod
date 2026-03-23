@@ -568,9 +568,37 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
   };
 
   bool mirror_ok = false;
-  if (proxy_rep_http) {
-    meshcoreRepeaterTcpOtaEmitLine("OTA: repeater-http-only");
-    mirror_ok = tryMirror(proxy_rep_http, "OTA: repeater http");
+  if (proxy_rep_http || proxy_fls_http || proxy_fls_https || alt_fetch_url) {
+    meshcoreRepeaterTcpOtaEmitLine("OTA: robust mirror rounds");
+    const char* candidates[] = {
+      proxy_fls_https, proxy_fls_http, fetch_url, alt_fetch_url, proxy_rep_https, proxy_rep_http
+    };
+    const char* labels[] = {
+      "OTA: flasher https", "OTA: flasher http", "OTA: raw github",
+      "OTA: jsdelivr", "OTA: repeater https", "OTA: repeater http"
+    };
+    const int rounds = 3;
+    for (int round = 1; round <= rounds && !mirror_ok; round++) {
+      char round_line[48];
+      snprintf(round_line, sizeof(round_line), "OTA: mirror round %d/%d", round, rounds);
+      meshcoreRepeaterTcpOtaEmitLine(round_line);
+      for (size_t i = 0; i < sizeof(candidates) / sizeof(candidates[0]); i++) {
+        if (!candidates[i]) continue;
+        mirror_ok = tryMirror(candidates[i], labels[i]);
+        if (mirror_ok) break;
+      }
+      if (!mirror_ok) {
+        if (WiFi.status() != WL_CONNECTED) {
+          WiFi.reconnect();
+          unsigned long wait_t0 = millis();
+          while (WiFi.status() != WL_CONNECTED && (millis() - wait_t0) < 6000UL) {
+            delay(100);
+            yield();
+          }
+        }
+        delay(250 * round);
+      }
+    }
   } else {
     /* Non-meshcomod URLs: keep only the explicit URL the user provided (no mirrors). */
     mirror_ok = tryMirror(fetch_url, "OTA: direct");
