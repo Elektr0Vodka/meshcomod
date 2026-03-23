@@ -341,10 +341,13 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
     httpOtaEmitHostLookup("fetch", fetch_url);
   }
 
-  WiFiClientSecure client;
-  client.setInsecure();
-  client.setTimeout(90000);
-  client.setHandshakeTimeout(30);
+  WiFiClientSecure tls_client;
+  tls_client.setInsecure();
+  tls_client.setTimeout(90000);
+  tls_client.setHandshakeTimeout(30);
+
+  WiFiClient plain_client;
+  plain_client.setTimeout(90000);
 
   HTTPClient https;
   https.setTimeout(90000);
@@ -371,8 +374,16 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
       delay(200 * (attempt - 1));
       yield();
     }
-    if (!https.begin(client, target_url)) {
-      client.stop();
+    bool is_https = (strncmp(target_url, "https://", 8) == 0);
+    bool ok = false;
+    if (is_https) {
+      ok = https.begin(tls_client, target_url);
+    } else {
+      ok = https.begin(plain_client, target_url);
+    }
+    if (!ok) {
+      tls_client.stop();
+      plain_client.stop();
       delay(15);
       return HTTPC_ERROR_CONNECTION_REFUSED;
     }
@@ -388,7 +399,8 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
       snprintf(err_line, sizeof(err_line), "OTA: connect err %d %s", c, err.c_str());
       meshcoreRepeaterTcpOtaEmitLine(err_line);
       https.end();
-      client.stop();
+      tls_client.stop();
+      plain_client.stop();
       delay(15);
       c = beginAndGet(target_url, 2);
       if (c < 0) {
@@ -396,14 +408,16 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
         snprintf(err_line, sizeof(err_line), "OTA: connect err %d %s", c, err.c_str());
         meshcoreRepeaterTcpOtaEmitLine(err_line);
         https.end();
-        client.stop();
+        tls_client.stop();
+        plain_client.stop();
         delay(15);
         c = beginAndGet(target_url, 3);
       }
     }
     if (c < 0) {
       https.end();
-      client.stop();
+      tls_client.stop();
+      plain_client.stop();
     }
     return c;
   };
@@ -419,34 +433,39 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
   int code = getWithRetries(fetch_url);
   if (code < 0) {
     https.end();
-    client.stop();
+    tls_client.stop();
+    plain_client.stop();
     delay(15);
     int c = tryFallback(alt_fetch_url, "OTA: trying jsdelivr mirror");
     if (c == HTTP_CODE_OK) code = c;
     if (code < 0) {
       https.end();
-      client.stop();
+      tls_client.stop();
+      plain_client.stop();
       delay(15);
       c = tryFallback(proxy_rep_https, "OTA: trying repeater proxy");
       if (c == HTTP_CODE_OK) code = c;
     }
     if (code < 0) {
       https.end();
-      client.stop();
+      tls_client.stop();
+      plain_client.stop();
       delay(15);
       c = tryFallback(proxy_fls_https, "OTA: trying flasher proxy");
       if (c == HTTP_CODE_OK) code = c;
     }
     if (code < 0) {
       https.end();
-      client.stop();
+      tls_client.stop();
+      plain_client.stop();
       delay(15);
       c = tryFallback(proxy_rep_http, "OTA: trying repeater proxy (http)");
       if (c == HTTP_CODE_OK) code = c;
     }
     if (code < 0) {
       https.end();
-      client.stop();
+      tls_client.stop();
+      plain_client.stop();
       delay(15);
       c = tryFallback(proxy_fls_http, "OTA: trying flasher proxy (http)");
       if (c == HTTP_CODE_OK) code = c;
@@ -461,7 +480,8 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
       snprintf(reply, 128, "ERR: HTTP %d", code);
     }
     https.end();
-    client.stop();
+    tls_client.stop();
+    plain_client.stop();
     httpOtaDisplayReset();
     return true;
   }
@@ -471,7 +491,8 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
   if (!stream) {
     strcpy(reply, "ERR: no stream");
     https.end();
-    client.stop();
+    tls_client.stop();
+    plain_client.stop();
     httpOtaDisplayReset();
     return true;
   }
@@ -482,7 +503,8 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
   if (!Update.begin(clen > 0 ? (size_t)clen : UPDATE_SIZE_UNKNOWN)) {
     snprintf(reply, 128, "ERR: %s", Update.errorString());
     https.end();
-    client.stop();
+    tls_client.stop();
+    plain_client.stop();
     httpOtaDisplayReset();
     return true;
   }
@@ -496,7 +518,8 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
     if (millis() - t0 > 180000UL) {
       Update.abort();
       https.end();
-      client.stop();
+      tls_client.stop();
+      plain_client.stop();
       httpOtaDisplayReset();
       strcpy(reply, "ERR: timeout");
       meshcoreRepeaterTcpOtaEmitLine("OTA: ERR timeout");
@@ -520,7 +543,8 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
       snprintf(reply, 128, "ERR: write %s", Update.errorString());
       Update.abort();
       https.end();
-      client.stop();
+      tls_client.stop();
+      plain_client.stop();
       httpOtaDisplayReset();
       meshcoreRepeaterTcpOtaEmitLine("OTA: ERR flash write");
       return true;
