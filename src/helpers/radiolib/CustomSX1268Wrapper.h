@@ -4,6 +4,10 @@
 #include "RadioLibWrappers.h"
 #include "SX126xReset.h"
 
+#ifndef USE_SX1268
+#define USE_SX1268
+#endif
+
 class CustomSX1268Wrapper : public RadioLibWrapper {
 public:
   CustomSX1268Wrapper(CustomSX1268& radio, mesh::MainBoard& board) : RadioLibWrapper(radio, board) { }
@@ -23,7 +27,10 @@ public:
 
   void doResetAGC() override { sx126xResetAGC((SX126x *)_radio); }
 
-  int16_t setRxBoostedGainMode(bool enable) {
-    return ((CustomSX1268 *)_radio)->setRxBoostedGainMode(enable);
+  void setRxBoostedGainMode(bool en) override {
+    ((CustomSX1268 *)_radio)->setRxBoostedGainMode(en);
+  }
+  bool getRxBoostedGainMode() const override {
+    return ((CustomSX1268 *)_radio)->getRxBoostedGainMode();
   }
 };

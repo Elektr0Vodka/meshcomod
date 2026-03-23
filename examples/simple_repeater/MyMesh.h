@@ -69,11 +69,11 @@ struct NeighbourInfo {
 };
 
 #ifndef FIRMWARE_BUILD_DATE
-  #define FIRMWARE_BUILD_DATE   "6 Mar 2026"
+  #define FIRMWARE_BUILD_DATE   "20 Mar 2026"
 #endif
 
 #ifndef FIRMWARE_VERSION
-  #define FIRMWARE_VERSION   "repeater-0.0.0-dev"
+  #define FIRMWARE_VERSION   "v1.14.1"
 #endif
 
 #define FIRMWARE_ROLE "repeater"
@@ -250,5 +250,8 @@ public:
   size_t handleRepeaterTcpCompanionCommand(const uint8_t *cmd, size_t cmd_len, uint8_t *out, size_t out_cap,
                                            void (*emit_extra)(void *, const uint8_t *, size_t),
                                            void *emit_ctx);
+#endif
+#if defined(USE_SX1262) || defined(USE_SX1268)
+  void setRxBoostedGain(bool enable) override;
 #endif
 };

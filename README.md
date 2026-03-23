@@ -102,6 +102,8 @@ You can run the **full meshcomod web client as a tab inside Home Assistant**. Co
 
 Flash a prebuilt firmware. No local build needed.
 
+Contributors to **upstream MeshCore**: use the `dev` branch for PRs; for larger changes, open an Issue first — see [meshcore-dev/MeshCore](https://github.com/meshcore-dev/MeshCore).
+
 **Latest** prebuilt files (non-merged shown first, then merged):
 
 - Heltec V4 (non-merged): [`prebuilt/heltec_v4_companion_radio_usb_tcp.bin`](prebuilt/heltec_v4_companion_radio_usb_tcp.bin)
