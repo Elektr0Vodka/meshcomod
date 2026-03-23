@@ -347,39 +347,40 @@ void UITask::begin(NodePrefs* node_prefs, const char* build_date, const char* fi
 
 void UITask::renderCurrScreen() {
 #if defined(REPEATER_TCP_COMPANION) && defined(ESP32) && defined(DISPLAY_CLASS) && defined(PIN_USER_BTN)
-  if (millis() < REPEATER_TCP_SPLASH_MS) {
+  // Splash must be measured from when the UI task starts (same idea as companion ui-new:
+  // dismiss_after = millis() + BOOT_SCREEN_MILLIS at splash creation). Using raw millis() since
+  // boot fails after a long setup(): the 3s window expires before the first loop() paint.
+  if ((millis() - s_ui_started_at) < REPEATER_TCP_SPLASH_MS) {
     render_repeater_tcp_boot_splash(*_display);
     return;
   }
-  if (millis() >= REPEATER_TCP_SPLASH_MS) {
-    if (g_meshcore_http_ota_display_active) {
-      _display->setTextSize(1);
-      render_http_ota_screen(*_display);
-      return;
-    }
+  if (g_meshcore_http_ota_display_active) {
     _display->setTextSize(1);
-    draw_page_dots(*_display);
-    if (s_page == PAGE_RADIO) {
-      render_repeater_tcp_home(*_display, _node_prefs);
-    } else if (s_page == PAGE_NETWORK) {
-      render_repeater_tcp_network(*_display);
-    } else if (s_page == PAGE_WS) {
-      render_repeater_tcp_ws(*_display);
-    } else {
-      render_repeater_tcp_advert(*_display);
-    }
-    if (millis() < s_alert_expiry) {
-      int y = _display->height() / 3;
-      int p = _display->height() / 32;
-      _display->setTextSize(1);
-      _display->setColor(DisplayDriver::DARK);
-      _display->fillRect(p, y, _display->width() - p * 2, y);
-      _display->setColor(DisplayDriver::LIGHT);
-      _display->drawRect(p, y, _display->width() - p * 2, y);
-      _display->drawTextCentered(_display->width() / 2, y + p * 3, s_alert);
-    }
+    render_http_ota_screen(*_display);
     return;
   }
+  _display->setTextSize(1);
+  draw_page_dots(*_display);
+  if (s_page == PAGE_RADIO) {
+    render_repeater_tcp_home(*_display, _node_prefs);
+  } else if (s_page == PAGE_NETWORK) {
+    render_repeater_tcp_network(*_display);
+  } else if (s_page == PAGE_WS) {
+    render_repeater_tcp_ws(*_display);
+  } else {
+    render_repeater_tcp_advert(*_display);
+  }
+  if (millis() < s_alert_expiry) {
+    int y = _display->height() / 3;
+    int p = _display->height() / 32;
+    _display->setTextSize(1);
+    _display->setColor(DisplayDriver::DARK);
+    _display->fillRect(p, y, _display->width() - p * 2, y);
+    _display->setColor(DisplayDriver::LIGHT);
+    _display->drawRect(p, y, _display->width() - p * 2, y);
+    _display->drawTextCentered(_display->width() / 2, y + p * 3, s_alert);
+  }
+  return;
 #endif
   char tmp[80];
   if (millis() < BOOT_SCREEN_MILLIS) {
@@ -419,7 +420,7 @@ void UITask::loop() {
   if (millis() >= _next_read) {
     int ev = user_btn.check();
     char c = 0;
-    const bool boot_done = (millis() >= REPEATER_TCP_SPLASH_MS);
+    const bool boot_done = ((millis() - s_ui_started_at) >= REPEATER_TCP_SPLASH_MS);
     if (ev == BUTTON_EVENT_CLICK) {
       if (!_display->isOn()) {
         _display->turnOn();
