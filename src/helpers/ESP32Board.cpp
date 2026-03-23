@@ -568,18 +568,12 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
   };
 
   bool mirror_ok = false;
-  if (proxy_fls_https || proxy_fls_http) {
-    meshcoreRepeaterTcpOtaEmitLine("OTA: fetch flasher-first");
-    mirror_ok = tryMirror(proxy_fls_https, "OTA: flasher https") || tryMirror(proxy_fls_http, "OTA: flasher http") ||
-                tryMirror(fetch_url, "OTA: raw github") || tryMirror(alt_fetch_url, "OTA: jsdelivr");
+  if (proxy_rep_http) {
+    meshcoreRepeaterTcpOtaEmitLine("OTA: repeater-http-only");
+    mirror_ok = tryMirror(proxy_rep_http, "OTA: repeater http");
   } else {
-    mirror_ok = tryMirror(fetch_url, nullptr);
-    if (!mirror_ok && alt_fetch_url && strcmp(fetch_url, alt_fetch_url) != 0)
-      mirror_ok = tryMirror(alt_fetch_url, "OTA: trying jsdelivr mirror");
-    if (!mirror_ok && proxy_fls_https && strcmp(fetch_url, proxy_fls_https) != 0)
-      mirror_ok = tryMirror(proxy_fls_https, "OTA: trying flasher proxy");
-    if (!mirror_ok && proxy_fls_http && strcmp(fetch_url, proxy_fls_http) != 0)
-      mirror_ok = tryMirror(proxy_fls_http, "OTA: trying flasher proxy (http)");
+    /* Non-meshcomod URLs: keep only the explicit URL the user provided (no mirrors). */
+    mirror_ok = tryMirror(fetch_url, "OTA: direct");
   }
 
   if (!mirror_ok) {
