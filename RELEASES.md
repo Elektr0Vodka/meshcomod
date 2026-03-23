@@ -16,6 +16,26 @@ Versioned prebuilts are listed here so you can **roll back** if a newer release 
 
 ---
 
+## v1.14.0.49 — 2026-03-23
+
+**Firmware version:** v1.14.0.49 (meshcomod on upstream 1.14+).
+
+**Highlights:**
+- **OTA through meshcomod HTTP proxy:** strip **UTF-8 BOM** and **leading whitespace** some proxies prepend before the `.bin` body, then verify ESP image magic (`0xE9`). Fixes false `OTA: ERR bad image magic` when the file on GitHub is valid.
+- **Body length check:** incomplete downloads use HTTP `Content-Length` / `remaining` on the stream, not flash bytes written (junk no longer counted as firmware).
+- **Prior releases in this train:** HTTP-proxy-first fetch order, plain `WiFiClient` for `http://`, `Update.begin(UPDATE_SIZE_UNKNOWN)`, merged-bin rejection.
+- **Target parity:** V4 OLED, V4 TFT+touch, and V3 companion binaries (merged + non-merged).
+
+**Prebuilt binaries (use [flasher.meshcomod.com](https://flasher.meshcomod.com) — Easy mode auto-downloads versions; for manual upload, use Custom firmware):**
+
+| Device | Merged (recommended) | Non-merged |
+|--------|----------------------|------------|
+| Heltec V4 (OLED) | [heltec_v4_companion_radio_usb_tcp-merged.bin](prebuilt/releases/v1.14.0.49/heltec_v4_companion_radio_usb_tcp-merged.bin) | [heltec_v4_companion_radio_usb_tcp.bin](prebuilt/releases/v1.14.0.49/heltec_v4_companion_radio_usb_tcp.bin) |
+| Heltec V4 TFT + touch | [heltec_v4_tft_companion_radio_usb_tcp_touch-merged.bin](prebuilt/releases/v1.14.0.49/heltec_v4_tft_companion_radio_usb_tcp_touch-merged.bin) | [heltec_v4_tft_companion_radio_usb_tcp_touch.bin](prebuilt/releases/v1.14.0.49/heltec_v4_tft_companion_radio_usb_tcp_touch.bin) |
+| Heltec V3 | [Heltec_v3_companion_radio_usb_tcp-merged.bin](prebuilt/releases/v1.14.0.49/Heltec_v3_companion_radio_usb_tcp-merged.bin) | [Heltec_v3_companion_radio_usb_tcp.bin](prebuilt/releases/v1.14.0.49/Heltec_v3_companion_radio_usb_tcp.bin) |
+
+---
+
 ## v1.14.0.48 — 2026-03-23
 
 **Firmware version:** v1.14.0.48 (meshcomod on upstream 1.14+).

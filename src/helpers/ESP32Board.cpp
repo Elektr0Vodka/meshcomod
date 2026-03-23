@@ -60,9 +60,87 @@ static bool httpOtaUrlLooksMergedBin(const char* url) {
   return marker != nullptr;
 }
 
-/** ESP32/ESP32-S3 app image header magic (first byte of .bin). */
-static bool httpOtaLooksLikeEsp32AppImage(const uint8_t* data, size_t len) {
-  return len >= 1 && data[0] == (uint8_t)0xE9;
+/** Skip UTF-8 BOM and ASCII whitespace some proxies prepend before the raw .bin body. */
+static size_t httpOtaLeadingJunkLen(const uint8_t* data, size_t len) {
+  size_t i = 0;
+  if (len >= 3 && data[0] == 0xEFu && data[1] == 0xBBu && data[2] == 0xBFu) i = 3;
+  while (i < len && (data[i] == 0x20u || data[i] == 0x09u || data[i] == 0x0Au || data[i] == 0x0Du)) i++;
+  return i;
+}
+
+/**
+ * Read up to `cap` bytes until we see a valid ESP32 app image start (0xE9) after leading junk.
+ * Updates *remaining_inout when Content-Length is known (body bytes consumed).
+ */
+static bool httpOtaPeekEsp32ImagePrefix(WiFiClient* stream, HTTPClient& https, int* remaining_inout,
+                                        uint8_t* prefix, size_t cap, size_t* out_len, size_t* out_skip,
+                                        char* reply) {
+  size_t prefix_len = 0;
+  unsigned long tp0 = millis();
+  int& rem = *remaining_inout;
+
+  while (prefix_len < cap && (millis() - tp0) < 30000UL) {
+    if (!https.connected() && stream->available() == 0 && prefix_len > 0) break;
+
+    size_t av = stream->available();
+    if (!av) {
+      if (rem == 0) break;
+      if (rem < 0 && !https.connected()) break;
+      delay(2);
+      yield();
+      continue;
+    }
+
+    size_t chunk = cap - prefix_len;
+    if (chunk > av) chunk = av;
+    int n = stream->readBytes(prefix + prefix_len, chunk);
+    if (n <= 0) break;
+    prefix_len += (size_t)n;
+    if (rem > 0) rem -= n;
+
+    size_t skip = httpOtaLeadingJunkLen(prefix, prefix_len);
+    if (skip >= prefix_len) continue;
+
+    uint8_t b = prefix[skip];
+    if (b == (uint8_t)0xE9) {
+      *out_len = prefix_len;
+      *out_skip = skip;
+      return true;
+    }
+    if (b == 0x1Fu && skip + 1 < prefix_len && prefix[skip + 1] == 0x8Bu) {
+      strcpy(reply, "ERR: gzip body not supported");
+      meshcoreRepeaterTcpOtaEmitLine("OTA: ERR gzip");
+      return false;
+    }
+    if (prefix_len - skip >= 4u) {
+      if (!memcmp(prefix + skip, "<htm", 4) || !memcmp(prefix + skip, "<!DO", 4)) {
+        strcpy(reply, "ERR: HTML not firmware");
+        meshcoreRepeaterTcpOtaEmitLine("OTA: ERR html body");
+        return false;
+      }
+    }
+    /* First non-junk byte is not image magic: fail once we have enough context. */
+    if (prefix_len >= 24 || prefix_len - skip >= 2u) {
+      char line[80];
+      snprintf(line, sizeof(line), "OTA: diag first %02x %02x %02x %02x", prefix[skip],
+               (skip + 1 < prefix_len) ? prefix[skip + 1] : 0u, (skip + 2 < prefix_len) ? prefix[skip + 2] : 0u,
+               (skip + 3 < prefix_len) ? prefix[skip + 3] : 0u);
+      meshcoreRepeaterTcpOtaEmitLine(line);
+      strcpy(reply, "ERR: not ESP32 firmware (.bin)");
+      meshcoreRepeaterTcpOtaEmitLine("OTA: ERR bad image magic");
+      return false;
+    }
+  }
+
+  if (prefix_len > 0) {
+    char line[80];
+    snprintf(line, sizeof(line), "OTA: diag first %02x %02x %02x %02x", prefix[0],
+             prefix_len > 1 ? prefix[1] : 0u, prefix_len > 2 ? prefix[2] : 0u, prefix_len > 3 ? prefix[3] : 0u);
+    meshcoreRepeaterTcpOtaEmitLine(line);
+  }
+  strcpy(reply, "ERR: not ESP32 firmware (.bin)");
+  meshcoreRepeaterTcpOtaEmitLine("OTA: ERR bad image magic");
+  return false;
 }
 
 static bool httpOtaResponseLooksLikeFirmwareBody(HTTPClient& http) {
@@ -548,6 +626,19 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
     return true;
   }
 
+  int remaining = clen;
+  uint8_t prefix[320];
+  size_t prefix_len = 0;
+  size_t prefix_skip = 0;
+  if (!httpOtaPeekEsp32ImagePrefix(stream, https, &remaining, prefix, sizeof(prefix), &prefix_len, &prefix_skip,
+                                   reply)) {
+    https.end();
+    tls_client.stop();
+    plain_client.stop();
+    httpOtaDisplayReset();
+    return true;
+  }
+
   httpOtaDisplaySet(0, "OTA: install started");
   meshcoreRepeaterTcpOtaEmitLine("OTA: HTTP OK, flashing");
 
@@ -561,10 +652,23 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
     return true;
   }
 
+  size_t first_flash = prefix_len - prefix_skip;
+  if (Update.write(prefix + prefix_skip, first_flash) != first_flash) {
+    snprintf(reply, 128, "ERR: write %s", Update.errorString());
+    Update.abort();
+    https.end();
+    tls_client.stop();
+    plain_client.stop();
+    httpOtaDisplayReset();
+    char err_line[96];
+    snprintf(err_line, sizeof(err_line), "OTA: ERR flash write (%s)", Update.errorString());
+    meshcoreRepeaterTcpOtaEmitLine(err_line);
+    return true;
+  }
+
   uint8_t buf[2048];
-  int remaining = clen;
   unsigned long t0 = millis();
-  size_t total_written = 0;
+  size_t total_written = first_flash;
 
   while (https.connected() && (remaining > 0 || remaining == -1)) {
     if (millis() - t0 > 180000UL) {
@@ -591,17 +695,6 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
     int rd = stream->readBytes(buf, to_read);
     if (rd <= 0) break;
 
-    if (total_written == 0 && !httpOtaLooksLikeEsp32AppImage(buf, (size_t)rd)) {
-      strcpy(reply, "ERR: not ESP32 firmware (.bin)");
-      Update.abort();
-      https.end();
-      tls_client.stop();
-      plain_client.stop();
-      httpOtaDisplayReset();
-      meshcoreRepeaterTcpOtaEmitLine("OTA: ERR bad image magic");
-      return true;
-    }
-
     if (Update.write(buf, (size_t)rd) != (size_t)rd) {
       snprintf(reply, 128, "ERR: write %s", Update.errorString());
       Update.abort();
@@ -622,8 +715,8 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
     yield();
   }
 
-  if (clen > 0 && total_written != (size_t)clen) {
-    snprintf(reply, 128, "ERR: incomplete %u/%d B", (unsigned)total_written, clen);
+  if (clen > 0 && remaining != 0) {
+    snprintf(reply, 128, "ERR: incomplete body rem=%d", remaining);
     Update.abort();
     https.end();
     tls_client.stop();
