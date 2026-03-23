@@ -34,8 +34,8 @@ sh scripts/copy-repeater-release-bins.sh repeater-1.0.0
 
 Produces:
 
-- `prebuilt/heltec_v4_repeater_tcp.bin`, `prebuilt/Heltec_v3_repeater_tcp.bin`
-- `prebuilt/releases/repeater-1.0.0/` with the same two files
+- `prebuilt/heltec_v4_repeater_tcp.bin`, `prebuilt/Heltec_v3_repeater_tcp.bin`, and (when built) **`prebuilt/heltec_v4_tft_repeater_tcp.bin`** plus optional **`*-merged.bin`**
+- `prebuilt/releases/repeater-1.0.0/` with the same files
 
 Add **`prebuilt/releases/repeater-1.0.0/notes.md`** for that drop.
 

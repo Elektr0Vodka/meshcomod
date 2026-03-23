@@ -19,6 +19,14 @@ sh scripts/copy-release-bins.sh <version>
 
 Produces e.g. `prebuilt/heltec_v4_companion_radio_usb_tcp.bin` and `prebuilt/releases/<version>/…`.
 
+**Heltec V4 meshcomod extras** (OLED/TFT **USB-only**, **BLE**, **Wi‑Fi** companions; **plain** OLED/TFT repeaters — not the meshcomod USB+TCP row above): after the same `FIRMWARE_VERSION` builds in `out/`, run:
+
+```bash
+sh scripts/copy-heltec-v4-meshcomod-extras.sh <version>
+```
+
+Copies stable names into `prebuilt/` and `prebuilt/releases/<version>/`. See [`releases/v1.14.0.41/notes.md`](releases/v1.14.0.41/notes.md) for the file list.
+
 **Repeater TCP** (Heltec V4 / V3 Wi‑Fi companion subset): after versioned builds in `out/`, run:
 
 ```bash
@@ -27,7 +35,7 @@ sh scripts/copy-repeater-release-bins.sh <version>
 
 Produces:
 
-- `prebuilt/heltec_v4_repeater_tcp.bin`
+- `prebuilt/heltec_v4_repeater_tcp.bin`, optional **`heltec_v4_tft_repeater_tcp.bin`** (+ merged variants when built)
 - `prebuilt/Heltec_v3_repeater_tcp.bin`
 - Same filenames under `prebuilt/releases/<version>/`
 

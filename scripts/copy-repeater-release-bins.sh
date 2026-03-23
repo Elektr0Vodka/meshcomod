@@ -45,11 +45,15 @@ copy_one_optional() {
 # heltec_v4_repeater_tcp-meshcomod-${VERSION}-<sha>.bin (meshcomod- prefix on FIRMWARE_VERSION).
 V4_PLAIN=$(ls -t out/heltec_v4_repeater_tcp-"${VERSION}"-*.bin out/heltec_v4_repeater_tcp-meshcomod-"${VERSION}"-*.bin 2>/dev/null | grep -v merged | head -1)
 V4_MERGED=$(ls -t out/heltec_v4_repeater_tcp-"${VERSION}"-*-merged.bin out/heltec_v4_repeater_tcp-meshcomod-"${VERSION}"-*-merged.bin 2>/dev/null | head -1)
+V4TFT_PLAIN=$(ls -t out/heltec_v4_tft_repeater_tcp-"${VERSION}"-*.bin out/heltec_v4_tft_repeater_tcp-meshcomod-"${VERSION}"-*.bin 2>/dev/null | grep -v merged | head -1)
+V4TFT_MERGED=$(ls -t out/heltec_v4_tft_repeater_tcp-"${VERSION}"-*-merged.bin out/heltec_v4_tft_repeater_tcp-meshcomod-"${VERSION}"-*-merged.bin 2>/dev/null | head -1)
 V3_PLAIN=$(ls -t out/Heltec_v3_repeater_tcp-"${VERSION}"-*.bin out/Heltec_v3_repeater_tcp-meshcomod-"${VERSION}"-*.bin 2>/dev/null | grep -v merged | head -1)
 V3_MERGED=$(ls -t out/Heltec_v3_repeater_tcp-"${VERSION}"-*-merged.bin out/Heltec_v3_repeater_tcp-meshcomod-"${VERSION}"-*-merged.bin 2>/dev/null | head -1)
 
 copy_one "$V4_PLAIN" "heltec_v4_repeater_tcp.bin"
 copy_one_optional "$V4_MERGED" "heltec_v4_repeater_tcp-merged.bin"
+copy_one_optional "$V4TFT_PLAIN" "heltec_v4_tft_repeater_tcp.bin"
+copy_one_optional "$V4TFT_MERGED" "heltec_v4_tft_repeater_tcp-merged.bin"
 copy_one "$V3_PLAIN" "Heltec_v3_repeater_tcp.bin"
 copy_one_optional "$V3_MERGED" "Heltec_v3_repeater_tcp-merged.bin"
 
