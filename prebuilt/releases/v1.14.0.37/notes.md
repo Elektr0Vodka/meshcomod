@@ -3,9 +3,8 @@
 Date: 2026-03-23
 
 ### Highlights
-- Fixes companion OTA command-path behavior where `ota url ...` could appear stalled with little or no feedback.
-- Runs URL OTA in a background task and streams OTA progress lines back over Meshcomod during download/flash.
-- Includes final OTA completion/error status over the same companion command transport.
+- Reset release line after v1.14.0.36 and republished clean companion binaries.
+- Restored companion OTA transport logic to the known pre-regression baseline path.
 
 ### Binaries
 - `heltec_v4_companion_radio_usb_tcp.bin`

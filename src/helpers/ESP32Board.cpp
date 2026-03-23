@@ -52,102 +52,6 @@ static bool httpOtaExtractHost(const char* url, char* host, size_t cap) {
   return i > 0;
 }
 
-static bool httpOtaUrlLooksMergedBin(const char* url) {
-  if (!url) return false;
-  const char* marker = strstr(url, "-merged.bin");
-  if (marker) return true;
-  marker = strstr(url, "_merged.bin");
-  return marker != nullptr;
-}
-
-/** Skip UTF-8 BOM and ASCII whitespace some proxies prepend before the raw .bin body. */
-static size_t httpOtaLeadingJunkLen(const uint8_t* data, size_t len) {
-  size_t i = 0;
-  if (len >= 3 && data[0] == 0xEFu && data[1] == 0xBBu && data[2] == 0xBFu) i = 3;
-  while (i < len && (data[i] == 0x20u || data[i] == 0x09u || data[i] == 0x0Au || data[i] == 0x0Du)) i++;
-  return i;
-}
-
-/**
- * Read up to `cap` bytes until we see a valid ESP32 app image start (0xE9) after leading junk.
- * Updates *remaining_inout when Content-Length is known (body bytes consumed).
- * @return 1 if firmware prefix found; 0 if this mirror should be skipped (try next URL).
- */
-static int httpOtaPeekEsp32ImagePrefix(WiFiClient* stream, HTTPClient& https, int* remaining_inout,
-                                       uint8_t* prefix, size_t cap, size_t* out_len, size_t* out_skip) {
-  size_t prefix_len = 0;
-  unsigned long tp0 = millis();
-  int& rem = *remaining_inout;
-
-  while (prefix_len < cap && (millis() - tp0) < 30000UL) {
-    if (!https.connected() && stream->available() == 0 && prefix_len > 0) break;
-
-    size_t av = stream->available();
-    if (!av) {
-      if (rem == 0) break;
-      if (rem < 0 && !https.connected()) break;
-      delay(2);
-      yield();
-      continue;
-    }
-
-    size_t chunk = cap - prefix_len;
-    if (chunk > av) chunk = av;
-    int n = stream->readBytes(prefix + prefix_len, chunk);
-    if (n <= 0) break;
-    prefix_len += (size_t)n;
-    if (rem > 0) rem -= n;
-
-    size_t skip = httpOtaLeadingJunkLen(prefix, prefix_len);
-    if (skip >= prefix_len) continue;
-
-    uint8_t b = prefix[skip];
-    if (b == (uint8_t)0xE9) {
-      *out_len = prefix_len;
-      *out_skip = skip;
-      return 1;
-    }
-    if (b == 0x1Fu && skip + 1 < prefix_len && prefix[skip + 1] == 0x8Bu) {
-      meshcoreRepeaterTcpOtaEmitLine("OTA: skip mirror (gzip)");
-      return 0;
-    }
-    if (prefix_len - skip >= 4u) {
-      if (!memcmp(prefix + skip, "<htm", 4) || !memcmp(prefix + skip, "<!DO", 4)) {
-        meshcoreRepeaterTcpOtaEmitLine("OTA: skip mirror (html)");
-        return 0;
-      }
-    }
-    /* First non-junk byte is not image magic: fail once we have enough context. */
-    if (prefix_len >= 24 || prefix_len - skip >= 2u) {
-      char line[80];
-      snprintf(line, sizeof(line), "OTA: diag first %02x %02x %02x %02x", prefix[skip],
-               (skip + 1 < prefix_len) ? prefix[skip + 1] : 0u, (skip + 2 < prefix_len) ? prefix[skip + 2] : 0u,
-               (skip + 3 < prefix_len) ? prefix[skip + 3] : 0u);
-      meshcoreRepeaterTcpOtaEmitLine(line);
-      meshcoreRepeaterTcpOtaEmitLine("OTA: skip mirror (not ESP bin)");
-      return 0;
-    }
-  }
-
-  if (prefix_len > 0) {
-    char line[80];
-    snprintf(line, sizeof(line), "OTA: diag first %02x %02x %02x %02x", prefix[0],
-             prefix_len > 1 ? prefix[1] : 0u, prefix_len > 2 ? prefix[2] : 0u, prefix_len > 3 ? prefix[3] : 0u);
-    meshcoreRepeaterTcpOtaEmitLine(line);
-  }
-  meshcoreRepeaterTcpOtaEmitLine("OTA: skip mirror (peek timeout)");
-  return 0;
-}
-
-static bool httpOtaResponseLooksLikeFirmwareBody(HTTPClient& http) {
-  if (!http.hasHeader("Content-Type")) return true;
-  String ct = http.header("Content-Type");
-  ct.toLowerCase();
-  if (ct.indexOf("text/html") >= 0) return false;
-  if (ct.indexOf("application/json") >= 0) return false;
-  return true;
-}
-
 static void httpOtaEmitHostLookup(const char* url_label, const char* url) {
   char host[64];
   if (!httpOtaExtractHost(url, host, sizeof(host))) return;
@@ -380,11 +284,6 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
     strcpy(reply, "ERR: URL not allowed");
     return true;
   }
-  if (httpOtaUrlLooksMergedBin(url_trim)) {
-    strcpy(reply, "ERR: use non-merged .bin for ota url");
-    meshcoreRepeaterTcpOtaEmitLine("OTA: ERR merged bin not allowed for OTA");
-    return true;
-  }
   if (WiFi.status() != WL_CONNECTED) {
     strcpy(reply, "ERR: WiFi not connected");
     return true;
@@ -523,99 +422,77 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
     return c;
   };
 
-  /* For ALLFATHER meshcomod main firmware, try several mirrors. HTTP 200 + HTML error page from one host
-     must not abort OTA — skip that mirror and try the next (raw GitHub, jsDelivr, other proxies). */
-  auto closeHttpClients = [&]() {
+  auto tryFallback = [&](const char* candidate_url, const char* announce) -> int {
+    if (!candidate_url || strcmp(fetch_url, candidate_url) == 0) return -1;
+    if (announce) meshcoreRepeaterTcpOtaEmitLine(announce);
+    int c = getWithRetries(candidate_url);
+    if (c == HTTP_CODE_OK) fetch_url = candidate_url;
+    return c;
+  };
+
+  int code = getWithRetries(fetch_url);
+  if (code < 0) {
     https.end();
     tls_client.stop();
     plain_client.stop();
     delay(15);
-  };
-
-  int clen = 0;
-  int remaining = 0;
-  uint8_t prefix[320];
-  size_t prefix_len = 0;
-  size_t prefix_skip = 0;
-
-  auto tryMirror = [&](const char* candidate_url, const char* announce) -> bool {
-    if (!candidate_url) return false;
-    if (announce) meshcoreRepeaterTcpOtaEmitLine(announce);
-    closeHttpClients();
-    int code = getWithRetries(candidate_url);
-    if (code != HTTP_CODE_OK) return false;
-    if (!httpOtaResponseLooksLikeFirmwareBody(https)) {
-      meshcoreRepeaterTcpOtaEmitLine("OTA: skip mirror (content-type)");
-      closeHttpClients();
-      return false;
+    int c = tryFallback(alt_fetch_url, "OTA: trying jsdelivr mirror");
+    if (c == HTTP_CODE_OK) code = c;
+    if (code < 0) {
+      https.end();
+      tls_client.stop();
+      plain_client.stop();
+      delay(15);
+      c = tryFallback(proxy_rep_https, "OTA: trying repeater proxy");
+      if (c == HTTP_CODE_OK) code = c;
     }
-    clen = https.getSize();
-    remaining = clen;
-    WiFiClient* stream = https.getStreamPtr();
-    if (!stream) {
-      closeHttpClients();
-      return false;
+    if (code < 0) {
+      https.end();
+      tls_client.stop();
+      plain_client.stop();
+      delay(15);
+      c = tryFallback(proxy_fls_https, "OTA: trying flasher proxy");
+      if (c == HTTP_CODE_OK) code = c;
     }
-    prefix_len = 0;
-    prefix_skip = 0;
-    if (httpOtaPeekEsp32ImagePrefix(stream, https, &remaining, prefix, sizeof(prefix), &prefix_len, &prefix_skip) !=
-        1) {
-      closeHttpClients();
-      return false;
+    if (code < 0) {
+      https.end();
+      tls_client.stop();
+      plain_client.stop();
+      delay(15);
+      c = tryFallback(proxy_rep_http, "OTA: trying repeater proxy (http)");
+      if (c == HTTP_CODE_OK) code = c;
     }
-    fetch_url = candidate_url;
-    return true;
-  };
-
-  bool mirror_ok = false;
-  if (proxy_rep_http || proxy_fls_http || proxy_fls_https || alt_fetch_url) {
-    meshcoreRepeaterTcpOtaEmitLine("OTA: robust mirror rounds");
-    const char* candidates[] = {
-      proxy_fls_https, proxy_fls_http, fetch_url, alt_fetch_url, proxy_rep_https, proxy_rep_http
-    };
-    const char* labels[] = {
-      "OTA: flasher https", "OTA: flasher http", "OTA: raw github",
-      "OTA: jsdelivr", "OTA: repeater https", "OTA: repeater http"
-    };
-    const int rounds = 3;
-    for (int round = 1; round <= rounds && !mirror_ok; round++) {
-      char round_line[48];
-      snprintf(round_line, sizeof(round_line), "OTA: mirror round %d/%d", round, rounds);
-      meshcoreRepeaterTcpOtaEmitLine(round_line);
-      for (size_t i = 0; i < sizeof(candidates) / sizeof(candidates[0]); i++) {
-        if (!candidates[i]) continue;
-        mirror_ok = tryMirror(candidates[i], labels[i]);
-        if (mirror_ok) break;
-      }
-      if (!mirror_ok) {
-        if (WiFi.status() != WL_CONNECTED) {
-          WiFi.reconnect();
-          unsigned long wait_t0 = millis();
-          while (WiFi.status() != WL_CONNECTED && (millis() - wait_t0) < 6000UL) {
-            delay(100);
-            yield();
-          }
-        }
-        delay(250 * round);
-      }
+    if (code < 0) {
+      https.end();
+      tls_client.stop();
+      plain_client.stop();
+      delay(15);
+      c = tryFallback(proxy_fls_http, "OTA: trying flasher proxy (http)");
+      if (c == HTTP_CODE_OK) code = c;
     }
-  } else {
-    /* Non-meshcomod URLs: keep only the explicit URL the user provided (no mirrors). */
-    mirror_ok = tryMirror(fetch_url, "OTA: direct");
   }
 
-  if (!mirror_ok) {
-    strcpy(reply, "ERR: no usable OTA mirror");
-    meshcoreRepeaterTcpOtaEmitLine("OTA: ERR all mirrors failed");
-    closeHttpClients();
+  if (code != HTTP_CODE_OK) {
+    String err = (code < 0) ? https.errorToString(code) : String("");
+    if (code < 0 && err.length() > 0) {
+      snprintf(reply, 128, "ERR: HTTP %d (%s)", code, err.c_str());
+    } else {
+      snprintf(reply, 128, "ERR: HTTP %d", code);
+    }
+    https.end();
+    tls_client.stop();
+    plain_client.stop();
     httpOtaDisplayReset();
     return true;
   }
 
+  int clen = https.getSize();
   WiFiClient* stream = https.getStreamPtr();
   if (!stream) {
     strcpy(reply, "ERR: no stream");
-    closeHttpClients();
+    https.end();
+    tls_client.stop();
+    plain_client.stop();
     httpOtaDisplayReset();
     return true;
   }
@@ -623,8 +500,7 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
   httpOtaDisplaySet(0, "OTA: install started");
   meshcoreRepeaterTcpOtaEmitLine("OTA: HTTP OK, flashing");
 
-  /* Unknown length uses full OTA partition; avoids bad Content-Length from proxies breaking Update. */
-  if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
+  if (!Update.begin(clen > 0 ? (size_t)clen : UPDATE_SIZE_UNKNOWN)) {
     snprintf(reply, 128, "ERR: %s", Update.errorString());
     https.end();
     tls_client.stop();
@@ -633,23 +509,10 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
     return true;
   }
 
-  size_t first_flash = prefix_len - prefix_skip;
-  if (Update.write(prefix + prefix_skip, first_flash) != first_flash) {
-    snprintf(reply, 128, "ERR: write %s", Update.errorString());
-    Update.abort();
-    https.end();
-    tls_client.stop();
-    plain_client.stop();
-    httpOtaDisplayReset();
-    char err_line[96];
-    snprintf(err_line, sizeof(err_line), "OTA: ERR flash write (%s)", Update.errorString());
-    meshcoreRepeaterTcpOtaEmitLine(err_line);
-    return true;
-  }
-
-  uint8_t buf[2048];
+  uint8_t buf[512];
+  int remaining = clen;
   unsigned long t0 = millis();
-  size_t total_written = first_flash;
+  size_t total_written = 0;
 
   while (https.connected() && (remaining > 0 || remaining == -1)) {
     if (millis() - t0 > 180000UL) {
@@ -683,9 +546,7 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
       tls_client.stop();
       plain_client.stop();
       httpOtaDisplayReset();
-      char err_line[96];
-      snprintf(err_line, sizeof(err_line), "OTA: ERR flash write (%s)", Update.errorString());
-      meshcoreRepeaterTcpOtaEmitLine(err_line);
+      meshcoreRepeaterTcpOtaEmitLine("OTA: ERR flash write");
       return true;
     }
 
@@ -694,27 +555,6 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
 
     httpOtaEmitProgressThrottled(clen, total_written, "OTA: downloading");
     yield();
-  }
-
-  if (clen > 0 && remaining != 0) {
-    snprintf(reply, 128, "ERR: incomplete body rem=%d", remaining);
-    Update.abort();
-    https.end();
-    tls_client.stop();
-    plain_client.stop();
-    httpOtaDisplayReset();
-    meshcoreRepeaterTcpOtaEmitLine("OTA: ERR size mismatch");
-    return true;
-  }
-  if (total_written < 65536) {
-    strcpy(reply, "ERR: download too small");
-    Update.abort();
-    https.end();
-    tls_client.stop();
-    plain_client.stop();
-    httpOtaDisplayReset();
-    meshcoreRepeaterTcpOtaEmitLine("OTA: ERR download too small");
-    return true;
   }
 
   https.end();
