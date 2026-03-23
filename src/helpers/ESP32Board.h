@@ -123,6 +123,8 @@ public:
 
   bool startOTAUpdate(const char* id, char reply[]) override;
   bool startHttpOtaFromUrl(const char* url, char reply[]) override;
+  void prepareHttpOtaMinimalTransport(uint8_t wifi_path) override;
+  void restoreHttpOtaMinimalTransport() override;
   void emitHttpOtaNetDiagnosticLines() override;
   void pollHttpOtaReboot() override;
 
@@ -156,5 +158,8 @@ public:
     settimeofday(&tv, NULL);
   }
 };
+
+/** Repeater TCP companion: suspend non-active Wi-Fi transports during HTTP OTA. */
+void meshcoreRegisterHttpOtaMinimalTransport(void (*prepare)(uint8_t wifi_path), void (*restore)());
 
 #endif

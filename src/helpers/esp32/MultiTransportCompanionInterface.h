@@ -58,6 +58,7 @@ public:
   bool isEnabled() const override { return _isEnabled; }
   void prepareForHttpOta() override;
   void restoreAfterHttpOta() override;
+  bool isHttpOtaWifiControlSession() const override;
   bool isConnected() const override;
   bool isWriteBusy() const override;
   size_t writeFrame(const uint8_t src[], size_t len) override;
@@ -87,6 +88,8 @@ private:
   bool _isEnabled;
   bool _broadcast;           // if true, also send responses to all other clients
   int _last_reply_target;    // REPLY_TARGET_USB, REPLY_TARGET_BLE, TCP index, or REPLY_TARGET_WS_0 + ws index
+  bool _ota_tcp_suspended;
+  bool _ota_ws_suspended;
 #ifdef BLE_PIN_CODE
   SerialBLEInterface _ble;
   bool _ble_begun;    // beginBle() was called

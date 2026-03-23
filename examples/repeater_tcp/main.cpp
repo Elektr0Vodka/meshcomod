@@ -9,6 +9,12 @@
 #include "MyMesh.h"
 #include "repeater_transport.h"
 
+#if defined(ESP32) && defined(REPEATER_TCP_COMPANION)
+#include <helpers/HttpOtaWifiSession.h>
+#include <helpers/RepeaterTcpOtaEmit.h>
+#include <helpers/ESP32Board.h>
+#endif
+
 #if defined(ESP32)
 volatile int g_boot_phase = 0;
 extern "C" void set_boot_phase(int phase) {
@@ -41,6 +47,57 @@ MyMesh the_mesh(board, radio_driver, *new ArduinoMillis(), fast_rng, rtc_clock, 
 TCPCompanionServer tcp_server;
 WebSocketCompanionServer ws_server;
 
+#if defined(ESP32) && defined(REPEATER_TCP_COMPANION)
+static bool s_rep_tcp_started = false;
+static bool s_rep_ws_started = false;
+static bool s_rep_ota_stopped_ws_for_tcp = false;
+static bool s_rep_ota_stopped_tcp_for_ws = false;
+
+static void repeater_http_ota_prepare(uint8_t path) {
+  s_rep_ota_stopped_ws_for_tcp = false;
+  s_rep_ota_stopped_tcp_for_ws = false;
+  char line[128];
+  snprintf(line, sizeof(line), "OTA: minimal repeater path=%u heap=%u before", (unsigned)path,
+           (unsigned)ESP.getFreeHeap());
+  meshcoreRepeaterTcpOtaEmitLine(line);
+  if (path == MESHCORE_HTTP_OTA_PATH_TCP && s_rep_ws_started) {
+    ws_server.stop();
+    s_rep_ws_started = false;
+    s_rep_ota_stopped_ws_for_tcp = true;
+    meshcoreRepeaterTcpOtaEmitLine("OTA: suspended repeater WebSocket server");
+  } else if (path == MESHCORE_HTTP_OTA_PATH_WS && s_rep_tcp_started) {
+    tcp_server.stop();
+    s_rep_tcp_started = false;
+    s_rep_ota_stopped_tcp_for_ws = true;
+    meshcoreRepeaterTcpOtaEmitLine("OTA: suspended repeater TCP server");
+  }
+  snprintf(line, sizeof(line), "OTA: minimal repeater heap=%u max=%u after", (unsigned)ESP.getFreeHeap(),
+           (unsigned)ESP.getMaxAllocHeap());
+  meshcoreRepeaterTcpOtaEmitLine(line);
+}
+
+static void repeater_http_ota_restore() {
+  const bool wifi_ok =
+      WiFi.status() == WL_CONNECTED && repeater_transport_enabled && wifiConfigGetRadioEnabled();
+  if (s_rep_ota_stopped_ws_for_tcp && wifi_ok && !s_rep_ws_started) {
+#if WS_USE_TLS
+    ws_server.begin(WS_PORT, true);
+#else
+    ws_server.begin(WS_PORT, false);
+#endif
+    s_rep_ws_started = true;
+    meshcoreRepeaterTcpOtaEmitLine("OTA: restored repeater WebSocket server");
+  }
+  if (s_rep_ota_stopped_tcp_for_ws && !s_rep_tcp_started) {
+    tcp_server.begin(TCP_PORT);
+    s_rep_tcp_started = true;
+    meshcoreRepeaterTcpOtaEmitLine("OTA: restored repeater TCP server");
+  }
+  s_rep_ota_stopped_ws_for_tcp = false;
+  s_rep_ota_stopped_tcp_for_ws = false;
+}
+#endif
+
 volatile bool repeater_transport_enabled = true;
 
 void halt() {
@@ -53,22 +110,13 @@ static char command[160];
 unsigned long lastActive = 0;
 unsigned long nextSleepinSecs = 120;
 
-enum class RpCliKind { Tcp, Ws };
-
-struct RepeaterEmitCtx {
-  TCPCompanionServer *tcp;
-  WebSocketCompanionServer *ws;
-  RpCliKind kind;
-  int client_index;
-};
-
 static void repeater_emit_frame(void *ctx, const uint8_t *buf, size_t len) {
-  auto *t = (RepeaterEmitCtx *)ctx;
+  auto *t = (MeshcoreRepeaterEmitCtx *)ctx;
   if (!t || len == 0) return;
-  if (t->kind == RpCliKind::Tcp) {
-    t->tcp->writeToClient(t->client_index, buf, len);
+  if (t->transport_path == MESHCORE_HTTP_OTA_PATH_TCP) {
+    static_cast<TCPCompanionServer *>(t->tcp)->writeToClient(t->client_index, buf, len);
   } else {
-    t->ws->writeToClient(t->client_index, buf, len);
+    static_cast<WebSocketCompanionServer *>(t->ws)->writeToClient(t->client_index, buf, len);
   }
 }
 
@@ -186,6 +234,7 @@ void setup() {
   Serial.println(" (WS)");
 #endif
   Serial.println("WiFi: NVS credentials (meshcomod / USB) or optional compile-time WIFI_SSID");
+  meshcoreRegisterHttpOtaMinimalTransport(repeater_http_ota_prepare, repeater_http_ota_restore);
 #endif
 
 #if ENABLE_ADVERT_ON_BOOT == 1
@@ -237,43 +286,40 @@ void loop() {
       last_wifi_retry_ms = 0;
     }
 
-    static bool s_tcp_started = false;
-    static bool s_ws_started = false;
-
     // WebSocket follows TCP: never listen on WS unless the TCP companion server is up.
     if (repeater_transport_enabled) {
-      if (!s_tcp_started) {
+      if (!s_rep_tcp_started) {
         tcp_server.begin(TCP_PORT);
-        s_tcp_started = true;
+        s_rep_tcp_started = true;
       }
-      if (s_tcp_started && WiFi.status() == WL_CONNECTED) {
-        if (!s_ws_started) {
+      if (s_rep_tcp_started && WiFi.status() == WL_CONNECTED) {
+        if (!s_rep_ws_started) {
 #if WS_USE_TLS
           ws_server.begin(WS_PORT, true);
 #else
           ws_server.begin(WS_PORT, false);
 #endif
-          s_ws_started = true;
+          s_rep_ws_started = true;
         }
       } else {
-        if (s_ws_started) {
+        if (s_rep_ws_started) {
           ws_server.stop();
-          s_ws_started = false;
+          s_rep_ws_started = false;
         }
       }
 #if WS_USE_TLS
-      if (s_ws_started) {
+      if (s_rep_ws_started) {
         ws_server.tickHandshake();
       }
 #endif
     } else {
-      if (s_ws_started) {
+      if (s_rep_ws_started) {
         ws_server.stop();
-        s_ws_started = false;
+        s_rep_ws_started = false;
       }
-      if (s_tcp_started) {
+      if (s_rep_tcp_started) {
         tcp_server.stop();
-        s_tcp_started = false;
+        s_rep_tcp_started = false;
       }
     }
 
@@ -281,29 +327,29 @@ void loop() {
     static uint8_t frame_out[MAX_FRAME_SIZE];
     size_t n = 0;
     int client_index = -1;
-    RpCliKind from = RpCliKind::Tcp;
+    uint8_t transport_path = MESHCORE_HTTP_OTA_PATH_TCP;
 
-    if (repeater_transport_enabled && s_tcp_started) {
+    if (repeater_transport_enabled && s_rep_tcp_started) {
       n = tcp_server.pollRecvFrame(frame_in, &client_index);
       if (n > 0 && client_index >= 0) {
-        from = RpCliKind::Tcp;
+        transport_path = MESHCORE_HTTP_OTA_PATH_TCP;
       }
     }
-    if (n == 0 && repeater_transport_enabled && s_ws_started) {
+    if (n == 0 && repeater_transport_enabled && s_rep_ws_started) {
       int ws_idx = -1;
       n = ws_server.pollRecvFrame(frame_in, &ws_idx);
       if (n > 0 && ws_idx >= 0) {
-        from = RpCliKind::Ws;
         client_index = ws_idx;
+        transport_path = MESHCORE_HTTP_OTA_PATH_WS;
       }
     }
 
     if (n > 0 && client_index >= 0) {
-      RepeaterEmitCtx emit_ctx = {&tcp_server, &ws_server, from, client_index};
+      MeshcoreRepeaterEmitCtx emit_ctx = {&tcp_server, &ws_server, transport_path, client_index};
       size_t olen = the_mesh.handleRepeaterTcpCompanionCommand(frame_in, n, frame_out, sizeof(frame_out),
                                                                repeater_emit_frame, &emit_ctx);
       if (olen > 0) {
-        if (from == RpCliKind::Tcp) {
+        if (transport_path == MESHCORE_HTTP_OTA_PATH_TCP) {
           tcp_server.writeToClient(client_index, frame_out, olen);
         } else {
           ws_server.writeToClient(client_index, frame_out, olen);

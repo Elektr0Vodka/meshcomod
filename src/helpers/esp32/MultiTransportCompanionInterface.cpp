@@ -1,8 +1,9 @@
 #include "MultiTransportCompanionInterface.h"
+#include <helpers/RepeaterTcpOtaEmit.h>
 #include <string.h>
 
 MultiTransportCompanionInterface::MultiTransportCompanionInterface()
-  : _tcp_port(0), _ws_port(0), _tcp_started(false), _ws_started(false), _tcp_enabled(true), _wss_enabled(false), _isEnabled(false), _broadcast(false), _last_reply_target(REPLY_TARGET_USB)
+  : _tcp_port(0), _ws_port(0), _tcp_started(false), _ws_started(false), _tcp_enabled(true), _wss_enabled(false), _isEnabled(false), _broadcast(false), _last_reply_target(REPLY_TARGET_USB), _ota_tcp_suspended(false), _ota_ws_suspended(false)
 #ifdef BLE_PIN_CODE
   , _ble_begun(false), _ble_enabled(false), _ota_ble_released(false), _ble_pin_code(0)
 #endif
@@ -142,15 +143,56 @@ void MultiTransportCompanionInterface::disable() {
 }
 
 void MultiTransportCompanionInterface::prepareForHttpOta() {
+  _ota_tcp_suspended = false;
+  _ota_ws_suspended = false;
+
+  const bool preserve_tcp = (_last_reply_target >= 0 && _last_reply_target < REPLY_TARGET_WS_0);
+  const bool preserve_ws = (_last_reply_target >= REPLY_TARGET_WS_0);
+
+  char line[168];
+  if (preserve_tcp) {
+    snprintf(line, sizeof(line), "OTA: minimal companion preserve=tcp suspend=ws,ble heap=%u",
+             (unsigned)ESP.getFreeHeap());
+  } else if (preserve_ws) {
+    snprintf(line, sizeof(line), "OTA: minimal companion preserve=ws suspend=tcp,ble heap=%u",
+             (unsigned)ESP.getFreeHeap());
+  } else {
+    snprintf(line, sizeof(line), "OTA: minimal companion unexpected reply_target=%d heap=%u", _last_reply_target,
+             (unsigned)ESP.getFreeHeap());
+  }
+  meshcoreRepeaterTcpOtaEmitLine(line);
+
+  if (preserve_ws && _tcp_started) {
+    _tcp.stop();
+    _tcp_started = false;
+    _ota_tcp_suspended = true;
+    meshcoreRepeaterTcpOtaEmitLine("OTA: suspended companion TCP server");
+  }
+  if (preserve_tcp && _ws_started) {
+    _ws.stop();
+    _ws_started = false;
+    _ota_ws_suspended = true;
+    meshcoreRepeaterTcpOtaEmitLine("OTA: suspended companion WebSocket server");
+  }
+
 #ifdef BLE_PIN_CODE
-  if (_ble_begun && _ble_enabled && _last_reply_target != REPLY_TARGET_BLE) {
+  if (_ble_begun && _ble_enabled) {
     _ble.disable();
     BLEDevice::deinit(true);
     _ble_begun = false;
     _ble_enabled = false;
     _ota_ble_released = true;
+    meshcoreRepeaterTcpOtaEmitLine("OTA: released BLE stack");
   }
 #endif
+
+  snprintf(line, sizeof(line), "OTA: minimal companion after heap=%u max=%u", (unsigned)ESP.getFreeHeap(),
+           (unsigned)ESP.getMaxAllocHeap());
+  meshcoreRepeaterTcpOtaEmitLine(line);
+}
+
+bool MultiTransportCompanionInterface::isHttpOtaWifiControlSession() const {
+  return _last_reply_target != REPLY_TARGET_USB && _last_reply_target != REPLY_TARGET_BLE;
 }
 
 void MultiTransportCompanionInterface::restoreAfterHttpOta() {
@@ -164,8 +206,21 @@ void MultiTransportCompanionInterface::restoreAfterHttpOta() {
     _ble_enabled = true;
     _ble.enable();
     _ota_ble_released = false;
+    meshcoreRepeaterTcpOtaEmitLine("OTA: restored BLE stack");
   }
 #endif
+  if (_ota_tcp_suspended) {
+    _tcp.begin(_tcp_port);
+    _tcp_started = true;
+    _ota_tcp_suspended = false;
+    meshcoreRepeaterTcpOtaEmitLine("OTA: restored companion TCP server");
+  }
+  if (_ota_ws_suspended) {
+    _ws.begin(_ws_port, _wss_enabled);
+    _ws_started = true;
+    _ota_ws_suspended = false;
+    meshcoreRepeaterTcpOtaEmitLine("OTA: restored companion WebSocket server");
+  }
 }
 
 bool MultiTransportCompanionInterface::isConnected() const {

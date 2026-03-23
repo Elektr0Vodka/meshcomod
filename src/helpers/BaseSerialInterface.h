@@ -47,6 +47,9 @@ public:
   virtual void prepareForHttpOta() { }
   virtual void restoreAfterHttpOta() { }
 
+  /** True if the current control path is Wi-Fi-based (TCP/WS companion or SerialWifi client), for HTTP OTA gating. */
+  virtual bool isHttpOtaWifiControlSession() const { return false; }
+
   // Per-client history: identity of the connection that sent the last frame (set before handleCmdFrame).
   virtual void setCurrentClientId(const char* id) { (void)id; }
   virtual void getCurrentClientId(char* dest, size_t max_len) const {

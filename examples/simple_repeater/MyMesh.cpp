@@ -6,6 +6,7 @@
 #include <cstring>
 #include <strings.h>
 #include <helpers/esp32/WifiRuntimeStore.h>
+#include <helpers/HttpOtaWifiSession.h>
 #include <helpers/RepeaterTcpOtaEmit.h>
 extern void repeater_on_wifi_radio_toggled();
 #endif
@@ -1089,7 +1090,7 @@ void MyMesh::clearStats() {
   ((SimpleMeshTables *)getTables())->resetStats();
 }
 
-void MyMesh::handleCommand(uint32_t sender_timestamp, char *command, char *reply) {
+void MyMesh::handleCommand(uint32_t sender_timestamp, char *command, char *reply, uint8_t http_ota_wifi_path) {
   if (region_load_active) {
     if (StrHelper::isBlank(command)) {  // empty/blank line, signal to terminate 'load' operation
       region_map = temp_map;  // copy over the temp instance as new current map
@@ -1326,7 +1327,7 @@ void MyMesh::handleCommand(uint32_t sender_timestamp, char *command, char *reply
     }
 #endif
   } else {
-    _cli.handleCommand(sender_timestamp, command, reply);  // common CLI commands
+    _cli.handleCommand(sender_timestamp, command, reply, http_ota_wifi_path);  // common CLI commands
   }
 }
 
@@ -2229,7 +2230,9 @@ size_t MyMesh::handleRepeaterTcpCompanionCommand(const uint8_t *cmd, size_t cmd_
       meshcoreRepeaterTcpOtaEmitBegin(emit_extra, emit_ctx, expected_ack);
       if (tlen > 0) {
         text[tlen] = '\0';
-        this->handleCommand(msg_timestamp, text, tcp_cli_reply);
+        const MeshcoreRepeaterEmitCtx *ecx = (const MeshcoreRepeaterEmitCtx *)emit_ctx;
+        uint8_t ota_path = ecx ? ecx->transport_path : MESHCORE_HTTP_OTA_PATH_NONE;
+        this->handleCommand(msg_timestamp, text, tcp_cli_reply, ota_path);
       }
       meshcoreRepeaterTcpOtaEmitEnd();
       repeaterEmitBinaryCliResponse(emit_extra, emit_ctx, expected_ack, tcp_cli_reply);

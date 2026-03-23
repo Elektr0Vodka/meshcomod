@@ -59,6 +59,10 @@ public:
   virtual bool startOTAUpdate(const char* id, char reply[]) { return false; }   // not supported
   /** Pull app firmware from HTTPS URL (allowlisted). Sets reply; on success schedules reboot via pollHttpOtaReboot(). */
   virtual bool startHttpOtaFromUrl(const char* url, char reply[]) { (void)url; (void)reply; return false; }
+  /** ESP32 HTTP OTA: tear down non-active Wi-Fi transports before download (repeater_tcp registers callbacks). */
+  virtual void prepareHttpOtaMinimalTransport(uint8_t wifi_path) { (void)wifi_path; }
+  /** Restore transports after failed HTTP OTA (success path reboots). */
+  virtual void restoreHttpOtaMinimalTransport() { }
   /** ESP32 HTTP OTA builds: emit WiFi/DNS diagnostic lines via meshcoreRepeaterTcpOtaEmitLine (no download). */
   virtual void emitHttpOtaNetDiagnosticLines() { }
   virtual void pollHttpOtaReboot() { }

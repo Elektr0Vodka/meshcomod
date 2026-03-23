@@ -214,7 +214,7 @@ public:
 
   void saveIdentity(const mesh::LocalIdentity& new_id) override;
   void clearStats() override;
-  void handleCommand(uint32_t sender_timestamp, char* command, char* reply);
+  void handleCommand(uint32_t sender_timestamp, char* command, char* reply, uint8_t http_ota_wifi_path = 0);
   void loop();
 
 #if defined(WITH_BRIDGE)

@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "CommonCLI.h"
+#include <helpers/HttpOtaWifiSession.h>
 #include "TxtDataHelpers.h"
 #include "AdvertDataHelpers.h"
 #include <RTClib.h>
@@ -198,7 +199,7 @@ uint8_t CommonCLI::buildAdvertData(uint8_t node_type, uint8_t* app_data) {
   }
 }
 
-void CommonCLI::handleCommand(uint32_t sender_timestamp, const char* command, char* reply) {
+void CommonCLI::handleCommand(uint32_t sender_timestamp, const char* command, char* reply, uint8_t http_ota_wifi_path) {
     if (memcmp(command, "reboot", 6) == 0) {
       _board->reboot();  // doesn't return
     } else if (memcmp(command, "clkreboot", 9) == 0) {
@@ -232,8 +233,17 @@ void CommonCLI::handleCommand(uint32_t sender_timestamp, const char* command, ch
       while (*u == ' ' || *u == '\t') u++;
       if (*u == 0) {
         strcpy(reply, "ERR: missing URL");
-      } else if (!_board->startHttpOtaFromUrl(u, reply)) {
-        strcpy(reply, "ERR: OTA URL not supported");
+      } else if (http_ota_wifi_path != MESHCORE_HTTP_OTA_PATH_TCP && http_ota_wifi_path != MESHCORE_HTTP_OTA_PATH_WS) {
+        strcpy(reply, "ERR: HTTP OTA must be started from Wi-Fi TCP or WebSocket session (not USB serial)");
+      } else {
+        _board->prepareHttpOtaMinimalTransport(http_ota_wifi_path);
+        bool supported = _board->startHttpOtaFromUrl(u, reply);
+        if (!supported || strncmp(reply, "ERR:", 4) == 0) {
+          _board->restoreHttpOtaMinimalTransport();
+        }
+        if (!supported) {
+          strcpy(reply, "ERR: OTA URL not supported");
+        }
       }
     } else if (memcmp(command, "clock", 5) == 0) {
       uint32_t now = getRTCClock()->getCurrentTime();

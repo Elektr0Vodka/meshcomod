@@ -4,7 +4,24 @@
 #include <Arduino.h>
 #include <cstring>
 #include <helpers/HttpOtaDisplayState.h>
+#include <helpers/HttpOtaWifiSession.h>
 #include <helpers/RepeaterTcpOtaEmit.h>
+
+static void (*s_http_ota_minimal_prepare)(uint8_t) = nullptr;
+static void (*s_http_ota_minimal_restore)() = nullptr;
+
+void meshcoreRegisterHttpOtaMinimalTransport(void (*prepare)(uint8_t), void (*restore)()) {
+  s_http_ota_minimal_prepare = prepare;
+  s_http_ota_minimal_restore = restore;
+}
+
+void ESP32Board::prepareHttpOtaMinimalTransport(uint8_t wifi_path) {
+  if (s_http_ota_minimal_prepare) s_http_ota_minimal_prepare(wifi_path);
+}
+
+void ESP32Board::restoreHttpOtaMinimalTransport() {
+  if (s_http_ota_minimal_restore) s_http_ota_minimal_restore();
+}
 
 volatile int g_meshcore_http_ota_display_active = 0;
 volatile uint8_t g_meshcore_http_ota_display_pct = 0xFF;
