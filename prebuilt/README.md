@@ -9,7 +9,7 @@ Binaries are **not** always committed; this folder defines **where promoted buil
 | **`prebuilt/<short-name>.bin`** | Latest **promoted** build for that product (overwritten when you run the copy script for a new release). |
 | **`prebuilt/releases/<version>/`** | **Immutable** copy for that version. Add a `notes.md` here when you cut a release. Read **[`releases/README.md`](releases/README.md)** for how **TCP repeater** paths relate to **`v1.14.1.x`**. |
 
-**Companion** versions look like **`v1.14.1.0`** (meshcomod radio). **Repeater TCP** uses the **same base** plus **`‑repeater-tcp`** (e.g. build with **`REPEATER_FIRMWARE_VERSION=v1.14.1.0-repeater-tcp`**, then **`copy-repeater-release-bins.sh v1.14.1.0`** → same **`prebuilt/releases/v1.14.1.0/`** folder). Legacy **`repeater-1.0.x`** labels still work — see [`docs/REPEATER_RELEASE_PROCEDURE.md`](../docs/REPEATER_RELEASE_PROCEDURE.md).
+**Companion** versions look like **`v1.14.1.0`** (meshcomod radio). **Repeater TCP** prebuilts live in the **same `v1.14.1.x` release folder** (Flasher / Repeater app expect this — see **meshcomod-client** `shared/firmware_catalog.ts`). Build with **`REPEATER_FIRMWARE_VERSION=v1.14.1.0-repeater-tcp`**, then **`copy-repeater-release-bins.sh v1.14.1.0`**. Legacy **`repeater-1.0.x`** repo folders were removed; recover from **git history** if needed.
 
 **Companion** (USB+TCP meshcomod radio): after versioned builds in `out/`, run:
 

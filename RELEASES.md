@@ -23,7 +23,7 @@ Versioned prebuilts are listed here so you can **roll back** if a newer release 
 **Highlights:**
 - **Upstream MeshCore 1.14.1** merged (`467959cc`): dispatcher / duty-cycle, SX126x RX boosted gain plumbing, repeater/room/sensor fixes, new hardware variants and docs — see [meshcore-dev/MeshCore](https://github.com/meshcore-dev/MeshCore) release tags.
 - **Meshcomod unchanged in intent:** USB + BLE + TCP (+ WebSocket) companion, WiFi runtime, **Wi‑Fi‑only HTTP OTA** with minimal mode + restore on failure, repeater TCP companion path, Heltec V4 extras and prebuilt layout.
-- **Prebuilts:** [`prebuilt/releases/v1.14.1.0/`](prebuilt/releases/v1.14.1.0/) and refreshed [`prebuilt/`](prebuilt/) — **companion, Heltec V4 extras, and TCP repeater** (V4 OLED, V4 TFT, V3) share this folder; repeater images use version string **`meshcomod-v1.14.1.0-repeater-tcp-<sha>`**. Older **`repeater-1.0.x`** folders remain for rollback only.
+- **Prebuilts:** [`prebuilt/releases/v1.14.1.0/`](prebuilt/releases/v1.14.1.0/) and refreshed [`prebuilt/`](prebuilt/) — **companion, Heltec V4 extras, and TCP repeater** (V4 OLED, V4 TFT, V3) share this folder; repeater images use version string **`meshcomod-v1.14.1.0-repeater-tcp-<sha>`**. **Flasher / Repeater app** pinned downloads use this **`v1.14.1.0`** path (see meshcomod-client `firmware_catalog.ts`).
 
 **Prebuilt binaries (use [flasher.meshcomod.com](https://flasher.meshcomod.com) — Easy mode auto-downloads versions; for manual upload, use Custom firmware):**
 
@@ -52,7 +52,7 @@ Versioned prebuilts are listed here so you can **roll back** if a newer release 
 **Highlights:**
 - **Wi‑Fi‑only HTTP OTA:** Companion and repeater TCP accept `ota url` only from an active **Wi‑Fi** control session (multi‑transport TCP/WS, or SerialWifi with STA + client). USB/BLE initiation returns a clear `ERR:`.
 - **OTA minimal mode:** Before HTTPS OTA, non‑essential services/transports are suspended (e.g. other TCP/WS listener, BLE stack) while keeping the active Wi‑Fi path for progress lines; **automatic restore on failure**; success path reboots without restore.
-- **Prebuilts:** Standard **USB+TCP** meshcomod images (V4 OLED, V4 TFT+touch, V3) plus **extra** Heltec V4 OLED/TFT companions (USB, BLE, Wi‑Fi) and plain repeaters — all under [`prebuilt/releases/v1.14.0.41/`](prebuilt/releases/v1.14.0.41/) and refreshed [`prebuilt/`](prebuilt/). **TCP repeater** drop: [`prebuilt/releases/repeater-1.0.10/`](prebuilt/releases/repeater-1.0.10/) (includes **V4 TFT** repeater TCP).
+- **Prebuilts:** Standard **USB+TCP** meshcomod images (V4 OLED, V4 TFT+touch, V3) plus **extra** Heltec V4 OLED/TFT companions (USB, BLE, Wi‑Fi) and plain repeaters — all under [`prebuilt/releases/v1.14.0.41/`](prebuilt/releases/v1.14.0.41/) and refreshed [`prebuilt/`](prebuilt/). **TCP repeater** for this era used legacy **`repeater-1.0.10/`** (removed from tree; see **git history**). Current TCP repeater drops live under **`v1.14.1.0/`** (see newer release above).
 
 **Prebuilt binaries (use [flasher.meshcomod.com](https://flasher.meshcomod.com) — Easy mode auto-downloads versions; for manual upload, use Custom firmware):**
 

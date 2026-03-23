@@ -34,4 +34,4 @@
 
 **Procedure:** [`docs/RELEASE_PROCEDURE.md`](../../../docs/RELEASE_PROCEDURE.md), [`scripts/copy-release-bins.sh`](../../../scripts/copy-release-bins.sh), [`scripts/copy-heltec-v4-meshcomod-extras.sh`](../../../scripts/copy-heltec-v4-meshcomod-extras.sh).
 
-**TCP repeater train:** use **`prebuilt/releases/repeater-1.0.10/`** (not this companion version folder).
+**TCP repeater:** for this release era, builds were under legacy **`repeater-1.0.10/`** (removed from repo — **git history**). **Current** TCP repeater prebuilts ship under **`v1.14.1.0/`** with the meshcomod client / Flasher.

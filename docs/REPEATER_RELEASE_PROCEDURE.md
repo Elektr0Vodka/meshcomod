@@ -2,7 +2,7 @@
 
 **Repeater TCP** uses the **same base version** as the meshcomod companion (**`v1.14.1.x`**) plus a fixed suffix **`‑repeater-tcp`** so users see one family of versions. **`build.sh`** prefixes the compile-time macro with **`meshcomod-`**, e.g. **`meshcomod-v1.14.1.0-repeater-tcp-<gitsha>`** on the device / in `out/` filenames.
 
-**Legacy:** older drops used **`repeater-1.0.x`** only — `scripts/copy-repeater-release-bins.sh` still accepts that; release folder stays **`prebuilt/releases/repeater-1.0.x/`**.
+**Legacy:** older drops used **`repeater-1.0.x`** directories; those are no longer in this repo (see **git history**). The copy script still accepts **`repeater-X.Y.Z`** if you recreate that layout in a fork.
 
 ---
 

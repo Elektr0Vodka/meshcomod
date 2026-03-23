@@ -89,7 +89,7 @@ Use the existing v1.14.0.19 block in `RELEASES.md` as the template (heading, **F
 
 ## Repeater TCP prebuilts
 
-Repeater releases use **`repeater-X.Y.Z`** (not companion **`v1.14.0.x`**). Procedure: **[`REPEATER_RELEASE_PROCEDURE.md`](REPEATER_RELEASE_PROCEDURE.md)**.
+Repeater TCP prebuilts ship under the **same `v1.14.1.x`** folders as companion (see **[`REPEATER_RELEASE_PROCEDURE.md`](REPEATER_RELEASE_PROCEDURE.md)** and meshcomod-client **`firmware_catalog.ts`**).
 
 ---
 

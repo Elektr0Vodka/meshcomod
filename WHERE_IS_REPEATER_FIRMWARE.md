@@ -40,7 +40,7 @@ That copies into:
 - **`prebuilt/heltec_v4_repeater_tcp.bin`** and **`prebuilt/Heltec_v3_repeater_tcp.bin`** (latest promoted)
 - **`prebuilt/releases/v1.14.1.0/`** (same folder as that companion release)
 
-**Legacy:** **`repeater-1.0.x`** + **`copy-repeater-release-bins.sh repeater-1.0.x`** still targets **`prebuilt/releases/repeater-1.0.x/`**.
+**Legacy layout:** **`repeater-1.0.x`** folders were removed from this repo; **`copy-repeater-release-bins.sh repeater-1.0.x`** still works in forks. Here, use **`v1.14.1.0`** + **`copy-repeater-release-bins.sh v1.14.1.0`**.
 
 Full procedure: [`docs/REPEATER_RELEASE_PROCEDURE.md`](docs/REPEATER_RELEASE_PROCEDURE.md).
 
