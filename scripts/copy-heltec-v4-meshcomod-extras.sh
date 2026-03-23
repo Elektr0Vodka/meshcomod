@@ -4,7 +4,7 @@
 # (meshcomod USB+TCP / TFT touch / V3 are handled by copy-release-bins.sh.)
 #
 # Usage: sh scripts/copy-heltec-v4-meshcomod-extras.sh <version>
-# Example: sh scripts/copy-heltec-v4-meshcomod-extras.sh v1.14.0.41
+# Example: sh scripts/copy-heltec-v4-meshcomod-extras.sh v1.14.1.0
 
 set -e
 VERSION="${1:?Usage: $0 <version> e.g. v1.14.0.41}"

@@ -25,7 +25,7 @@ Produces e.g. `prebuilt/heltec_v4_companion_radio_usb_tcp.bin` and `prebuilt/rel
 sh scripts/copy-heltec-v4-meshcomod-extras.sh <version>
 ```
 
-Copies stable names into `prebuilt/` and `prebuilt/releases/<version>/`. See [`releases/v1.14.0.41/notes.md`](releases/v1.14.0.41/notes.md) for the file list.
+Copies stable names into `prebuilt/` and `prebuilt/releases/<version>/`. See [`releases/v1.14.1.0/notes.md`](releases/v1.14.1.0/notes.md) for the file list.
 
 **Repeater TCP** (Heltec V4 / V3 Wi‑Fi companion subset): after versioned builds in `out/`, run:
 

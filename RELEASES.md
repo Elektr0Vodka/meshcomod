@@ -16,6 +16,27 @@ Versioned prebuilts are listed here so you can **roll back** if a newer release 
 
 ---
 
+## v1.14.1.0 — 2026-03-23
+
+**Firmware version:** v1.14.1.0 (meshcomod on upstream **MeshCore 1.14.1**).
+
+**Highlights:**
+- **Upstream MeshCore 1.14.1** merged (`467959cc`): dispatcher / duty-cycle, SX126x RX boosted gain plumbing, repeater/room/sensor fixes, new hardware variants and docs — see [meshcore-dev/MeshCore](https://github.com/meshcore-dev/MeshCore) release tags.
+- **Meshcomod unchanged in intent:** USB + BLE + TCP (+ WebSocket) companion, WiFi runtime, **Wi‑Fi‑only HTTP OTA** with minimal mode + restore on failure, repeater TCP companion path, Heltec V4 extras and prebuilt layout.
+- **Prebuilts:** [`prebuilt/releases/v1.14.1.0/`](prebuilt/releases/v1.14.1.0/) and refreshed [`prebuilt/`](prebuilt/). **TCP repeater:** [`prebuilt/releases/repeater-1.0.11/`](prebuilt/releases/repeater-1.0.11/) (includes **V4 TFT** repeater TCP).
+
+**Prebuilt binaries (use [flasher.meshcomod.com](https://flasher.meshcomod.com) — Easy mode auto-downloads versions; for manual upload, use Custom firmware):**
+
+| Device | Merged (recommended) | Non-merged |
+|--------|----------------------|------------|
+| Heltec V4 (OLED) | [heltec_v4_companion_radio_usb_tcp-merged.bin](prebuilt/releases/v1.14.1.0/heltec_v4_companion_radio_usb_tcp-merged.bin) | [heltec_v4_companion_radio_usb_tcp.bin](prebuilt/releases/v1.14.1.0/heltec_v4_companion_radio_usb_tcp.bin) |
+| Heltec V4 TFT + touch | [heltec_v4_tft_companion_radio_usb_tcp_touch-merged.bin](prebuilt/releases/v1.14.1.0/heltec_v4_tft_companion_radio_usb_tcp_touch-merged.bin) | [heltec_v4_tft_companion_radio_usb_tcp_touch.bin](prebuilt/releases/v1.14.1.0/heltec_v4_tft_companion_radio_usb_tcp_touch.bin) |
+| Heltec V3 | [Heltec_v3_companion_radio_usb_tcp-merged.bin](prebuilt/releases/v1.14.1.0/Heltec_v3_companion_radio_usb_tcp-merged.bin) | [Heltec_v3_companion_radio_usb_tcp.bin](prebuilt/releases/v1.14.1.0/Heltec_v3_companion_radio_usb_tcp.bin) |
+
+**More Heltec V4 meshcomod images** (USB/BLE/Wi‑Fi companions, plain repeaters): see [`prebuilt/releases/v1.14.1.0/notes.md`](prebuilt/releases/v1.14.1.0/notes.md).
+
+---
+
 ## v1.14.0.41 — 2026-03-23
 
 **Firmware version:** v1.14.0.41 (meshcomod on upstream 1.14+).

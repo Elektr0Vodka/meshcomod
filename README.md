@@ -192,7 +192,7 @@ Clone the repository and enter the **MeshCore** directory (this folder). Then se
 cd MeshCore
 export WIFI_SSID="YourNetworkName"
 export WIFI_PWD="YourPassword"
-export FIRMWARE_VERSION=v1.14.0.27
+export FIRMWARE_VERSION=v1.14.1.0
 sh build.sh build-firmware heltec_v4_companion_radio_usb_tcp
 ```
 
@@ -204,7 +204,7 @@ Same **WiFi-at-build**, **version**, **`build.sh`**, and **`out/`** layout as OL
 cd MeshCore
 export WIFI_SSID="YourNetworkName"
 export WIFI_PWD="YourPassword"
-export FIRMWARE_VERSION=v1.14.0.27
+export FIRMWARE_VERSION=v1.14.1.0
 sh build.sh build-firmware heltec_v4_tft_companion_radio_usb_tcp_touch
 ```
 
@@ -216,7 +216,7 @@ sh build.sh build-firmware heltec_v4_tft_companion_radio_usb_tcp_touch
 cd MeshCore
 export WIFI_SSID="YourNetworkName"
 export WIFI_PWD="YourPassword"
-export FIRMWARE_VERSION=v1.14.0.27
+export FIRMWARE_VERSION=v1.14.1.0
 sh build.sh build-firmware Heltec_v3_companion_radio_usb_tcp
 ```
 
