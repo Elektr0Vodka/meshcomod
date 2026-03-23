@@ -71,10 +71,10 @@ static size_t httpOtaLeadingJunkLen(const uint8_t* data, size_t len) {
 /**
  * Read up to `cap` bytes until we see a valid ESP32 app image start (0xE9) after leading junk.
  * Updates *remaining_inout when Content-Length is known (body bytes consumed).
+ * @return 1 if firmware prefix found; 0 if this mirror should be skipped (try next URL).
  */
-static bool httpOtaPeekEsp32ImagePrefix(WiFiClient* stream, HTTPClient& https, int* remaining_inout,
-                                        uint8_t* prefix, size_t cap, size_t* out_len, size_t* out_skip,
-                                        char* reply) {
+static int httpOtaPeekEsp32ImagePrefix(WiFiClient* stream, HTTPClient& https, int* remaining_inout,
+                                       uint8_t* prefix, size_t cap, size_t* out_len, size_t* out_skip) {
   size_t prefix_len = 0;
   unsigned long tp0 = millis();
   int& rem = *remaining_inout;
@@ -105,18 +105,16 @@ static bool httpOtaPeekEsp32ImagePrefix(WiFiClient* stream, HTTPClient& https, i
     if (b == (uint8_t)0xE9) {
       *out_len = prefix_len;
       *out_skip = skip;
-      return true;
+      return 1;
     }
     if (b == 0x1Fu && skip + 1 < prefix_len && prefix[skip + 1] == 0x8Bu) {
-      strcpy(reply, "ERR: gzip body not supported");
-      meshcoreRepeaterTcpOtaEmitLine("OTA: ERR gzip");
-      return false;
+      meshcoreRepeaterTcpOtaEmitLine("OTA: skip mirror (gzip)");
+      return 0;
     }
     if (prefix_len - skip >= 4u) {
       if (!memcmp(prefix + skip, "<htm", 4) || !memcmp(prefix + skip, "<!DO", 4)) {
-        strcpy(reply, "ERR: HTML not firmware");
-        meshcoreRepeaterTcpOtaEmitLine("OTA: ERR html body");
-        return false;
+        meshcoreRepeaterTcpOtaEmitLine("OTA: skip mirror (html)");
+        return 0;
       }
     }
     /* First non-junk byte is not image magic: fail once we have enough context. */
@@ -126,9 +124,8 @@ static bool httpOtaPeekEsp32ImagePrefix(WiFiClient* stream, HTTPClient& https, i
                (skip + 1 < prefix_len) ? prefix[skip + 1] : 0u, (skip + 2 < prefix_len) ? prefix[skip + 2] : 0u,
                (skip + 3 < prefix_len) ? prefix[skip + 3] : 0u);
       meshcoreRepeaterTcpOtaEmitLine(line);
-      strcpy(reply, "ERR: not ESP32 firmware (.bin)");
-      meshcoreRepeaterTcpOtaEmitLine("OTA: ERR bad image magic");
-      return false;
+      meshcoreRepeaterTcpOtaEmitLine("OTA: skip mirror (not ESP bin)");
+      return 0;
     }
   }
 
@@ -138,9 +135,8 @@ static bool httpOtaPeekEsp32ImagePrefix(WiFiClient* stream, HTTPClient& https, i
              prefix_len > 1 ? prefix[1] : 0u, prefix_len > 2 ? prefix[2] : 0u, prefix_len > 3 ? prefix[3] : 0u);
     meshcoreRepeaterTcpOtaEmitLine(line);
   }
-  strcpy(reply, "ERR: not ESP32 firmware (.bin)");
-  meshcoreRepeaterTcpOtaEmitLine("OTA: ERR bad image magic");
-  return false;
+  meshcoreRepeaterTcpOtaEmitLine("OTA: skip mirror (peek timeout)");
+  return 0;
 }
 
 static bool httpOtaResponseLooksLikeFirmwareBody(HTTPClient& http) {
@@ -527,16 +523,8 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
     return c;
   };
 
-  auto tryFallback = [&](const char* candidate_url, const char* announce) -> int {
-    if (!candidate_url || strcmp(fetch_url, candidate_url) == 0) return -1;
-    if (announce) meshcoreRepeaterTcpOtaEmitLine(announce);
-    int c = getWithRetries(candidate_url);
-    if (c == HTTP_CODE_OK) fetch_url = candidate_url;
-    return c;
-  };
-
-  /* For ALLFATHER meshcomod main firmware, companion networks often reach http://repeater|flasher.meshcomod.com
-     while raw GitHub / HTTPS to the same hosts refuse. Try HTTP proxies first, then remaining mirrors. */
+  /* For ALLFATHER meshcomod main firmware, try several mirrors. HTTP 200 + HTML error page from one host
+     must not abort OTA — skip that mirror and try the next (raw GitHub, jsDelivr, other proxies). */
   auto closeHttpClients = [&]() {
     https.end();
     tls_client.stop();
@@ -544,97 +532,73 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
     delay(15);
   };
 
-  auto fetchFrom = [&](const char* candidate_url, const char* announce) -> int {
-    if (!candidate_url) return -1;
-    if (announce) meshcoreRepeaterTcpOtaEmitLine(announce);
-    closeHttpClients();
-    int c = getWithRetries(candidate_url);
-    if (c == HTTP_CODE_OK) fetch_url = candidate_url;
-    return c;
-  };
-
-  int code = -1;
-  if (proxy_rep_http) {
-    meshcoreRepeaterTcpOtaEmitLine("OTA: fetch order http-proxy-first");
-    code = fetchFrom(proxy_rep_http, "OTA: repeater http");
-    if (code != HTTP_CODE_OK) code = fetchFrom(proxy_fls_http, "OTA: flasher http");
-    if (code != HTTP_CODE_OK) code = fetchFrom(fetch_url, "OTA: raw github");
-    if (code != HTTP_CODE_OK) code = fetchFrom(alt_fetch_url, "OTA: jsdelivr");
-    if (code != HTTP_CODE_OK) code = fetchFrom(proxy_rep_https, "OTA: repeater https");
-    if (code != HTTP_CODE_OK) code = fetchFrom(proxy_fls_https, "OTA: flasher https");
-  } else {
-    code = getWithRetries(fetch_url);
-    if (code < 0) {
-      closeHttpClients();
-      int c = tryFallback(alt_fetch_url, "OTA: trying jsdelivr mirror");
-      if (c == HTTP_CODE_OK) code = c;
-    }
-    if (code < 0) {
-      closeHttpClients();
-      int c = tryFallback(proxy_rep_https, "OTA: trying repeater proxy");
-      if (c == HTTP_CODE_OK) code = c;
-    }
-    if (code < 0) {
-      closeHttpClients();
-      int c = tryFallback(proxy_fls_https, "OTA: trying flasher proxy");
-      if (c == HTTP_CODE_OK) code = c;
-    }
-    if (code < 0) {
-      closeHttpClients();
-      int c = tryFallback(proxy_rep_http, "OTA: trying repeater proxy (http)");
-      if (c == HTTP_CODE_OK) code = c;
-    }
-    if (code < 0) {
-      closeHttpClients();
-      int c = tryFallback(proxy_fls_http, "OTA: trying flasher proxy (http)");
-      if (c == HTTP_CODE_OK) code = c;
-    }
-  }
-
-  if (code != HTTP_CODE_OK) {
-    String err = (code < 0) ? https.errorToString(code) : String("");
-    if (code < 0 && err.length() > 0) {
-      snprintf(reply, 128, "ERR: HTTP %d (%s)", code, err.c_str());
-    } else {
-      snprintf(reply, 128, "ERR: HTTP %d", code);
-    }
-    https.end();
-    tls_client.stop();
-    plain_client.stop();
-    httpOtaDisplayReset();
-    return true;
-  }
-
-  if (!httpOtaResponseLooksLikeFirmwareBody(https)) {
-    strcpy(reply, "ERR: HTTP body not firmware");
-    meshcoreRepeaterTcpOtaEmitLine("OTA: ERR bad content-type");
-    https.end();
-    tls_client.stop();
-    plain_client.stop();
-    httpOtaDisplayReset();
-    return true;
-  }
-
-  int clen = https.getSize();
-  WiFiClient* stream = https.getStreamPtr();
-  if (!stream) {
-    strcpy(reply, "ERR: no stream");
-    https.end();
-    tls_client.stop();
-    plain_client.stop();
-    httpOtaDisplayReset();
-    return true;
-  }
-
-  int remaining = clen;
+  int clen = 0;
+  int remaining = 0;
   uint8_t prefix[320];
   size_t prefix_len = 0;
   size_t prefix_skip = 0;
-  if (!httpOtaPeekEsp32ImagePrefix(stream, https, &remaining, prefix, sizeof(prefix), &prefix_len, &prefix_skip,
-                                   reply)) {
-    https.end();
-    tls_client.stop();
-    plain_client.stop();
+
+  auto tryMirror = [&](const char* candidate_url, const char* announce) -> bool {
+    if (!candidate_url) return false;
+    if (announce) meshcoreRepeaterTcpOtaEmitLine(announce);
+    closeHttpClients();
+    int code = getWithRetries(candidate_url);
+    if (code != HTTP_CODE_OK) return false;
+    if (!httpOtaResponseLooksLikeFirmwareBody(https)) {
+      meshcoreRepeaterTcpOtaEmitLine("OTA: skip mirror (content-type)");
+      closeHttpClients();
+      return false;
+    }
+    clen = https.getSize();
+    remaining = clen;
+    WiFiClient* stream = https.getStreamPtr();
+    if (!stream) {
+      closeHttpClients();
+      return false;
+    }
+    prefix_len = 0;
+    prefix_skip = 0;
+    if (httpOtaPeekEsp32ImagePrefix(stream, https, &remaining, prefix, sizeof(prefix), &prefix_len, &prefix_skip) !=
+        1) {
+      closeHttpClients();
+      return false;
+    }
+    fetch_url = candidate_url;
+    return true;
+  };
+
+  bool mirror_ok = false;
+  if (proxy_rep_http) {
+    meshcoreRepeaterTcpOtaEmitLine("OTA: fetch mirrors until firmware");
+    mirror_ok = tryMirror(proxy_rep_http, "OTA: repeater http") || tryMirror(proxy_fls_http, "OTA: flasher http") ||
+                tryMirror(fetch_url, "OTA: raw github") || tryMirror(alt_fetch_url, "OTA: jsdelivr") ||
+                tryMirror(proxy_rep_https, "OTA: repeater https") || tryMirror(proxy_fls_https, "OTA: flasher https");
+  } else {
+    mirror_ok = tryMirror(fetch_url, nullptr);
+    if (!mirror_ok && alt_fetch_url && strcmp(fetch_url, alt_fetch_url) != 0)
+      mirror_ok = tryMirror(alt_fetch_url, "OTA: trying jsdelivr mirror");
+    if (!mirror_ok && proxy_rep_https && strcmp(fetch_url, proxy_rep_https) != 0)
+      mirror_ok = tryMirror(proxy_rep_https, "OTA: trying repeater proxy");
+    if (!mirror_ok && proxy_fls_https && strcmp(fetch_url, proxy_fls_https) != 0)
+      mirror_ok = tryMirror(proxy_fls_https, "OTA: trying flasher proxy");
+    if (!mirror_ok && proxy_rep_http && strcmp(fetch_url, proxy_rep_http) != 0)
+      mirror_ok = tryMirror(proxy_rep_http, "OTA: trying repeater proxy (http)");
+    if (!mirror_ok && proxy_fls_http && strcmp(fetch_url, proxy_fls_http) != 0)
+      mirror_ok = tryMirror(proxy_fls_http, "OTA: trying flasher proxy (http)");
+  }
+
+  if (!mirror_ok) {
+    strcpy(reply, "ERR: no usable OTA mirror");
+    meshcoreRepeaterTcpOtaEmitLine("OTA: ERR all mirrors failed");
+    closeHttpClients();
+    httpOtaDisplayReset();
+    return true;
+  }
+
+  WiFiClient* stream = https.getStreamPtr();
+  if (!stream) {
+    strcpy(reply, "ERR: no stream");
+    closeHttpClients();
     httpOtaDisplayReset();
     return true;
   }
