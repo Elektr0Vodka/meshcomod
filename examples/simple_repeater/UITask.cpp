@@ -6,6 +6,7 @@
 
 #if defined(REPEATER_TCP_COMPANION) && defined(ESP32) && defined(DISPLAY_CLASS) && defined(PIN_USER_BTN)
 #include <WiFi.h>
+#include <Esp.h>
 #include <helpers/HttpOtaDisplayState.h>
 #include "MyMesh.h"
 #include <helpers/TxtDataHelpers.h>
@@ -29,7 +30,7 @@ extern MyMesh the_mesh;
 
 namespace {
 
-enum { PAGE_RADIO = 0, PAGE_NETWORK = 1, PAGE_WS = 2, PAGE_ADVERT = 3, PAGE_COUNT = 4 };
+enum { PAGE_RADIO = 0, PAGE_NETWORK = 1, PAGE_WS = 2, PAGE_ADVERT = 3, PAGE_RESOURCES = 4, PAGE_COUNT = 5 };
 
 int s_page;
 unsigned long s_ui_started_at;
@@ -246,6 +247,54 @@ static void render_repeater_tcp_advert(DisplayDriver &display) {
   display.drawTextCentered(display.width() / 2, 48, "click: next page");
 }
 
+// Keep this page byte-for-byte aligned with companion `ui-new` Resources tab.
+static void render_repeater_tcp_resources(DisplayDriver &display) {
+  char tmp[80];
+  display.setColor(DisplayDriver::LIGHT);
+  display.setTextSize(1);
+  int y = 20;
+  snprintf(tmp, sizeof(tmp), "CPU %u MHz", (unsigned)ESP.getCpuFreqMHz());
+  display.drawTextCentered(display.width() / 2, y, tmp);
+  y += 11;
+  uint32_t heapFree = ESP.getFreeHeap();
+  uint32_t heapTotal = ESP.getHeapSize();
+  uint32_t heapUsed = heapTotal > heapFree ? heapTotal - heapFree : 0;
+  unsigned pctUsed = heapTotal > 0 ? (unsigned)((uint64_t)heapUsed * 100 / heapTotal) : 0;
+  uint32_t heapUsedK = heapUsed / 1024;
+  uint32_t heapTotalK = heapTotal / 1024;
+  char s1[8], s2[8];
+  if (heapUsedK >= 1000) snprintf(s1, sizeof(s1), "%.1fK", heapUsedK / 1000.0); else snprintf(s1, sizeof(s1), "%lu", (unsigned long)heapUsedK);
+  if (heapTotalK >= 1000) snprintf(s2, sizeof(s2), "%.1fK", heapTotalK / 1000.0); else snprintf(s2, sizeof(s2), "%lu", (unsigned long)heapTotalK);
+  snprintf(tmp, sizeof(tmp), "RAM %u%% %s/%s", pctUsed, s1, s2);
+  display.drawTextCentered(display.width() / 2, y, tmp);
+  y += 11;
+  uint32_t psramTotal = ESP.getPsramSize();
+  if (psramTotal > 0) {
+    uint32_t psramFree = ESP.getFreePsram();
+    uint32_t psramUsed = psramTotal > psramFree ? psramTotal - psramFree : 0;
+    pctUsed = (unsigned)((uint64_t)psramUsed * 100 / psramTotal);
+    uint32_t psramUsedK = psramUsed / 1024;
+    uint32_t psramTotalK = psramTotal / 1024;
+    if (psramUsedK >= 1000) snprintf(s1, sizeof(s1), "%.1fK", psramUsedK / 1000.0); else snprintf(s1, sizeof(s1), "%lu", (unsigned long)psramUsedK);
+    if (psramTotalK >= 1000) snprintf(s2, sizeof(s2), "%.1fK", psramTotalK / 1000.0); else snprintf(s2, sizeof(s2), "%lu", (unsigned long)psramTotalK);
+    snprintf(tmp, sizeof(tmp), "PSRAM %u%% %s/%s", pctUsed, s1, s2);
+  } else {
+    snprintf(tmp, sizeof(tmp), "PSRAM n/a");
+  }
+  display.drawTextCentered(display.width() / 2, y, tmp);
+  y += 11;
+  uint32_t flashTotal = ESP.getFlashChipSize();
+  uint32_t sketchFree = ESP.getFreeSketchSpace();
+  uint32_t flashUsed = flashTotal > sketchFree ? flashTotal - sketchFree : 0;
+  pctUsed = flashTotal > 0 ? (unsigned)((uint64_t)flashUsed * 100 / flashTotal) : 0;
+  uint32_t flashUsedK = flashUsed / 1024;
+  uint32_t flashTotalK = flashTotal / 1024;
+  if (flashUsedK >= 1000) snprintf(s1, sizeof(s1), "%.1fK", flashUsedK / 1000.0); else snprintf(s1, sizeof(s1), "%lu", (unsigned long)flashUsedK);
+  if (flashTotalK >= 1000) snprintf(s2, sizeof(s2), "%.1fK", flashTotalK / 1000.0); else snprintf(s2, sizeof(s2), "%lu", (unsigned long)flashTotalK);
+  snprintf(tmp, sizeof(tmp), "Flash %u%% %s/%s", pctUsed, s1, s2);
+  display.drawTextCentered(display.width() / 2, y, tmp);
+}
+
 static void draw_page_dots(DisplayDriver &display) {
   int y = 14;
   int x = display.width() / 2 - 5 * (PAGE_COUNT - 1);
@@ -367,6 +416,8 @@ void UITask::renderCurrScreen() {
     render_repeater_tcp_network(*_display);
   } else if (s_page == PAGE_WS) {
     render_repeater_tcp_ws(*_display);
+  } else if (s_page == PAGE_RESOURCES) {
+    render_repeater_tcp_resources(*_display);
   } else {
     render_repeater_tcp_advert(*_display);
   }
