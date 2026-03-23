@@ -16,6 +16,26 @@ Versioned prebuilts are listed here so you can **roll back** if a newer release 
 
 ---
 
+## v1.14.0.42 — 2026-03-23
+
+**Firmware version:** v1.14.0.42 (meshcomod on upstream 1.14+).
+
+**Highlights:**
+- **GitHub OTA fallback:** If direct HTTPS to `raw.githubusercontent.com` is refused, firmware auto-falls back to jsDelivr (`cdn.jsdelivr.net`) for the same artifact path.
+- **No command changes:** Existing `ota url https://raw.githubusercontent.com/...` continues to work; fallback is automatic.
+- **Keeps detailed diagnostics:** OTA still emits connect retries and explicit low-level HTTPClient error strings for troubleshooting.
+- **Target parity:** V4 OLED, V4 TFT+touch, and V3 companion binaries (merged + non-merged).
+
+**Prebuilt binaries (use [flasher.meshcomod.com](https://flasher.meshcomod.com) — Easy mode auto-downloads versions; for manual upload, use Custom firmware):**
+
+| Device | Merged (recommended) | Non-merged |
+|--------|----------------------|------------|
+| Heltec V4 (OLED) | [heltec_v4_companion_radio_usb_tcp-merged.bin](prebuilt/releases/v1.14.0.42/heltec_v4_companion_radio_usb_tcp-merged.bin) | [heltec_v4_companion_radio_usb_tcp.bin](prebuilt/releases/v1.14.0.42/heltec_v4_companion_radio_usb_tcp.bin) |
+| Heltec V4 TFT + touch | [heltec_v4_tft_companion_radio_usb_tcp_touch-merged.bin](prebuilt/releases/v1.14.0.42/heltec_v4_tft_companion_radio_usb_tcp_touch-merged.bin) | [heltec_v4_tft_companion_radio_usb_tcp_touch.bin](prebuilt/releases/v1.14.0.42/heltec_v4_tft_companion_radio_usb_tcp_touch.bin) |
+| Heltec V3 | [Heltec_v3_companion_radio_usb_tcp-merged.bin](prebuilt/releases/v1.14.0.42/Heltec_v3_companion_radio_usb_tcp-merged.bin) | [Heltec_v3_companion_radio_usb_tcp.bin](prebuilt/releases/v1.14.0.42/Heltec_v3_companion_radio_usb_tcp.bin) |
+
+---
+
 ## v1.14.0.41 — 2026-03-23
 
 **Firmware version:** v1.14.0.41 (meshcomod on upstream 1.14+).

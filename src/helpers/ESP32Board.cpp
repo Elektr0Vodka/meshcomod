@@ -107,6 +107,32 @@ static bool meshcoreGithubRawToRawUsercontent(const char* url, char* out, size_t
   return n > 0 && (size_t)n < cap;
 }
 
+/**
+ * `https://raw.githubusercontent.com/owner/repo/ref/path` -> `https://cdn.jsdelivr.net/gh/owner/repo@ref/path`
+ * Some WiFi paths block/refuse raw.githubusercontent.com while jsDelivr remains reachable.
+ */
+static bool meshcoreRawGithubToJsdelivr(const char* url, char* out, size_t cap) {
+  static const char rawgh[] = "https://raw.githubusercontent.com/";
+  const size_t rawgh_len = sizeof(rawgh) - 1;
+  if (strncmp(url, rawgh, rawgh_len) != 0) return false;
+  const char* p = url + rawgh_len;
+
+  const char* slash1 = strchr(p, '/');     // owner/
+  if (!slash1 || slash1 == p) return false;
+  const char* repo = slash1 + 1;
+  const char* slash2 = strchr(repo, '/');  // repo/
+  if (!slash2 || slash2 == repo) return false;
+  const char* ref = slash2 + 1;
+  const char* slash3 = strchr(ref, '/');   // ref/
+  if (!slash3 || slash3 == ref) return false;
+  const char* path = slash3 + 1;
+  if (!path[0]) return false;
+
+  int n = snprintf(out, cap, "https://cdn.jsdelivr.net/gh/%.*s/%.*s@%.*s/%s", (int)(slash1 - p), p,
+                   (int)(slash2 - repo), repo, (int)(slash3 - ref), ref, path);
+  return n > 0 && (size_t)n < cap;
+}
+
 bool ESP32Board::startOTAUpdate(const char* id, char reply[]) {
   inhibit_sleep = true;   // prevent sleep during OTA
   WiFi.softAP("MeshCore-OTA", NULL);
@@ -177,9 +203,14 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
   meshcoreRepeaterTcpOtaEmitLine("OTA: connecting");
 
   static char ota_url_buf[512];
+  static char ota_url_alt_buf[512];
   const char* fetch_url = url_trim;
+  const char* alt_fetch_url = nullptr;
   if (meshcoreGithubRawToRawUsercontent(url_trim, ota_url_buf, sizeof(ota_url_buf))) {
     fetch_url = ota_url_buf;
+  }
+  if (meshcoreRawGithubToJsdelivr(fetch_url, ota_url_alt_buf, sizeof(ota_url_alt_buf))) {
+    alt_fetch_url = ota_url_alt_buf;
   }
 
   WiFiClientSecure client;
@@ -194,7 +225,7 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
   https.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
   https.setUserAgent("MeshCore-OTA/1.0");
 
-  auto beginAndGet = [&](int attempt) -> int {
+  auto beginAndGet = [&](const char* target_url, int attempt) -> int {
     if (attempt > 1) {
       httpOtaDisplaySet(0xFF, "OTA: reconnecting");
       char retry_line[48];
@@ -212,24 +243,39 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
       delay(200 * (attempt - 1));
       yield();
     }
-    if (!https.begin(client, fetch_url)) return HTTPC_ERROR_CONNECTION_REFUSED;
+    if (!https.begin(client, target_url)) return HTTPC_ERROR_CONNECTION_REFUSED;
     return https.GET();
   };
 
-  int code = beginAndGet(1);
-  if (code < 0) {
-    String err = https.errorToString(code);
-    char err_line[96];
-    snprintf(err_line, sizeof(err_line), "OTA: connect err %d %s", code, err.c_str());
-    meshcoreRepeaterTcpOtaEmitLine(err_line);
-    https.end();
-    code = beginAndGet(2);
-    if (code < 0) {
-      err = https.errorToString(code);
-      snprintf(err_line, sizeof(err_line), "OTA: connect err %d %s", code, err.c_str());
+  auto getWithRetries = [&](const char* target_url) -> int {
+    int c = beginAndGet(target_url, 1);
+    if (c < 0) {
+      String err = https.errorToString(c);
+      char err_line[96];
+      snprintf(err_line, sizeof(err_line), "OTA: connect err %d %s", c, err.c_str());
       meshcoreRepeaterTcpOtaEmitLine(err_line);
       https.end();
-      code = beginAndGet(3);
+      c = beginAndGet(target_url, 2);
+      if (c < 0) {
+        err = https.errorToString(c);
+        snprintf(err_line, sizeof(err_line), "OTA: connect err %d %s", c, err.c_str());
+        meshcoreRepeaterTcpOtaEmitLine(err_line);
+        https.end();
+        c = beginAndGet(target_url, 3);
+      }
+    }
+    return c;
+  };
+
+  int code = getWithRetries(fetch_url);
+  if (code < 0) {
+    https.end();
+    if (alt_fetch_url && strcmp(fetch_url, alt_fetch_url) != 0) {
+      meshcoreRepeaterTcpOtaEmitLine("OTA: trying jsdelivr mirror");
+      code = getWithRetries(alt_fetch_url);
+      if (code == HTTP_CODE_OK) {
+        fetch_url = alt_fetch_url;
+      }
     }
   }
 
