@@ -16,6 +16,25 @@ Versioned prebuilts are listed here so you can **roll back** if a newer release 
 
 ---
 
+## v1.14.0.40 — 2026-03-23
+
+**Firmware version:** v1.14.0.40 (meshcomod on upstream 1.14+).
+
+**Highlights:**
+- **Companion OTA now works under real transport load:** before HTTPS OTA starts, companion fully releases BLE when the active session is not BLE, reclaiming the internal RAM needed for mbedTLS on ESP32.
+- **Confirmed root cause:** added OTA diagnostics for `tls=` errors plus `heap` / `max` / `psram` / `pmax`, which showed companion HTTPS OTA was failing from **internal-RAM allocation pressure**, not bad URLs or network refusal.
+- **Lower TLS memory pressure:** companion builds now use asymmetric mbedTLS content lengths so outgoing TLS buffers cost less RAM while keeping the incoming path compatible with firmware downloads.
+
+**Prebuilt binaries (use [flasher.meshcomod.com](https://flasher.meshcomod.com) — Easy mode auto-downloads versions; for manual upload, use Custom firmware):**
+
+| Device | Merged (recommended) | Non-merged |
+|--------|----------------------|------------|
+| Heltec V4 (OLED) | [heltec_v4_companion_radio_usb_tcp-merged.bin](prebuilt/releases/v1.14.0.40/heltec_v4_companion_radio_usb_tcp-merged.bin) | [heltec_v4_companion_radio_usb_tcp.bin](prebuilt/releases/v1.14.0.40/heltec_v4_companion_radio_usb_tcp.bin) |
+| Heltec V4 TFT + touch | [heltec_v4_tft_companion_radio_usb_tcp_touch-merged.bin](prebuilt/releases/v1.14.0.40/heltec_v4_tft_companion_radio_usb_tcp_touch-merged.bin) | [heltec_v4_tft_companion_radio_usb_tcp_touch.bin](prebuilt/releases/v1.14.0.40/heltec_v4_tft_companion_radio_usb_tcp_touch.bin) |
+| Heltec V3 | [Heltec_v3_companion_radio_usb_tcp-merged.bin](prebuilt/releases/v1.14.0.40/Heltec_v3_companion_radio_usb_tcp-merged.bin) | [Heltec_v3_companion_radio_usb_tcp.bin](prebuilt/releases/v1.14.0.40/Heltec_v3_companion_radio_usb_tcp.bin) |
+
+---
+
 ## v1.14.0.39 — 2026-03-23
 
 **Firmware version:** v1.14.0.39 (meshcomod on upstream 1.14+).

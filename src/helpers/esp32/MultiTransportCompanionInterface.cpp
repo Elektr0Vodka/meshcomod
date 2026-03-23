@@ -4,11 +4,15 @@
 MultiTransportCompanionInterface::MultiTransportCompanionInterface()
   : _tcp_port(0), _ws_port(0), _tcp_started(false), _ws_started(false), _tcp_enabled(true), _wss_enabled(false), _isEnabled(false), _broadcast(false), _last_reply_target(REPLY_TARGET_USB)
 #ifdef BLE_PIN_CODE
-  , _ble_begun(false), _ble_enabled(false)
+  , _ble_begun(false), _ble_enabled(false), _ota_ble_released(false), _ble_pin_code(0)
 #endif
 {
   for (size_t i = 0; i < sizeof(_client_ids) / sizeof(_client_ids[0]); i++)
     _client_ids[i][0] = '\0';
+#ifdef BLE_PIN_CODE
+  _ble_prefix[0] = '\0';
+  _ble_name[0] = '\0';
+#endif
 }
 
 void MultiTransportCompanionInterface::begin(Stream& usb_serial, uint16_t tcp_port, uint16_t ws_port) {
@@ -79,9 +83,23 @@ void MultiTransportCompanionInterface::disableTcp() {
 
 #ifdef BLE_PIN_CODE
 void MultiTransportCompanionInterface::beginBle(const char* prefix, char* name, uint32_t pin_code) {
+  if (prefix) {
+    strncpy(_ble_prefix, prefix, sizeof(_ble_prefix) - 1);
+    _ble_prefix[sizeof(_ble_prefix) - 1] = '\0';
+  } else {
+    _ble_prefix[0] = '\0';
+  }
+  if (name) {
+    strncpy(_ble_name, name, sizeof(_ble_name) - 1);
+    _ble_name[sizeof(_ble_name) - 1] = '\0';
+  } else {
+    _ble_name[0] = '\0';
+  }
+  _ble_pin_code = pin_code;
   _ble.begin(prefix, name, pin_code);
   _ble_begun = true;
   _ble_enabled = true;
+  _ota_ble_released = false;
   _ble.enable();
 }
 
@@ -120,6 +138,33 @@ void MultiTransportCompanionInterface::disable() {
   _usb.disable();
 #ifdef BLE_PIN_CODE
   _ble.disable();
+#endif
+}
+
+void MultiTransportCompanionInterface::prepareForHttpOta() {
+#ifdef BLE_PIN_CODE
+  if (_ble_begun && _ble_enabled && _last_reply_target != REPLY_TARGET_BLE) {
+    _ble.disable();
+    BLEDevice::deinit(true);
+    _ble_begun = false;
+    _ble_enabled = false;
+    _ota_ble_released = true;
+  }
+#endif
+}
+
+void MultiTransportCompanionInterface::restoreAfterHttpOta() {
+#ifdef BLE_PIN_CODE
+  if (_ota_ble_released && _ble_prefix[0] && _ble_name[0]) {
+    char ble_name[sizeof(_ble_name)];
+    strncpy(ble_name, _ble_name, sizeof(ble_name) - 1);
+    ble_name[sizeof(ble_name) - 1] = '\0';
+    _ble.begin(_ble_prefix, ble_name, _ble_pin_code);
+    _ble_begun = true;
+    _ble_enabled = true;
+    _ble.enable();
+    _ota_ble_released = false;
+  }
 #endif
 }
 

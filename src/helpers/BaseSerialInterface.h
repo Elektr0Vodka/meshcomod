@@ -43,6 +43,10 @@ public:
   /** If BLE connected, write peer address as "XX:XX:XX:XX:XX:XX" into buf and return true; else buf[0]='\0' and return false. */
   virtual bool getBlePeerAddress(char* buf, size_t len) const { if (buf && len > 0) buf[0] = '\0'; return false; }
 
+  // OTA prep/restore hooks for transports that can reclaim memory before HTTPS starts.
+  virtual void prepareForHttpOta() { }
+  virtual void restoreAfterHttpOta() { }
+
   // Per-client history: identity of the connection that sent the last frame (set before handleCmdFrame).
   virtual void setCurrentClientId(const char* id) { (void)id; }
   virtual void getCurrentClientId(char* dest, size_t max_len) const {

@@ -56,6 +56,8 @@ public:
   void enable() override;
   void disable() override;
   bool isEnabled() const override { return _isEnabled; }
+  void prepareForHttpOta() override;
+  void restoreAfterHttpOta() override;
   bool isConnected() const override;
   bool isWriteBusy() const override;
   size_t writeFrame(const uint8_t src[], size_t len) override;
@@ -89,6 +91,10 @@ private:
   SerialBLEInterface _ble;
   bool _ble_begun;    // beginBle() was called
   bool _ble_enabled;  // user has BLE on (toggle via UI)
+  bool _ota_ble_released;
+  char _ble_prefix[24];
+  char _ble_name[48];
+  uint32_t _ble_pin_code;
 #endif
   char _client_ids[2 + TCP_COMPANION_MAX_CLIENTS + WS_COMPANION_MAX_CLIENTS][_max_client_id_len];  // usb, [ble], tcp0.., ws0..
 };

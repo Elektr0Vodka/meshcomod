@@ -582,7 +582,13 @@ bool MyMesh::handleMeshcomodCommand(const char* text, int text_len) {
 #if defined(WIFI_SSID) || defined(MULTI_TRANSPORT_COMPANION)
       {
         char reply[160] = {0};
+#ifdef MULTI_TRANSPORT_COMPANION
+        if (_serial) _serial->prepareForHttpOta();
+#endif
         bool handled = board.startHttpOtaFromUrl(p, reply);
+#ifdef MULTI_TRANSPORT_COMPANION
+        if (_serial && (strncmp(reply, "ERR:", 4) == 0 || !handled)) _serial->restoreAfterHttpOta();
+#endif
         if (!handled) {
           StrHelper::strncpy(reply, "ERR: OTA URL not supported", sizeof(reply));
         }

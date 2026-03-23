@@ -333,9 +333,10 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
   }
 
   {
-    char dline[120];
-    snprintf(dline, sizeof(dline), "OTA: diag heap=%u ip=%s", (unsigned)esp_get_free_heap_size(),
-             WiFi.localIP().toString().c_str());
+    char dline[160];
+    snprintf(dline, sizeof(dline), "OTA: diag heap=%u max=%u psram=%u pmax=%u ip=%s",
+             (unsigned)ESP.getFreeHeap(), (unsigned)ESP.getMaxAllocHeap(), (unsigned)ESP.getFreePsram(),
+             (unsigned)ESP.getMaxAllocPsram(), WiFi.localIP().toString().c_str());
     meshcoreRepeaterTcpOtaEmitLine(dline);
     snprintf(dline, sizeof(dline), "OTA: diag gw=%s dns=%s rssi=%d", WiFi.gatewayIP().toString().c_str(),
              WiFi.dnsIP().toString().c_str(), (int)WiFi.RSSI());
@@ -357,6 +358,17 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
   // Default is HTTPC_DISABLE_FOLLOW_REDIRECTS; `defined(HTTPC_STRICT_...)` was always false (enum, not macro).
   https.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
   https.setUserAgent("MeshCore-OTA/1.0");
+
+  auto emitTlsClientError = [&](const char* stage, const char* target_url, int http_code) {
+    if (strncmp(target_url, "https://", 8) != 0) return;
+    char tls_buf[128] = {0};
+    int tls_err = tls_client.lastError(tls_buf, sizeof(tls_buf));
+    if (tls_err == 0) return;
+    char tls_line[224];
+    snprintf(tls_line, sizeof(tls_line), "OTA: %s http=%d tls=%d heap=%u max=%u %s", stage, http_code, tls_err,
+             (unsigned)ESP.getFreeHeap(), (unsigned)ESP.getMaxAllocHeap(), tls_buf);
+    meshcoreRepeaterTcpOtaEmitLine(tls_line);
+  };
 
   auto beginAndGet = [&](const char* target_url, int attempt) -> int {
     if (attempt > 1) {
@@ -384,12 +396,15 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
       ok = https.begin(plain_client, target_url);
     }
     if (!ok) {
+      emitTlsClientError("begin fail", target_url, HTTPC_ERROR_CONNECTION_REFUSED);
       tls_client.stop();
       plain_client.stop();
       delay(15);
       return HTTPC_ERROR_CONNECTION_REFUSED;
     }
-    return https.GET();
+    int code = https.GET();
+    if (code < 0) emitTlsClientError("get fail", target_url, code);
+    return code;
   };
 
   auto getWithRetries = [&](const char* target_url) -> int {
@@ -400,6 +415,7 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
       char err_line[96];
       snprintf(err_line, sizeof(err_line), "OTA: connect err %d %s", c, err.c_str());
       meshcoreRepeaterTcpOtaEmitLine(err_line);
+      emitTlsClientError("connect diag", target_url, c);
       https.end();
       tls_client.stop();
       plain_client.stop();
@@ -409,6 +425,7 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
         err = https.errorToString(c);
         snprintf(err_line, sizeof(err_line), "OTA: connect err %d %s", c, err.c_str());
         meshcoreRepeaterTcpOtaEmitLine(err_line);
+        emitTlsClientError("connect diag", target_url, c);
         https.end();
         tls_client.stop();
         plain_client.stop();

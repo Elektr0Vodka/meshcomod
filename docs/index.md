@@ -7,6 +7,7 @@ Below are a few quick start guides.
 - [Frequently Asked Questions](./faq.md)
 - [CLI Commands](./cli_commands.md)
 - [Companion Protocol](./companion_protocol.md)
+- [Companion OTA Memory Root Cause](./COMPANION_OTA_MEMORY_ROOT_CAUSE.md)
 - [Packet Format](./packet_format.md)
 - [QR Codes](./qr_codes.md)
 
