@@ -32,13 +32,15 @@ python3 -m platformio run -e heltec_v4_repeater_tcp
 
 To match **companion** release folders for your **flasher** or app bundles:
 
-1. Set **`REPEATER_FIRMWARE_VERSION=repeater-X.Y.Z`** (repeater’s **own** release train, not companion `v1.14.x`) and run **`sh build.sh build-repeater-firmwares`** so `out/` contains names like **`heltec_v4_repeater_tcp-meshcomod-repeater-1.0.0-<gitsha>.bin`** (the **`meshcomod-`** prefix is added by **`build.sh`** to the compile-time version string).
-2. Run **`sh scripts/copy-repeater-release-bins.sh repeater-X.Y.Z`** from **`MeshCore/`**.
+1. Set **`REPEATER_FIRMWARE_VERSION=v1.14.1.0-repeater-tcp`** (same **`v1.14.1.x`** base as companion) and run **`sh build.sh build-repeater-firmwares`** so `out/` contains names like **`heltec_v4_repeater_tcp-meshcomod-v1.14.1.0-repeater-tcp-<gitsha>.bin`** (the **`meshcomod-`** prefix is added by **`build.sh`**).
+2. Run **`sh scripts/copy-repeater-release-bins.sh v1.14.1.0`** from **`MeshCore/`** so TCP repeater bins live in **`prebuilt/releases/v1.14.1.0/`** next to companion images.
 
 That copies into:
 
 - **`prebuilt/heltec_v4_repeater_tcp.bin`** and **`prebuilt/Heltec_v3_repeater_tcp.bin`** (latest promoted)
-- **`prebuilt/releases/repeater-X.Y.Z/`** with the **same filenames** (pinned per version)
+- **`prebuilt/releases/v1.14.1.0/`** (same folder as that companion release)
+
+**Legacy:** **`repeater-1.0.x`** + **`copy-repeater-release-bins.sh repeater-1.0.x`** still targets **`prebuilt/releases/repeater-1.0.x/`**.
 
 Full procedure: [`docs/REPEATER_RELEASE_PROCEDURE.md`](docs/REPEATER_RELEASE_PROCEDURE.md).
 

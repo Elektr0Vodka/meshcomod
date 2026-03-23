@@ -41,9 +41,10 @@ Environment Variables:
   DISABLE_DEBUG=1: Disables all debug logging flags (MESH_DEBUG, MESH_PACKET_LOGGING, etc.)
                    If not set, debug flags from variant platformio.ini files are used.
   REPEATER_FIRMWARE_VERSION: For env names ending in _repeater_tcp only, overrides FIRMWARE_VERSION
-                   for the compile-time version string and out/ filenames — use a repeater-specific
-                   label (e.g. repeater-1.0.0) so TCP repeater releases are not tied to companion v1.14.x.
-                   The built-in version macro is prefixed with meshcomod- (e.g. meshcomod-repeater-1.0.0-<sha>).
+                   for the compile-time version string and out/ filenames. **Recommended:** align with
+                   companion, e.g. v1.14.1.0-repeater-tcp (then run copy-repeater-release-bins.sh v1.14.1.0).
+                   Legacy labels like repeater-1.0.x still work. The macro is prefixed with meshcomod-
+                   (e.g. meshcomod-v1.14.1.0-repeater-tcp-<sha>).
 
 Examples:
 Build without debug logging:
@@ -55,9 +56,10 @@ Build with debug logging (default, uses flags from variant files):
 $ export FIRMWARE_VERSION=v1.0.0
 $ sh build.sh build-firmware RAK_4631_repeater
 
-TCP repeater (own release train, no companion version needed):
-$ export REPEATER_FIRMWARE_VERSION=repeater-1.0.0
+TCP repeater (same base version as companion, distinct -repeater-tcp suffix):
+$ export REPEATER_FIRMWARE_VERSION=v1.14.1.0-repeater-tcp
 $ sh build.sh build-repeater-firmwares
+$ sh scripts/copy-repeater-release-bins.sh v1.14.1.0
 EOF
 }
 
@@ -155,7 +157,7 @@ build_firmware() {
   fi
 
   # set firmware version string
-  # e.g: v1.0.0-abcdef or repeater-1.0.0-abcdef
+  # e.g: v1.0.0-abcdef or v1.14.1.0-repeater-tcp-abcdef or repeater-1.0.0-abcdef
   FIRMWARE_VERSION_STRING="${EFFECTIVE_FW_VERSION}-${COMMIT_HASH}"
   # TCP repeater: visible identity includes meshcomod (OLED, device query, out/ filenames).
   if [[ "$1" == *_repeater_tcp ]]; then

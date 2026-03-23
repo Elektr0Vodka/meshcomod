@@ -44,6 +44,8 @@ sh scripts/copy-release-bins.sh v1.14.0.20
   - **`prebuilt/releases/v1.14.0.20/`** (versioned)
 - Script expects versioned filenames in `out/` (e.g. `heltec_v4_companion_radio_usb_tcp-v1.14.0.20-...bin`).
 
+**TCP repeater** (same **`v1.14.0.20`** release folder): build with **`REPEATER_FIRMWARE_VERSION=v1.14.0.20-repeater-tcp`**, then **`sh scripts/copy-repeater-release-bins.sh v1.14.0.20`** — see [`REPEATER_RELEASE_PROCEDURE.md`](REPEATER_RELEASE_PROCEDURE.md).
+
 ---
 
 ## 4. Update docs

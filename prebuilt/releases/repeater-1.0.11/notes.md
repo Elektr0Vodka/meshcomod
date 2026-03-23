@@ -1,5 +1,7 @@
 ## repeater-1.0.11 — 2026-03-23
 
+> **Superseded for new downloads:** TCP repeater prebuilts for this generation are promoted under **[`v1.14.1.0/`](../v1.14.1.0/)** with aligned naming **`meshcomod-v1.14.1.0-repeater-tcp-<sha>`**. This folder is kept for **rollback / history** only.
+
 **Train:** meshcomod TCP repeater images built against **MeshCore 1.14.1** merge (companion release **v1.14.1.0**).
 
 **Compile-time version string:** `meshcomod-repeater-1.0.11-<gitsha>` (this build: **`47c3fb1c`** in `out/` filenames).

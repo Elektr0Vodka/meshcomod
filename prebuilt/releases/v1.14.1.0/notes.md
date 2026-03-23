@@ -29,8 +29,14 @@
 | OLED repeater | [heltec_v4_repeater.bin](heltec_v4_repeater.bin) |
 | TFT repeater | [heltec_v4_tft_repeater.bin](heltec_v4_tft_repeater.bin) |
 
-**Build:** `DISABLE_DEBUG=1`. **Git at firmware compile:** `47c3fb1c` (matches version segment in `out/` filenames and embedded `FIRMWARE_VERSION` string).
+**TCP repeater (Wi‑Fi companion / CLI)** — same release as companion; device reports **`meshcomod-v1.14.1.0-repeater-tcp-<gitsha>`**.
 
-**Procedure:** [`docs/RELEASE_PROCEDURE.md`](../../../docs/RELEASE_PROCEDURE.md), [`scripts/copy-release-bins.sh`](../../../scripts/copy-release-bins.sh), [`scripts/copy-heltec-v4-meshcomod-extras.sh`](../../../scripts/copy-heltec-v4-meshcomod-extras.sh).
+| Device | Merged (0x0) | App-only |
+|--------|----------------|----------|
+| Heltec V4 (OLED) TCP | [heltec_v4_repeater_tcp-merged.bin](heltec_v4_repeater_tcp-merged.bin) | [heltec_v4_repeater_tcp.bin](heltec_v4_repeater_tcp.bin) |
+| Heltec V4 TFT TCP | [heltec_v4_tft_repeater_tcp-merged.bin](heltec_v4_tft_repeater_tcp-merged.bin) | [heltec_v4_tft_repeater_tcp.bin](heltec_v4_tft_repeater_tcp.bin) |
+| Heltec V3 TCP | [Heltec_v3_repeater_tcp-merged.bin](Heltec_v3_repeater_tcp-merged.bin) | [Heltec_v3_repeater_tcp.bin](Heltec_v3_repeater_tcp.bin) |
 
-**TCP repeater train:** use [`prebuilt/releases/repeater-1.0.11/`](../repeater-1.0.11/) (not this companion version folder).
+**Build:** `DISABLE_DEBUG=1`. **Companion + Heltec V4 extras** images were compiled at git **`47c3fb1c`** (see `out/…-v1.14.1.0-47c3fb1c…`). **TCP repeater** rows use **`REPEATER_FIRMWARE_VERSION=v1.14.1.0-repeater-tcp`**; embedded SHA is the git short hash at repeater build time (see `out/…-v1.14.1.0-repeater-tcp-<sha>…` when rebuilding).
+
+**Procedure:** [`docs/RELEASE_PROCEDURE.md`](../../../docs/RELEASE_PROCEDURE.md), [`scripts/copy-release-bins.sh`](../../../scripts/copy-release-bins.sh), [`scripts/copy-heltec-v4-meshcomod-extras.sh`](../../../scripts/copy-heltec-v4-meshcomod-extras.sh), [`scripts/copy-repeater-release-bins.sh`](../../../scripts/copy-repeater-release-bins.sh) (pass **`v1.14.1.0`**).

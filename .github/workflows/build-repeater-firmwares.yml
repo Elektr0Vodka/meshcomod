@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       repeater_version:
-        description: 'Same as REPEATER_FIRMWARE_VERSION, e.g. repeater-1.0.2'
+        description: 'Same as REPEATER_FIRMWARE_VERSION, e.g. v1.14.1.0-repeater-tcp (or legacy repeater-1.0.2)'
         required: true
         type: string
 
