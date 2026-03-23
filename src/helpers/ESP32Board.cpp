@@ -190,6 +190,33 @@ static bool meshcoreRawGithubToMeshcomodProxy(const char* url, bool repeater_hos
   return n > 0 && (size_t)n < cap;
 }
 
+/**
+ * `https://flasher.meshcomod.com/firmware-download/path` ->
+ * `https://raw.githubusercontent.com/ALLFATHER-BV/meshcomod/main/path`
+ * so companion OTA can fetch the firmware directly from GitHub even when the UI hands it a flasher URL.
+ */
+static bool meshcoreMeshcomodProxyToRawGithub(const char* url, char* out, size_t cap) {
+  static const char flasher_https[] = "https://flasher.meshcomod.com/firmware-download/";
+  static const char flasher_http[] = "http://flasher.meshcomod.com/firmware-download/";
+  static const char repeater_https[] = "https://repeater.meshcomod.com/firmware-download/";
+  static const char repeater_http[] = "http://repeater.meshcomod.com/firmware-download/";
+
+  const char* rel = nullptr;
+  if (strncmp(url, flasher_https, sizeof(flasher_https) - 1) == 0) {
+    rel = url + sizeof(flasher_https) - 1;
+  } else if (strncmp(url, flasher_http, sizeof(flasher_http) - 1) == 0) {
+    rel = url + sizeof(flasher_http) - 1;
+  } else if (strncmp(url, repeater_https, sizeof(repeater_https) - 1) == 0) {
+    rel = url + sizeof(repeater_https) - 1;
+  } else if (strncmp(url, repeater_http, sizeof(repeater_http) - 1) == 0) {
+    rel = url + sizeof(repeater_http) - 1;
+  }
+  if (!rel || !rel[0]) return false;
+
+  int n = snprintf(out, cap, "https://raw.githubusercontent.com/ALLFATHER-BV/meshcomod/main/%s", rel);
+  return n > 0 && (size_t)n < cap;
+}
+
 void ESP32Board::emitHttpOtaNetDiagnosticLines() {
   if (WiFi.status() != WL_CONNECTED) {
     meshcoreRepeaterTcpOtaEmitLine("OTA: diag wifi=disconnected");
@@ -292,7 +319,8 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
   static char ota_url_proxy_fls_https[512];
   const char* fetch_url = url_trim;
   const char* proxy_fls_https = nullptr;
-  if (meshcoreGithubRawToRawUsercontent(url_trim, ota_url_buf, sizeof(ota_url_buf))) {
+  if (meshcoreGithubRawToRawUsercontent(url_trim, ota_url_buf, sizeof(ota_url_buf)) ||
+      meshcoreMeshcomodProxyToRawGithub(url_trim, ota_url_buf, sizeof(ota_url_buf))) {
     fetch_url = ota_url_buf;
   }
   if (httpOtaUrlLooksMergedBin(url_trim) || httpOtaUrlLooksMergedBin(fetch_url)) {
@@ -399,18 +427,18 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
   const char* effective_url = fetch_url;
   int code = -1;
   if (proxy_fls_https) {
-    meshcoreRepeaterTcpOtaEmitLine("OTA: fetch flasher-https");
-    code = getWithRetries(proxy_fls_https);
+    meshcoreRepeaterTcpOtaEmitLine("OTA: fetch raw-github");
+    code = getWithRetries(fetch_url);
     if (code == HTTP_CODE_OK) {
-      effective_url = proxy_fls_https;
+      effective_url = fetch_url;
     } else {
-      meshcoreRepeaterTcpOtaEmitLine("OTA: fallback raw github");
+      meshcoreRepeaterTcpOtaEmitLine("OTA: fallback flasher-https");
       https.end();
       tls_client.stop();
       plain_client.stop();
       delay(15);
-      code = getWithRetries(fetch_url);
-      if (code == HTTP_CODE_OK) effective_url = fetch_url;
+      code = getWithRetries(proxy_fls_https);
+      if (code == HTTP_CODE_OK) effective_url = proxy_fls_https;
     }
   } else {
     code = getWithRetries(fetch_url);
