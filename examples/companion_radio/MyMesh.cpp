@@ -5,12 +5,11 @@
 #include <string.h>
 #include <helpers/AdvertDataHelpers.h>
 #include <helpers/HttpOtaDisplayState.h>
+#include <helpers/RepeaterTcpOtaEmit.h>
 #include "WiFiConfig.h"
 #ifdef ESP32
 #if defined(WIFI_SSID) || defined(MULTI_TRANSPORT_COMPANION)
 #include <WiFi.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
 #endif
 #endif
 
@@ -215,36 +214,12 @@ enum MeshcomodPendingAction {
 };
 static MeshcomodPendingAction s_meshcomod_pending_action = MESHCOMOD_PENDING_NONE;
 static uint32_t s_meshcomod_pending_until_ms = 0;
-static volatile bool s_meshcomod_ota_task_running = false;
-static volatile bool s_meshcomod_ota_task_done = false;
-static char s_meshcomod_ota_task_reply[160] = {0};
-static uint8_t s_meshcomod_ota_last_pct = 0xFF;
-static char s_meshcomod_ota_last_line[28] = {0};
-static uint32_t s_meshcomod_ota_last_emit_ms = 0;
 
 #ifdef ESP32
 #if defined(WIFI_SSID) || defined(MULTI_TRANSPORT_COMPANION)
-struct MeshcomodOtaTaskCtx {
-  MyMesh* self;
-  char url[512];
-};
-
-static void meshcomodOtaTask(void* arg) {
-  MeshcomodOtaTaskCtx* ctx = (MeshcomodOtaTaskCtx*)arg;
-  char reply[160] = {0};
-  bool handled = false;
-  if (ctx && ctx->self) {
-    handled = board.startHttpOtaFromUrl(ctx->url, reply);
-  }
-  if (!handled) {
-    StrHelper::strncpy(reply, "ERR: OTA URL not supported", sizeof(reply));
-  }
-  StrHelper::strncpy(s_meshcomod_ota_task_reply, reply, sizeof(s_meshcomod_ota_task_reply));
-  s_meshcomod_ota_task_done = true;
-  s_meshcomod_ota_task_running = false;
-  if (ctx) free(ctx);
-  vTaskDelete(NULL);
-}
+/** Run HTTP(S) OTA on the Arduino loop task (next loop()); TLS from a FreeRTOS task often fails with HTTP -1. */
+static volatile bool s_meshcomod_ota_pending = false;
+static char s_meshcomod_ota_pending_url[512] = {0};
 #endif
 #endif
 
@@ -598,30 +573,13 @@ bool MyMesh::handleMeshcomodCommand(const char* text, int text_len) {
       }
 #ifdef ESP32
 #if defined(WIFI_SSID) || defined(MULTI_TRANSPORT_COMPANION)
-      if (s_meshcomod_ota_task_running) {
-        pushMeshcomodReply("ERR: OTA already running");
+      if (s_meshcomod_ota_pending) {
+        pushMeshcomodReply("ERR: OTA already queued");
         return true;
       }
-      MeshcomodOtaTaskCtx* ctx = (MeshcomodOtaTaskCtx*)malloc(sizeof(MeshcomodOtaTaskCtx));
-      if (!ctx) {
-        pushMeshcomodReply("ERR: no memory for OTA task");
-        return true;
-      }
-      ctx->self = this;
-      StrHelper::strncpy(ctx->url, p, sizeof(ctx->url));
-      s_meshcomod_ota_task_reply[0] = '\0';
-      s_meshcomod_ota_last_pct = 0xFF;
-      s_meshcomod_ota_last_line[0] = '\0';
-      s_meshcomod_ota_last_emit_ms = 0;
-      s_meshcomod_ota_task_done = false;
-      s_meshcomod_ota_task_running = true;
-      pushMeshcomodReply("OTA requested. Download/flash started...");
-      BaseType_t task_ok = xTaskCreate(meshcomodOtaTask, "meshcomod_ota", 24576, ctx, 1, NULL);
-      if (task_ok != pdPASS) {
-        s_meshcomod_ota_task_running = false;
-        free(ctx);
-        pushMeshcomodReply("ERR: failed to start OTA task");
-      }
+      StrHelper::strncpy(s_meshcomod_ota_pending_url, p, sizeof(s_meshcomod_ota_pending_url));
+      s_meshcomod_ota_pending = true;
+      pushMeshcomodReply("OTA requested. Download/flash starts on next loop...");
 #else
       char reply[160];
       if (board.startHttpOtaFromUrl(p, reply)) {
@@ -3267,61 +3225,35 @@ void MyMesh::checkSerialInterface() {
 }
 
 void MyMesh::loop() {
-  BaseChatMesh::loop();
-
 #ifdef ESP32
 #if defined(WIFI_SSID) || defined(MULTI_TRANSPORT_COMPANION)
-  if (s_meshcomod_ota_task_running && g_meshcore_http_ota_display_active) {
-    bool changed = false;
-    if (s_meshcomod_ota_last_pct != g_meshcore_http_ota_display_pct) changed = true;
-    if (strcmp(s_meshcomod_ota_last_line, g_meshcore_http_ota_display_line) != 0) changed = true;
-    uint32_t now_ms = millis();
-    if (changed && (s_meshcomod_ota_last_emit_ms == 0 || (now_ms - s_meshcomod_ota_last_emit_ms) >= 500)) {
-      char line[120];
-      if (g_meshcore_http_ota_display_pct == 0xFF) {
-        snprintf(line, sizeof(line), "OTA: %s",
-                 g_meshcore_http_ota_display_line[0] ? g_meshcore_http_ota_display_line : "working");
-      } else {
-        snprintf(line, sizeof(line), "OTA: %u%% %s", (unsigned)g_meshcore_http_ota_display_pct,
-                 g_meshcore_http_ota_display_line[0] ? g_meshcore_http_ota_display_line : "working");
-      }
-      if (_serial->isConnected()) {
-        int j = 0;
-        out_frame[j++] = PUSH_CODE_BINARY_RESPONSE;
-        out_frame[j++] = 0;
-        uint32_t tag = 0;
-        memcpy(&out_frame[j], &tag, 4);
-        j += 4;
-        int ll = (int)strlen(line);
-        if (j + ll > MAX_FRAME_SIZE) ll = MAX_FRAME_SIZE - j;
-        memcpy(&out_frame[j], line, (size_t)ll);
-        j += ll;
-        _serial->writeFrame(out_frame, j);
-      }
-      s_meshcomod_ota_last_pct = g_meshcore_http_ota_display_pct;
-      StrHelper::strncpy(s_meshcomod_ota_last_line, g_meshcore_http_ota_display_line, sizeof(s_meshcomod_ota_last_line));
-      s_meshcomod_ota_last_emit_ms = now_ms;
+  if (s_meshcomod_ota_pending) {
+    s_meshcomod_ota_pending = false;
+    char url_copy[512];
+    StrHelper::strncpy(url_copy, s_meshcomod_ota_pending_url, sizeof(url_copy));
+    char reply[160] = {0};
+    bool handled = board.startHttpOtaFromUrl(url_copy, reply);
+    if (!handled) {
+      StrHelper::strncpy(reply, "ERR: OTA URL not supported", sizeof(reply));
     }
-  }
-  if (s_meshcomod_ota_task_done) {
-    s_meshcomod_ota_task_done = false;
-    const char* final_line = s_meshcomod_ota_task_reply[0] ? s_meshcomod_ota_task_reply : "OTA finished";
-    if (_serial->isConnected()) {
+    if (_serial && _serial->isConnected()) {
       int j = 0;
       out_frame[j++] = PUSH_CODE_BINARY_RESPONSE;
       out_frame[j++] = 0;
       uint32_t tag = 0;
       memcpy(&out_frame[j], &tag, 4);
       j += 4;
-      int ll = (int)strlen(final_line);
+      int ll = (int)strlen(reply);
       if (j + ll > MAX_FRAME_SIZE) ll = MAX_FRAME_SIZE - j;
-      memcpy(&out_frame[j], final_line, (size_t)ll);
+      memcpy(&out_frame[j], reply, (size_t)ll);
       j += ll;
       _serial->writeFrame(out_frame, j);
     }
   }
 #endif
 #endif
+
+  BaseChatMesh::loop();
 
   if (_cli_rescue) {
     checkCLIRescueCmd();
@@ -3363,6 +3295,25 @@ void MyMesh::loop() {
   if (_ui) _ui->setHasConnection(_serial->isConnected());
 #endif
 }
+
+#if defined(ESP32) && (defined(WIFI_SSID) || defined(MULTI_TRANSPORT_COMPANION))
+void MyMesh::pushCompanionOtaProgressLine(const char* line) {
+  if (!line || !_serial || !_serial->isConnected()) return;
+  int j = 0;
+  out_frame[j++] = PUSH_CODE_BINARY_RESPONSE;
+  out_frame[j++] = 0;
+  uint32_t tag = 0;
+  memcpy(&out_frame[j], &tag, 4);
+  j += 4;
+  int ll = (int)strlen(line);
+  if (j + ll > MAX_FRAME_SIZE) ll = MAX_FRAME_SIZE - j;
+  memcpy(&out_frame[j], line, (size_t)ll);
+  j += ll;
+  _serial->writeFrame(out_frame, j);
+}
+
+void meshcoreRepeaterTcpOtaEmitLine(const char* line) { the_mesh.pushCompanionOtaProgressLine(line); }
+#endif
 
 bool MyMesh::advert() {
   mesh::Packet* pkt;

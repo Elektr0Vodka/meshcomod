@@ -16,6 +16,26 @@ Versioned prebuilts are listed here so you can **roll back** if a newer release 
 
 ---
 
+## v1.14.0.40 — 2026-03-23
+
+**Firmware version:** v1.14.0.40 (meshcomod on upstream 1.14+).
+
+**Highlights:**
+- **Companion HTTPS OTA:** Runs URL OTA on the Arduino `loop()` task (queued for the next iteration) instead of a background FreeRTOS task, fixing frequent `ERR: HTTP -1` when TLS ran off the main task.
+- **OTA progress over binary frames:** Companion implements `meshcoreRepeaterTcpOtaEmitLine` so the web OTA panel receives live `0x8C` lines during download/flash, same pattern as the TCP repeater.
+- **OTA log text:** Drops the duplicate `OTA:` prefix (`OTA: OTA: connecting`) by removing the redundant display polling path.
+- **Target parity:** V4 OLED, V4 TFT+touch, and V3 companion binaries (merged + non-merged).
+
+**Prebuilt binaries (use [flasher.meshcomod.com](https://flasher.meshcomod.com) — Easy mode auto-downloads versions; for manual upload, use Custom firmware):**
+
+| Device | Merged (recommended) | Non-merged |
+|--------|----------------------|------------|
+| Heltec V4 (OLED) | [heltec_v4_companion_radio_usb_tcp-merged.bin](prebuilt/releases/v1.14.0.40/heltec_v4_companion_radio_usb_tcp-merged.bin) | [heltec_v4_companion_radio_usb_tcp.bin](prebuilt/releases/v1.14.0.40/heltec_v4_companion_radio_usb_tcp.bin) |
+| Heltec V4 TFT + touch | [heltec_v4_tft_companion_radio_usb_tcp_touch-merged.bin](prebuilt/releases/v1.14.0.40/heltec_v4_tft_companion_radio_usb_tcp_touch-merged.bin) | [heltec_v4_tft_companion_radio_usb_tcp_touch.bin](prebuilt/releases/v1.14.0.40/heltec_v4_tft_companion_radio_usb_tcp_touch.bin) |
+| Heltec V3 | [Heltec_v3_companion_radio_usb_tcp-merged.bin](prebuilt/releases/v1.14.0.40/Heltec_v3_companion_radio_usb_tcp-merged.bin) | [Heltec_v3_companion_radio_usb_tcp.bin](prebuilt/releases/v1.14.0.40/Heltec_v3_companion_radio_usb_tcp.bin) |
+
+---
+
 ## v1.14.0.39 — 2026-03-23
 
 **Firmware version:** v1.14.0.39 (meshcomod on upstream 1.14+).

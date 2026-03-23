@@ -8,11 +8,11 @@
 #define FIRMWARE_VER_CODE 26
 
 #ifndef FIRMWARE_BUILD_DATE
-#define FIRMWARE_BUILD_DATE "22 Mar 2026"
+#define FIRMWARE_BUILD_DATE "23 Mar 2026"
 #endif
 
 #ifndef FIRMWARE_VERSION
-#define FIRMWARE_VERSION "v1.14.0.39"
+#define FIRMWARE_VERSION "v1.14.0.40"
 #endif
 
 #if defined(NRF52_PLATFORM) || defined(STM32_PLATFORM)
@@ -114,6 +114,11 @@ public:
   void enterCLIRescue();
 
   int  getRecentlyHeard(AdvertPath dest[], int max_num);
+
+#if defined(ESP32) && (defined(WIFI_SSID) || defined(MULTI_TRANSPORT_COMPANION))
+  /** HTTP OTA: one UTF-8 line as PUSH_CODE_BINARY_RESPONSE (ESP32Board → meshcoreRepeaterTcpOtaEmitLine). */
+  void pushCompanionOtaProgressLine(const char* line);
+#endif
 
 protected:
   float getAirtimeBudgetFactor() const override;

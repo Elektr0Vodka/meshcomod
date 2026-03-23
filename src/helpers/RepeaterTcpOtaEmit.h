@@ -10,6 +10,13 @@ void meshcoreRepeaterTcpOtaEmitBegin(void (*emit)(void *, const uint8_t *, size_
 void meshcoreRepeaterTcpOtaEmitEnd();
 void meshcoreRepeaterTcpOtaEmitLine(const char *line);
 
+#elif defined(ESP32) && (defined(WIFI_SSID) || defined(MULTI_TRANSPORT_COMPANION))
+
+/** Companion / WiFi STA: ESP32Board OTA calls this for live 0x8C lines (loop task — TLS works reliably). */
+static inline void meshcoreRepeaterTcpOtaEmitBegin(void (*)(void *, const uint8_t *, size_t), void *, uint32_t) {}
+static inline void meshcoreRepeaterTcpOtaEmitEnd() {}
+void meshcoreRepeaterTcpOtaEmitLine(const char *line);
+
 #else
 
 static inline void meshcoreRepeaterTcpOtaEmitBegin(void (*)(void *, const uint8_t *, size_t), void *, uint32_t) {}
