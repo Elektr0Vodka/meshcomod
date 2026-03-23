@@ -220,6 +220,9 @@ static uint32_t s_meshcomod_pending_until_ms = 0;
 /** Run HTTP(S) OTA on the Arduino loop task (next loop()); TLS from a FreeRTOS task often fails with HTTP -1. */
 static volatile bool s_meshcomod_ota_pending = false;
 static char s_meshcomod_ota_pending_url[512] = {0};
+// Multi-transport companion can keep TCP/WSS sockets busy; pause them during OTA connect/download.
+static bool s_meshcomod_ota_pause_tcp = false;
+static bool s_meshcomod_ota_restore_tcp = false;
 #endif
 #endif
 
@@ -578,6 +581,11 @@ bool MyMesh::handleMeshcomodCommand(const char* text, int text_len) {
         return true;
       }
       StrHelper::strncpy(s_meshcomod_ota_pending_url, p, sizeof(s_meshcomod_ota_pending_url));
+      s_meshcomod_ota_pause_tcp = (_serial && _serial->isTcpEnabled());
+      s_meshcomod_ota_restore_tcp = s_meshcomod_ota_pause_tcp;
+      if (s_meshcomod_ota_pause_tcp) {
+        pushMeshcomodReply("OTA: pausing TCP/WSS during download");
+      }
       s_meshcomod_ota_pending = true;
       pushMeshcomodReply("OTA requested. Download/flash starts on next loop...");
 #else
@@ -3229,6 +3237,9 @@ void MyMesh::loop() {
 #if defined(WIFI_SSID) || defined(MULTI_TRANSPORT_COMPANION)
   if (s_meshcomod_ota_pending) {
     s_meshcomod_ota_pending = false;
+    if (s_meshcomod_ota_pause_tcp && _serial && _serial->isTcpEnabled()) {
+      _serial->disableTcp();
+    }
     char url_copy[512];
     StrHelper::strncpy(url_copy, s_meshcomod_ota_pending_url, sizeof(url_copy));
     char reply[160] = {0};
@@ -3236,6 +3247,12 @@ void MyMesh::loop() {
     if (!handled) {
       StrHelper::strncpy(reply, "ERR: OTA URL not supported", sizeof(reply));
     }
+    bool ota_rebooting = (strncmp(reply, "> OK rebooting", 13) == 0);
+    if (!ota_rebooting && s_meshcomod_ota_restore_tcp && _serial) {
+      _serial->enableTcp();
+    }
+    s_meshcomod_ota_pause_tcp = false;
+    s_meshcomod_ota_restore_tcp = false;
     if (_serial && _serial->isConnected()) {
       int j = 0;
       out_frame[j++] = PUSH_CODE_BINARY_RESPONSE;
