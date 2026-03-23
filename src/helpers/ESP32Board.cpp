@@ -176,30 +176,70 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
   httpOtaDisplaySet(0xFF, "OTA: connecting");
   meshcoreRepeaterTcpOtaEmitLine("OTA: connecting");
 
-  WiFiClientSecure client;
-  client.setInsecure();
-
-  HTTPClient https;
-  https.setTimeout(90000);
-  // Default is HTTPC_DISABLE_FOLLOW_REDIRECTS; `defined(HTTPC_STRICT_...)` was always false (enum, not macro).
-  https.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
-  https.setUserAgent("MeshCore-OTA/1.0");
-
   static char ota_url_buf[512];
   const char* fetch_url = url_trim;
   if (meshcoreGithubRawToRawUsercontent(url_trim, ota_url_buf, sizeof(ota_url_buf))) {
     fetch_url = ota_url_buf;
   }
 
-  if (!https.begin(client, fetch_url)) {
-    httpOtaDisplayReset();
-    strcpy(reply, "ERR: HTTP begin failed");
-    return true;
+  WiFiClientSecure client;
+  client.setInsecure();
+  client.setTimeout(90000);
+  client.setHandshakeTimeout(30);
+
+  HTTPClient https;
+  https.setTimeout(90000);
+  https.setReuse(false);
+  // Default is HTTPC_DISABLE_FOLLOW_REDIRECTS; `defined(HTTPC_STRICT_...)` was always false (enum, not macro).
+  https.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
+  https.setUserAgent("MeshCore-OTA/1.0");
+
+  auto beginAndGet = [&](int attempt) -> int {
+    if (attempt > 1) {
+      httpOtaDisplaySet(0xFF, "OTA: reconnecting");
+      char retry_line[48];
+      snprintf(retry_line, sizeof(retry_line), "OTA: connect retry %d/3", attempt);
+      meshcoreRepeaterTcpOtaEmitLine(retry_line);
+
+      if (WiFi.status() != WL_CONNECTED) {
+        WiFi.reconnect();
+        unsigned long wait_t0 = millis();
+        while (WiFi.status() != WL_CONNECTED && (millis() - wait_t0) < 8000UL) {
+          delay(100);
+          yield();
+        }
+      }
+      delay(200 * (attempt - 1));
+      yield();
+    }
+    if (!https.begin(client, fetch_url)) return HTTPC_ERROR_CONNECTION_REFUSED;
+    return https.GET();
+  };
+
+  int code = beginAndGet(1);
+  if (code < 0) {
+    String err = https.errorToString(code);
+    char err_line[96];
+    snprintf(err_line, sizeof(err_line), "OTA: connect err %d %s", code, err.c_str());
+    meshcoreRepeaterTcpOtaEmitLine(err_line);
+    https.end();
+    code = beginAndGet(2);
+    if (code < 0) {
+      err = https.errorToString(code);
+      snprintf(err_line, sizeof(err_line), "OTA: connect err %d %s", code, err.c_str());
+      meshcoreRepeaterTcpOtaEmitLine(err_line);
+      https.end();
+      code = beginAndGet(3);
+    }
   }
 
-  int code = https.GET();
   if (code != HTTP_CODE_OK) {
-    snprintf(reply, 128, "ERR: HTTP %d", code);
+    String err = (code < 0) ? https.errorToString(code) : String("");
+    if (code < 0 && err.length() > 0) {
+      snprintf(reply, 128, "ERR: HTTP %d (%s)", code, err.c_str());
+    } else {
+      snprintf(reply, 128, "ERR: HTTP %d", code);
+    }
     https.end();
     httpOtaDisplayReset();
     return true;

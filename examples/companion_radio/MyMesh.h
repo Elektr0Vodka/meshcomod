@@ -12,7 +12,7 @@
 #endif
 
 #ifndef FIRMWARE_VERSION
-#define FIRMWARE_VERSION "v1.14.0.40"
+#define FIRMWARE_VERSION "v1.14.0.41"
 #endif
 
 #if defined(NRF52_PLATFORM) || defined(STM32_PLATFORM)
