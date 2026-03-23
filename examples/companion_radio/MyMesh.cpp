@@ -2399,6 +2399,42 @@ void MyMesh::handleCmdFrame(size_t len) {
     if (path_len >= 0 && i + path_len + 4 <= len) { // minimum 4 byte payload
       uint8_t *path = &cmd_frame[i];
       i += path_len;
+      // Companion OTA panel currently sends `ota url ...` using CMD_SEND_RAW_DATA with empty path.
+      // Treat zero-path ASCII `ota ...` as a local meshcomod command.
+      if (path_len == 0 && i < (int)len) {
+        char local_cmd[220];
+        int payload_len = (int)len - i;
+        if (payload_len >= (int)sizeof(local_cmd)) payload_len = (int)sizeof(local_cmd) - 1;
+        memcpy(local_cmd, &cmd_frame[i], (size_t)payload_len);
+        local_cmd[payload_len] = '\0';
+        // Drop trailing NULs/whitespace from transport payload.
+        while (payload_len > 0 &&
+               (local_cmd[payload_len - 1] == '\0' || local_cmd[payload_len - 1] == '\r' ||
+                local_cmd[payload_len - 1] == '\n' || local_cmd[payload_len - 1] == ' ' ||
+                local_cmd[payload_len - 1] == '\t')) {
+          local_cmd[--payload_len] = '\0';
+        }
+        const char* cp = local_cmd;
+        while (*cp == ' ' || *cp == '\t') cp++;
+        if (strncasecmp(cp, "ota", 3) == 0 && (cp[3] == '\0' || cp[3] == ' ' || cp[3] == '\t')) {
+          handleMeshcomodCommand(cp, (int)strlen(cp));
+          // Also emit immediate binary line for OTA panel consumers that listen on PUSH_BINARY_RESPONSE.
+          int j = 0;
+          out_frame[j++] = PUSH_CODE_BINARY_RESPONSE;
+          out_frame[j++] = 0;
+          uint32_t tag = 0;
+          memcpy(&out_frame[j], &tag, 4);
+          j += 4;
+          const char *line = "OTA command accepted";
+          int ll = (int)strlen(line);
+          if (j + ll > MAX_FRAME_SIZE) ll = MAX_FRAME_SIZE - j;
+          memcpy(&out_frame[j], line, (size_t)ll);
+          j += ll;
+          _serial->writeFrame(out_frame, j);
+          writeOKFrame();
+          return;
+        }
+      }
       auto pkt = createRawData(&cmd_frame[i], len - i);
       if (pkt) {
         sendDirect(pkt, path, path_len);
@@ -3250,6 +3286,19 @@ void MyMesh::loop() {
                  g_meshcore_http_ota_display_line[0] ? g_meshcore_http_ota_display_line : "working");
       }
       pushMeshcomodReply(line, true);
+      if (_serial->isConnected()) {
+        int j = 0;
+        out_frame[j++] = PUSH_CODE_BINARY_RESPONSE;
+        out_frame[j++] = 0;
+        uint32_t tag = 0;
+        memcpy(&out_frame[j], &tag, 4);
+        j += 4;
+        int ll = (int)strlen(line);
+        if (j + ll > MAX_FRAME_SIZE) ll = MAX_FRAME_SIZE - j;
+        memcpy(&out_frame[j], line, (size_t)ll);
+        j += ll;
+        _serial->writeFrame(out_frame, j);
+      }
       s_meshcomod_ota_last_pct = g_meshcore_http_ota_display_pct;
       StrHelper::strncpy(s_meshcomod_ota_last_line, g_meshcore_http_ota_display_line, sizeof(s_meshcomod_ota_last_line));
       s_meshcomod_ota_last_emit_ms = now_ms;
@@ -3257,7 +3306,21 @@ void MyMesh::loop() {
   }
   if (s_meshcomod_ota_task_done) {
     s_meshcomod_ota_task_done = false;
-    pushMeshcomodReply(s_meshcomod_ota_task_reply[0] ? s_meshcomod_ota_task_reply : "OTA finished");
+    const char* final_line = s_meshcomod_ota_task_reply[0] ? s_meshcomod_ota_task_reply : "OTA finished";
+    pushMeshcomodReply(final_line);
+    if (_serial->isConnected()) {
+      int j = 0;
+      out_frame[j++] = PUSH_CODE_BINARY_RESPONSE;
+      out_frame[j++] = 0;
+      uint32_t tag = 0;
+      memcpy(&out_frame[j], &tag, 4);
+      j += 4;
+      int ll = (int)strlen(final_line);
+      if (j + ll > MAX_FRAME_SIZE) ll = MAX_FRAME_SIZE - j;
+      memcpy(&out_frame[j], final_line, (size_t)ll);
+      j += ll;
+      _serial->writeFrame(out_frame, j);
+    }
   }
 #endif
 #endif
