@@ -32,7 +32,7 @@ copy_one_optional() {
   local src="$1"
   local dest_name="$2"
   if [ -z "$src" ] || [ ! -f "$src" ]; then
-    echo "Skip (optional): $dest_name — run pio run -t mergebin and copy merged to out/ with name matching *-${VERSION}-*-merged.bin if you need it"
+    echo "Skip (optional): $dest_name — sh build.sh build-firmware <env> runs mergebin for *_repeater_tcp into out/, or pio run -t mergebin -e <env>"
     return 0
   fi
   cp "$src" "prebuilt/$dest_name"

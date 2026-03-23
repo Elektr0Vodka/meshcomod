@@ -112,7 +112,16 @@ void setup() {
   lastActive = millis();
 
 #ifdef DISPLAY_CLASS
-  display.begin();
+  // Same as companion_radio: one full frame after init so the panel does not show random buffer
+  // ("static") while radio/SPIFFS/mesh setup runs before the first ui_task.loop().
+  if (display.begin()) {
+    display.startFrame();
+#ifdef ST7789
+    display.setTextSize(2);
+#endif
+    display.drawTextCentered(display.width() / 2, 28, "Loading...");
+    display.endFrame();
+  }
 #endif
 
   if (!radio_init()) {
@@ -304,11 +313,13 @@ void loop() {
   }
 #endif
 
-  the_mesh.loop();
-  sensors.loop();
+  // Run UI before mesh so boot splash timers advance and the first paint is not delayed by mesh/serial work
+  // (matches companion_radio loop order).
 #ifdef DISPLAY_CLASS
   ui_task.loop();
 #endif
+  the_mesh.loop();
+  sensors.loop();
   rtc_clock.tick();
   board.pollHttpOtaReboot();
 

@@ -178,8 +178,8 @@ build_firmware() {
   # App image only in out/ (flash at partition app offset).
   if [ "$ENV_PLATFORM" == "ESP32_PLATFORM" ]; then
     cp .pio/build/$1/firmware.bin out/${FIRMWARE_FILENAME}.bin 2>/dev/null || true
-    # Meshcomod USB+TCP companions (OLED + TFT+touch): same flashing flow as docs / flasher.meshcomod — merged image at 0x0
-    if [[ "$1" == *companion_radio_usb_tcp* ]]; then
+    # Companions (USB+TCP) + Heltec TCP repeaters: merged image at 0x0 for flasher / full-chip flash
+    if [[ "$1" == *companion_radio_usb_tcp* ]] || [[ "$1" == *_repeater_tcp ]]; then
       if $PIO_CMD run -t mergebin -e "$1"; then
         if [ -f ".pio/build/$1/firmware-merged.bin" ]; then
           cp ".pio/build/$1/firmware-merged.bin" "out/${FIRMWARE_FILENAME}-merged.bin" 2>/dev/null || true

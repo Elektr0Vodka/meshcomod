@@ -31,7 +31,7 @@ Produces:
 - `prebuilt/Heltec_v3_repeater_tcp.bin`
 - Same filenames under `prebuilt/releases/<version>/`
 
-**Optional merged** images (`*-merged.bin`, flash from **0x0**): only appear if you run `pio run -t mergebin` and place a matching `*-merged.bin` in `out/` before the copy script (see script comments).
+**Merged** images (`*-merged.bin`, flash from **0x0**): `build.sh build-firmware` / `build-repeater-firmwares` runs `mergebin` for `companion_radio_usb_tcp*` and `*_repeater_tcp` envs and copies `*-merged.bin` into `out/` before you run the copy script.
 
 ## Build inputs (versioned `out/` names)
 

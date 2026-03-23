@@ -20,7 +20,7 @@ sh build.sh build-repeater-firmwares
 ```
 
 - You do **not** need `FIRMWARE_VERSION` for this path if `REPEATER_FIRMWARE_VERSION` is set.
-- `out/` will contain e.g. `heltec_v4_repeater_tcp-meshcomod-repeater-1.0.0-<sha>.bin` and the V3 analogue.
+- `out/` will contain e.g. `heltec_v4_repeater_tcp-meshcomod-repeater-1.0.0-<sha>.bin` and the V3 analogue, plus optional **`…-merged.bin`** (full image at **0x0**) after `build.sh` runs `mergebin` for each `*_repeater_tcp` env.
 
 ---
 
