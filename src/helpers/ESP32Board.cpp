@@ -568,21 +568,16 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char* reply) {
   };
 
   bool mirror_ok = false;
-  if (proxy_rep_http) {
-    meshcoreRepeaterTcpOtaEmitLine("OTA: fetch mirrors until firmware");
-    mirror_ok = tryMirror(proxy_rep_http, "OTA: repeater http") || tryMirror(proxy_fls_http, "OTA: flasher http") ||
-                tryMirror(fetch_url, "OTA: raw github") || tryMirror(alt_fetch_url, "OTA: jsdelivr") ||
-                tryMirror(proxy_rep_https, "OTA: repeater https") || tryMirror(proxy_fls_https, "OTA: flasher https");
+  if (proxy_fls_https || proxy_fls_http) {
+    meshcoreRepeaterTcpOtaEmitLine("OTA: fetch flasher-first");
+    mirror_ok = tryMirror(proxy_fls_https, "OTA: flasher https") || tryMirror(proxy_fls_http, "OTA: flasher http") ||
+                tryMirror(fetch_url, "OTA: raw github") || tryMirror(alt_fetch_url, "OTA: jsdelivr");
   } else {
     mirror_ok = tryMirror(fetch_url, nullptr);
     if (!mirror_ok && alt_fetch_url && strcmp(fetch_url, alt_fetch_url) != 0)
       mirror_ok = tryMirror(alt_fetch_url, "OTA: trying jsdelivr mirror");
-    if (!mirror_ok && proxy_rep_https && strcmp(fetch_url, proxy_rep_https) != 0)
-      mirror_ok = tryMirror(proxy_rep_https, "OTA: trying repeater proxy");
     if (!mirror_ok && proxy_fls_https && strcmp(fetch_url, proxy_fls_https) != 0)
       mirror_ok = tryMirror(proxy_fls_https, "OTA: trying flasher proxy");
-    if (!mirror_ok && proxy_rep_http && strcmp(fetch_url, proxy_rep_http) != 0)
-      mirror_ok = tryMirror(proxy_rep_http, "OTA: trying repeater proxy (http)");
     if (!mirror_ok && proxy_fls_http && strcmp(fetch_url, proxy_fls_http) != 0)
       mirror_ok = tryMirror(proxy_fls_http, "OTA: trying flasher proxy (http)");
   }
