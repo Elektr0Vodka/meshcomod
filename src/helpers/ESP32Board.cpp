@@ -10,7 +10,7 @@ volatile int g_meshcore_http_ota_display_active = 0;
 volatile uint8_t g_meshcore_http_ota_display_pct = 0xFF;
 char g_meshcore_http_ota_display_line[28] = {0};
 
-#if defined(ADMIN_PASSWORD) && !defined(DISABLE_WIFI_OTA)   // Repeater or Room Server only
+#if (defined(ADMIN_PASSWORD) || defined(MULTI_TRANSPORT_COMPANION)) && !defined(DISABLE_WIFI_OTA)
 #include <WiFi.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>

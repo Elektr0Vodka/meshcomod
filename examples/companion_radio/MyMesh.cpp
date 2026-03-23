@@ -4,6 +4,7 @@
 #include <Mesh.h>
 #include <string.h>
 #include <helpers/AdvertDataHelpers.h>
+#include <helpers/HttpOtaDisplayState.h>
 #include "WiFiConfig.h"
 #ifdef ESP32
 #if defined(WIFI_SSID) || defined(MULTI_TRANSPORT_COMPANION)
@@ -176,6 +177,9 @@ static int s_meshcomod_scan_count = 0;
 static const char* kMeshcomodHelpMsg =
   "help\n"
   "status\n"
+  "ota start\n"
+  "ota url <https://...bin>\n"
+  "ota status\n"
   "wifi scan\n"
   "wifi use <n>\n"
   "wifi set ssid <v>\n"
@@ -536,6 +540,52 @@ bool MyMesh::handleMeshcomodCommand(const char* text, int text_len) {
       return true;
     }
     pushMeshcomodReply("usage:\n- ble on\n- ble off\n- ble status");
+    return true;
+  }
+
+  if (strncasecmp(p, "ota", 3) == 0 && (p[3] == '\0' || p[3] == ' ' || p[3] == '\t')) {
+    p += 3;
+    while (*p == ' ' || *p == '\t') p++;
+    if (strncasecmp(p, "start", 5) == 0 && (p[5] == '\0' || p[5] == ' ' || p[5] == '\t')) {
+      char reply[160];
+      if (board.startOTAUpdate(_prefs.node_name, reply)) {
+        pushMeshcomodReply(reply);
+      } else {
+        pushMeshcomodReply("ERR: OTA not supported in this build");
+      }
+      return true;
+    }
+    if (strncasecmp(p, "url", 3) == 0 && (p[3] == '\0' || p[3] == ' ' || p[3] == '\t')) {
+      p += 3;
+      while (*p == ' ' || *p == '\t') p++;
+      if (*p == '\0') {
+        pushMeshcomodReply("ERR: missing URL");
+        return true;
+      }
+      char reply[160];
+      if (board.startHttpOtaFromUrl(p, reply)) {
+        pushMeshcomodReply(reply);
+      } else {
+        pushMeshcomodReply("ERR: OTA URL not supported");
+      }
+      return true;
+    }
+    if (strncasecmp(p, "status", 6) == 0 && (p[6] == '\0' || p[6] == ' ' || p[6] == '\t')) {
+      char line[96];
+      if (g_meshcore_http_ota_display_active) {
+        if (g_meshcore_http_ota_display_pct == 0xFF) {
+          snprintf(line, sizeof(line), "ota: active\n%s", g_meshcore_http_ota_display_line[0] ? g_meshcore_http_ota_display_line : "working");
+        } else {
+          snprintf(line, sizeof(line), "ota: %u%%\n%s", (unsigned)g_meshcore_http_ota_display_pct,
+                   g_meshcore_http_ota_display_line[0] ? g_meshcore_http_ota_display_line : "working");
+        }
+      } else {
+        snprintf(line, sizeof(line), "ota: idle");
+      }
+      pushMeshcomodReply(line);
+      return true;
+    }
+    pushMeshcomodReply("usage:\n- ota start\n- ota url <https://...bin>\n- ota status");
     return true;
   }
 
