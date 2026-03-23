@@ -2,7 +2,7 @@
 
 **Train:** meshcomod TCP repeater images built against **MeshCore 1.14.1** merge (companion release **v1.14.1.0**).
 
-**Compile-time version string:** `meshcomod-repeater-1.0.11-<gitsha>` (this build: **`21d7852a`** in `out/` filenames).
+**Compile-time version string:** `meshcomod-repeater-1.0.11-<gitsha>` (this build: **`47c3fb1c`** in `out/` filenames).
 
 **Highlights**
 

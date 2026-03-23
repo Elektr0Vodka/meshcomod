@@ -29,7 +29,7 @@
 | OLED repeater | [heltec_v4_repeater.bin](heltec_v4_repeater.bin) |
 | TFT repeater | [heltec_v4_tft_repeater.bin](heltec_v4_tft_repeater.bin) |
 
-**Build:** `DISABLE_DEBUG=1`. **Git at build:** `21d7852a`.
+**Build:** `DISABLE_DEBUG=1`. **Git at firmware compile:** `47c3fb1c` (matches version segment in `out/` filenames and embedded `FIRMWARE_VERSION` string).
 
 **Procedure:** [`docs/RELEASE_PROCEDURE.md`](../../../docs/RELEASE_PROCEDURE.md), [`scripts/copy-release-bins.sh`](../../../scripts/copy-release-bins.sh), [`scripts/copy-heltec-v4-meshcomod-extras.sh`](../../../scripts/copy-heltec-v4-meshcomod-extras.sh).
 
