@@ -1,0 +1,1325 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the open source MeshCore firmware">
+      
+      
+      
+        <link rel="canonical" href="https://meshcore-dev.github.io/meshcore/LOCAL_BUILD_M7/">
+      
+      
+        <link rel="prev" href="../HARDWARE_TOUCH_PARITY_CHECKLIST/">
+      
+      
+        <link rel="next" href="../RELEASE_PROCEDURE/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Elecrow ThinkNode M7 - MeshCore Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../_stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#elecrow-thinknode-m7" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MeshCore Docs" class="md-header__button md-logo" aria-label="MeshCore Docs" data-md-component="logo">
+      
+  <img src="../_assets/meshcore.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MeshCore Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Elecrow ThinkNode M7
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/meshcore-dev/meshcore/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    meshcore-dev/meshcore
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MeshCore Docs" class="md-nav__button md-logo" aria-label="MeshCore Docs" data-md-component="logo">
+      
+  <img src="../_assets/meshcore.svg" alt="logo">
+
+    </a>
+    MeshCore Docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/meshcore-dev/meshcore/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    meshcore-dev/meshcore
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CI_RELEASES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI releases (GitHub Actions + GitHub Releases)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../COMPANION_OTA_MEMORY_ROOT_CAUSE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion OTA HTTPS Memory Root Cause
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEVICE_WEBSOCKET_WIFI/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Device WebSocket over Wi‑Fi (plain WS)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../HARDWARE_TOUCH_PARITY_CHECKLIST/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Heltec V4 touch UI — hardware parity acceptance checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Elecrow ThinkNode M7
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Elecrow ThinkNode M7
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#environments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#building" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Building
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#radio-region" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Radio region
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hardware-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardware validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#remaining-gaps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Remaining gaps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RELEASE_PROCEDURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release procedure (companion firmware)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../REPEATER_MESHCOMOD_CLIENT_INTEGRATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Meshcomod / custom client ↔ Wi‑Fi repeater (TCP &amp; WebSocket)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../REPEATER_RELEASE_PROCEDURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TCP repeater release procedure (prebuilt / flasher)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../REPEATER_TCP_COMPANION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Repeater TCP companion protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../V3_BOOT_DEBUG/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Heltec V3 boot-loop debug build
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../WEBCLIENT_TOUCH_PARITY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Web client ↔ Heltec V4 touch UI — functionality parity matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli_commands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../companion_protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion Protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local Documentation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Frequently Asked Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kiss_modem_protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MeshCore KISS Modem Protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nrf52_power_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    nRF52 Power Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../number_allocations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Number Allocations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../packet_format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Packet Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payloads/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payload Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qr_codes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    QR Codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stats_binary_frames/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stats Binary Frame Structures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terminal_chat_cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Terminal Chat CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../touch-txt-trace-repro/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Touch TXT send forensics — repro and decision tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#environments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#building" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Building
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#radio-region" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Radio region
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hardware-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardware validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#remaining-gaps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Remaining gaps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/meshcore-dev/meshcore/edit/main/docs/LOCAL_BUILD_M7.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="elecrow-thinknode-m7">Elecrow ThinkNode M7</h1>
+<p>The M7 is an ESP32-S3 + LR1110 board with a 100 Mbps RJ45 (WCH CH390 SPI Ethernet
+controller) and optional PoE. <code>variants/thinknode_m7/</code> and <code>boards/thinknode_m7.json</code>
+arrived with the upstream 1.17.0 merge, but the board is not in meshcomod's release matrix,
+so there is no prebuilt binary and no web-flasher entry (see <a href="../CI_RELEASES/">CI releases</a>).
+It has to be built from source.</p>
+<h2 id="environments">Environments</h2>
+<p><code>*_companion_radio_usb_tcp</code> (meshcomod's USB + TCP + WebSocket companion) does not exist for
+this board, so these are upstream's environments.</p>
+<table>
+<thead>
+<tr>
+<th>Env</th>
+<th>Transports</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ThinkNode_M7_companion_radio_ethernet</code></td>
+<td>USB + Ethernet</td>
+<td>The PoE wired node. Companion TCP on port 5000 over the wire, USB for config.</td>
+</tr>
+<tr>
+<td><code>ThinkNode_M7_companion_radio_ble</code></td>
+<td>BLE</td>
+<td>Ethernet flags are set but unused, since BLE takes precedence. See "Remaining gaps".</td>
+</tr>
+<tr>
+<td><code>ThinkNode_M7_companion_radio_usb</code></td>
+<td>USB</td>
+<td>Simplest bring-up target.</td>
+</tr>
+<tr>
+<td><code>ThinkNode_M7_companion_radio_wifi</code></td>
+<td>Wi-Fi (TCP 5000)</td>
+<td>SSID/password hardcoded in the variant's <code>platformio.ini</code>.</td>
+</tr>
+<tr>
+<td><code>ThinkNode_M7_kiss_modem</code></td>
+<td>USB</td>
+<td>KISS TNC.</td>
+</tr>
+<tr>
+<td><code>ThinkNode_M7_repeater</code></td>
+<td>none</td>
+<td><strong>Does not build.</strong> See "Remaining gaps".</td>
+</tr>
+</tbody>
+</table>
+<h2 id="building">Building</h2>
+<pre><code class="language-bash">export FIRMWARE_VERSION=v1.17.0
+MERGE_BIN=1 bash build.sh build-firmware ThinkNode_M7_companion_radio_ethernet
+</code></pre>
+<p><code>MERGE_BIN=1</code> is needed because <code>build.sh</code> only produces a merged image automatically for env
+names in the release matrix, and no M7 env matches. Without it you get the app image only.</p>
+<table>
+<thead>
+<tr>
+<th>Output</th>
+<th>Flash at</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>out/&lt;env&gt;-&lt;version&gt;-&lt;sha&gt;-merged.bin</code></td>
+<td><code>0x0</code></td>
+<td>bootloader + partition table + app</td>
+</tr>
+<tr>
+<td><code>out/&lt;env&gt;-&lt;version&gt;-&lt;sha&gt;.bin</code></td>
+<td><code>0x10000</code></td>
+<td>app only, keeps partition table and SPIFFS</td>
+</tr>
+</tbody>
+</table>
+<p>Flash with <a href="https://espressif.github.io/esptool-js/">esptool-js</a> in Chrome, or:</p>
+<pre><code class="language-bash">esptool --chip esp32s3 --port &lt;PORT&gt; --baud 921600 write-flash 0x0 out/&lt;file&gt;-merged.bin
+</code></pre>
+<p>The board enumerates as a WCH CH343 bridge (<code>1a86:7522</code>), not Espressif native USB, so <code>&lt;PORT&gt;</code>
+is typically <code>/dev/ttyUSB0</code> on Linux (ch341 driver) or <code>COMx</code> on Windows, not <code>/dev/ttyACM0</code>.
+Note also that
+<code>boards/thinknode_m7.json</code> still declares <code>hwids</code> of <code>0x303A:0x1001</code>, which breaks PlatformIO's
+automatic port detection. Serial console is 115200. There is no reset button, and the auto-reset
+circuit works, so pulse DTR/RTS (or power cycle) to reset.</p>
+<p>A merged image spans <code>0x0</code> to <code>~0x131000</code>, which covers NVS at <code>0x9000</code> but <strong>not</strong> SPIFFS at
+<code>0x670000</code>. Node preferences live in <code>/prefs.json</code> in SPIFFS, so radio settings survive
+reflashing.</p>
+<h2 id="radio-region">Radio region</h2>
+<p><code>[arduino_base]</code> in <code>platformio.ini</code> compiles in EU defaults (869.618 MHz / 62.5 kHz / SF8).
+These seed the factory defaults only: companion firmware copies them into <code>_prefs</code> on first
+boot and uses stored preferences thereafter, and a client app will typically overwrite them
+during setup. For the headless roles (repeater, room server, KISS modem) there is no app, so
+the compiled values are the operating configuration. Set them explicitly when building those
+for a non-EU region.</p>
+<h2 id="hardware-validation">Hardware validation</h2>
+<p>Verified on a real ThinkNode M7 (this is the first known instance of meshcomod running on the
+board):</p>
+<ul>
+<li>Boots, reporting <code>[BOOT] board ok</code> and <code>[BOOT] radio ok</code>, so the LR1110 initializes.</li>
+<li>BLE companion pairs from the MeshCore client.</li>
+<li>USB companion connects from the web client.</li>
+<li>Ethernet: link, DHCP lease, <code>ETH: listening on TCP port: 5000</code>, USB live simultaneously.</li>
+<li>Home Assistant connects over the Ethernet TCP transport and reads telemetry.</li>
+<li>Both LEDs work. Green shows the firmware heartbeat, a 20 ms blip every 4 s that lengthens to
+  200 ms while messages are unread. Blue follows LoRa transmit.</li>
+<li>The compiled radio defaults seed a fresh device. After the store was cleared the node came up
+  on 927.875 MHz, 62.5 kHz, SF7, CR5 with no client involvement.</li>
+<li>DHCP-to-DNS registration works. A rename propagated to DNS with no measurable delay, on the
+  same MAC and the same lease.</li>
+</ul>
+<h2 id="remaining-gaps">Remaining gaps</h2>
+<ul>
+<li><strong><code>ThinkNode_M7_repeater</code> does not compile.</strong> <code>examples/simple_repeater/UITask.cpp</code> uses
+  <code>DisplayDriver::BLUE</code> and <code>DisplayDriver::LIGHT</code>, but that <code>enum Color</code> is commented out at
+  <code>src/helpers/ui/DisplayDriver.h:20</code>, superseded by the <code>UIColor</code> statics. This breaks the
+  plain <code>*_repeater</code> envs on <strong>every</strong> board, reproduced identically on
+  <code>Station_G3_ESP32_repeater</code>, so it is not M7-specific and wants its own fix.</li>
+<li><strong><code>ThinkNode_M7_companion_radio_ble</code> has unused Ethernet.</strong> The env sets both <code>BLE_PIN_CODE</code>
+  and the CH390 flags, but the companion registers only BLE. <code>MultiSerialInterface</code> supports
+  registering BLE, USB and Ethernet together, and wiring that up would give the board every
+  transport at once.</li>
+<li><strong><code>examples/companion_radio/ui-tiny/UITask.h</code></strong> still declares its constructor as taking
+  <code>MultiSerialInterface*</code>, which nothing constructs on nRF52. <code>LilyGo_T-Echo_Card_companion_radio_ble</code>
+  and <code>_usb</code> carry the same break that this change fixes for <code>ui-orig</code>.</li>
+<li><strong><code>boards/thinknode_m7.json</code> <code>hwids</code></strong> do not match the hardware (see above).</li>
+<li><strong>The ethernet MAC is locally administered.</strong> This platform builds with
+  <code>CONFIG_ESP32S3_UNIVERSAL_MAC_ADDRESSES=2</code>, so the ESP-IDF derives the ethernet address from
+  the Bluetooth address with the locally administered bit set. From an illustrative base of
+  <code>00:00:5E:00:53:00</code> that gives Bluetooth <code>00:00:5E:00:53:01</code> and ethernet <code>02:00:5E:00:53:01</code>,
+  which differs from the base in both the first and the last octet and carries no vendor OUI.
+  ESPHome on the same board reports <code>00:00:5E:00:53:03</code>, base+3, because it builds with four
+  universal addresses and assigns the ethernet address explicitly with
+  <code>esp_read_mac(ESP_MAC_ETH)</code> and <code>esp_eth_ioctl(ETH_CMD_S_MAC_ADDR)</code> before attaching the
+  netif. Matching that needs the universal address count changed, since
+  <code>esp_read_mac(ESP_MAC_ETH)</code> returns the derived value here and writing it back is a no-op.
+  Changing it moves the address of every deployed unit, discarding whatever the current one is
+  bound to, so it is left alone.</li>
+<li><strong>A mains powered device reports a battery.</strong> <code>ESP32Board::getBattMilliVolts()</code> returns 0
+  unless <code>PIN_VBAT_READ</code> is defined, and the M7 defines no such pin because the board is powered
+  over PoE or USB and carries no cell. Zero is indistinguishable from a flat battery, so every
+  client presents the node as critically discharged. The protocol has no way to say a device has
+  no battery, which is where the fix belongs: a device with no cell should report absence rather
+  than zero, and a board should be able to declare that it is externally powered.</li>
+<li><strong>The Home Assistant integration exposes battery entities for a device with no battery.</strong> It
+  creates Battery Percentage and Battery Voltage from that zero, so the node shows 0 percent with
+  a low-battery icon and will drive any automation or alert keyed on battery level. Until the
+  protocol can express absence, those entities should be omitted or reported unavailable for a
+  device that reports no cell rather than published as a real reading.</li>
+<li><strong>The meshcomod web client mis-parses the device info frame, and the offset is known.</strong> Byte 2
+  of <code>RESP_CODE_DEVICE_INFO</code> is <code>MAX_CONTACTS / 2</code>, 175, which is invalid UTF-8, and byte 3 is
+  <code>MAX_GROUP_CHANNELS</code>, 40. Those are what the mojibake and the stray bracket are. Bytes 8 to 19
+  hold the build date and bytes 20 on the manufacturer name, which is why they appear run
+  together. The client starts reading at offset 2 rather than offset 8, skipping the two byte
+  header but neither the two v3+ count bytes nor the four byte BLE pin, and does not stop at the
+  null separators. The same client reads <code>Device model</code> and <code>Firmware</code> correctly from that frame,
+  and Home Assistant renders it correctly, so the frame is well formed and <code>StrHelper::strzcpy</code>
+  pads every field. The fix belongs in that client.</li>
+<li><strong>The same client reports a battery voltage the firmware never sent.</strong> It has shown 7.04 V,
+  2.56 V and 0.000 V for a board with no cell, where Home Assistant renders 0.000 V from the same
+  device. The firmware reports zero, so the value is invented by that client's parsing and the
+  fix belongs with the frame offset above.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.action.edit", "content.code.copy", "search.highlight", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

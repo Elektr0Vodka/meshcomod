@@ -1,0 +1,1299 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the open source MeshCore firmware">
+      
+      
+      
+        <link rel="canonical" href="https://meshcore-dev.github.io/meshcore/WEBCLIENT_TOUCH_PARITY/">
+      
+      
+        <link rel="prev" href="../V3_BOOT_DEBUG/">
+      
+      
+        <link rel="next" href="../cli_commands/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Web client ↔ Heltec V4 touch UI — functionality parity matrix - MeshCore Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../_stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#web-client-heltec-v4-touch-ui-functionality-parity-matrix" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MeshCore Docs" class="md-header__button md-logo" aria-label="MeshCore Docs" data-md-component="logo">
+      
+  <img src="../_assets/meshcore.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MeshCore Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Web client ↔ Heltec V4 touch UI — functionality parity matrix
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/meshcore-dev/meshcore/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    meshcore-dev/meshcore
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MeshCore Docs" class="md-nav__button md-logo" aria-label="MeshCore Docs" data-md-component="logo">
+      
+  <img src="../_assets/meshcore.svg" alt="logo">
+
+    </a>
+    MeshCore Docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/meshcore-dev/meshcore/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    meshcore-dev/meshcore
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CI_RELEASES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI releases (GitHub Actions + GitHub Releases)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../COMPANION_OTA_MEMORY_ROOT_CAUSE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion OTA HTTPS Memory Root Cause
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEVICE_WEBSOCKET_WIFI/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Device WebSocket over Wi‑Fi (plain WS)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../HARDWARE_TOUCH_PARITY_CHECKLIST/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Heltec V4 touch UI — hardware parity acceptance checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../LOCAL_BUILD_M7/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Elecrow ThinkNode M7
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RELEASE_PROCEDURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release procedure (companion firmware)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../REPEATER_MESHCOMOD_CLIENT_INTEGRATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Meshcomod / custom client ↔ Wi‑Fi repeater (TCP &amp; WebSocket)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../REPEATER_RELEASE_PROCEDURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TCP repeater release procedure (prebuilt / flasher)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../REPEATER_TCP_COMPANION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Repeater TCP companion protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../V3_BOOT_DEBUG/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Heltec V3 boot-loop debug build
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Web client ↔ Heltec V4 touch UI — functionality parity matrix
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Web client ↔ Heltec V4 touch UI — functionality parity matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#command-quick-reference-firmware-mymeshcpp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command quick reference (firmware MyMesh.cpp)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parity-gaps-acceptable-backlog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parity gaps (acceptable / backlog)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-docs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related docs
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli_commands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../companion_protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion Protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local Documentation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Frequently Asked Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kiss_modem_protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MeshCore KISS Modem Protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nrf52_power_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    nRF52 Power Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../number_allocations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Number Allocations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../packet_format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Packet Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payloads/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payload Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qr_codes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    QR Codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stats_binary_frames/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stats Binary Frame Structures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terminal_chat_cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Terminal Chat CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../touch-txt-trace-repro/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Touch TXT send forensics — repro and decision tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#command-quick-reference-firmware-mymeshcpp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command quick reference (firmware MyMesh.cpp)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parity-gaps-acceptable-backlog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parity gaps (acceptable / backlog)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-docs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related docs
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/meshcore-dev/meshcore/edit/main/docs/WEBCLIENT_TOUCH_PARITY.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="web-client-heltec-v4-touch-ui-functionality-parity-matrix">Web client ↔ Heltec V4 touch UI — functionality parity matrix</h1>
+<p>This document maps <strong>Meshcomod web client</strong> capabilities (companion protocol + UI) to the <strong>on-device touch UI</strong> (<code>examples/companion_radio/ui-new/UITask.*</code>) and the <strong>serial/WebSocket command/response</strong> codes implemented in firmware (<code>examples/companion_radio/MyMesh.cpp</code>).</p>
+<p><strong>Rule:</strong> Touch UI must use the same <strong>companion framing</strong> and <strong>mesh send/receive paths</strong> as the web client; it does not introduce alternate on-air semantics.</p>
+<table>
+<thead>
+<tr>
+<th>Web client area</th>
+<th>Web client surface (reference)</th>
+<th>Touch UI surface (Heltec V4)</th>
+<th>Companion / mesh mapping</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Connect / session</strong></td>
+<td>USB / BLE / Wi‑Fi transports, session replay</td>
+<td><strong>Home:</strong> connection summary. <strong>Net:</strong> contacts + connection text. <strong>Set → Transports:</strong> TCP / BLE / Wi‑Fi (STA radio) toggles + WS hint + <strong>Reset path</strong></td>
+<td>Same node; <code>_serial-&gt;isConnected()</code>, transport flags via <code>BaseSerialInterface</code>; Wi‑Fi uses <code>MyMesh::meshcomodSetWifiRadio</code> → same path as meshcomod <code>wifi on</code> / <code>wifi off</code></td>
+</tr>
+<tr>
+<td><strong>DM chat</strong></td>
+<td>Thread list + timeline + composer</td>
+<td>Chat tab: thread list, timeline, composer</td>
+<td><strong>Send:</strong> <code>CMD_SEND_TXT_MSG</code> path in <code>MyMesh::handleCmdFrame</code> → <code>sendMessage()</code>; <strong>Touch:</strong> calls <code>the_mesh.sendMessage()</code> directly (equivalent payload path)</td>
+</tr>
+<tr>
+<td><strong>Channel chat</strong></td>
+<td>Channel threads + composer</td>
+<td>Chan tab</td>
+<td><strong>Send:</strong> <code>CMD_SEND_CHANNEL_TXT_MSG</code> → <code>sendGroupMessage()</code>; <strong>Touch:</strong> <code>the_mesh.sendGroupMessage()</code> with <code>getChannel(slot)</code></td>
+</tr>
+<tr>
+<td><strong>Receive / sync</strong></td>
+<td><code>PUSH_MSG_WAITING</code>, <code>CMD_SYNC_NEXT_MESSAGE</code>, history</td>
+<td>Timeline fed by <code>AbstractUITask::newMsg</code> / <code>notify</code> from <code>MyMesh</code> (<code>queueMessage</code>, <code>onChannelMessageRecv</code>)</td>
+<td>Same push/history ring; touch does not reimplement sync client</td>
+</tr>
+<tr>
+<td><strong>Optimistic / status</strong></td>
+<td>Optimistic rows + ack UI</td>
+<td>Outgoing line appended locally; alerts for send result / delivery</td>
+<td>ACK path still pushes <code>PUSH_CODE_SEND_CONFIRMED</code> to serial clients; touch shows send result via alerts</td>
+</tr>
+<tr>
+<td><strong>Contacts list</strong></td>
+<td>Full CRUD, filters, favorites</td>
+<td><strong>Net tab:</strong> scrollable contact list → opens DM thread</td>
+<td><strong>Data:</strong> <code>getNumContacts</code> / <code>getContactByIdx</code>; <strong>Commands:</strong> <code>CMD_GET_CONTACTS</code>, <code>CMD_ADD_UPDATE_CONTACT</code>, <code>CMD_REMOVE_CONTACT</code>, etc. (from web/serial)</td>
+</tr>
+<tr>
+<td><strong>Channels list</strong></td>
+<td>Load/set slots, secrets</td>
+<td><strong>Chan tab</strong> + threads seeded from <code>getChannel(i)</code></td>
+<td><code>CMD_GET_CHANNEL</code> / <code>CMD_SET_CHANNEL</code></td>
+</tr>
+<tr>
+<td><strong>Room server</strong></td>
+<td>Login, ACL, posts</td>
+<td>Not a dedicated touch flow</td>
+<td><code>CMD_SEND_LOGIN</code>, <code>CMD_LOGOUT</code>, room frames — parity <strong>partial</strong> until dedicated UI</td>
+</tr>
+<tr>
+<td><strong>Settings / device</strong></td>
+<td>Tabs: profile, radio, auto-add, transports, device, experimental (+ OTA/backup/map in web)</td>
+<td><strong>Set tab:</strong> WhatsApp-style <strong>category list</strong> (6 rows). Each opens a full-screen overlay: <strong>Profile</strong> (name, lat/lon, share position), <strong>Radio</strong> (freq/mod/TX/airtime + reboot prompt), <strong>Auto-add</strong>, <strong>Transports</strong>, <strong>Device</strong> (identity/stats, time/advert/reboot, GPS/buzzer, <strong>diagnostics log</strong>), <strong>Experimental</strong>. <strong>Out of scope on touch:</strong> backup import/export, OTA catalog, map/preset pickers — use web/serial.</td>
+<td>Writes go through <code>NodePrefs</code> / <code>the_mesh.savePrefs()</code>, <code>applyRadioFromPrefs()</code>, <code>advert()</code>, RTC, <code>_board-&gt;reboot()</code> — same persistence as companion; no new packet/storage formats</td>
+</tr>
+<tr>
+<td><strong>Repeater / transport</strong></td>
+<td>Wi‑Fi / repeater tools</td>
+<td><strong>Set → Transports</strong> (toggles + reset path); provisioning flow unchanged</td>
+<td>Path: <code>CMD_RESET_PATH</code> (serial); touch: <code>resetActiveDmPath</code> when contact resolved</td>
+</tr>
+<tr>
+<td><strong>Diagnostics</strong></td>
+<td>Rx log, CLI, dashboard</td>
+<td><strong>Set → Device</strong> footer: compact rolling log; <strong>Home</strong> stats unchanged</td>
+<td><code>CMD_GET_STATS</code>, trace/telemetry — touch shows <strong>local</strong> UI/diag lines; deep CLI remains serial/web</td>
+</tr>
+<tr>
+<td><strong>Persistence</strong></td>
+<td>IndexedDB + localStorage</td>
+<td><code>Preferences</code> namespace <code>meshTouch</code> (active tab); <code>NodePrefs</code> / <code>DataStore</code> for node prefs</td>
+<td>Same store files as companion build</td>
+</tr>
+</tbody>
+</table>
+<h2 id="command-quick-reference-firmware-mymeshcpp">Command quick reference (firmware <code>MyMesh.cpp</code>)</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Symbol</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>CMD_APP_START</code></td>
+<td>Session start / self info</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>CMD_SEND_TXT_MSG</code></td>
+<td>DM plain text</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>CMD_SEND_CHANNEL_TXT_MSG</code></td>
+<td>Channel plain text</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>CMD_GET_CONTACTS</code></td>
+<td>Contact dump / sync</td>
+</tr>
+<tr>
+<td>10</td>
+<td><code>CMD_SYNC_NEXT_MESSAGE</code></td>
+<td>Pull next history message</td>
+</tr>
+<tr>
+<td>31 / 32</td>
+<td><code>CMD_GET_CHANNEL</code> / <code>CMD_SET_CHANNEL</code></td>
+<td>Channel slots</td>
+</tr>
+<tr>
+<td>13</td>
+<td><code>CMD_RESET_PATH</code></td>
+<td>Clear stored route</td>
+</tr>
+<tr>
+<td>20</td>
+<td><code>CMD_GET_BATT_AND_STORAGE</code></td>
+<td>Battery / storage</td>
+</tr>
+<tr>
+<td>56</td>
+<td><code>CMD_GET_STATS</code></td>
+<td>Stats subtypes (v8+)</td>
+</tr>
+</tbody>
+</table>
+<p>Push codes include <code>PUSH_CODE_MSG_WAITING</code> (1) and <code>PUSH_CODE_SEND_CONFIRMED</code> for ACK delivery to <strong>connected</strong> clients.</p>
+<h2 id="parity-gaps-acceptable-backlog">Parity gaps (acceptable / backlog)</h2>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Full room-server UX</td>
+<td>Backlog — protocol exists</td>
+</tr>
+<tr>
+<td>MeshCore backup import/export on device</td>
+<td><strong>Intentionally not in touch UI</strong> — storage constrained; use web client</td>
+</tr>
+<tr>
+<td>OTA catalog / map picker / preset search on device</td>
+<td><strong>Intentionally not in touch UI</strong> — use web client</td>
+</tr>
+<tr>
+<td>Full Rx log + export</td>
+<td>Partial — compact on-device log only</td>
+</tr>
+<tr>
+<td>Trace / path / binary helpers from bubbles</td>
+<td>Backlog — use web client or serial for deep tools</td>
+</tr>
+</tbody>
+</table>
+<h2 id="related-docs">Related docs</h2>
+<ul>
+<li><code>docs/companion_protocol.md</code> — framing overview  </li>
+<li><code>docs/REPEATER_MESHCOMOD_CLIENT_INTEGRATION.md</code> — client integration  </li>
+<li><code>docs/HARDWARE_TOUCH_PARITY_CHECKLIST.md</code> — acceptance tests  </li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.action.edit", "content.code.copy", "search.highlight", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
