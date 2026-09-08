@@ -1318,7 +1318,7 @@ int MyMesh::getInterferenceThreshold() const {
 }
 
 bool MyMesh::getCADEnabled() const {
-  return false; // hardware CAD before TX (disabled by default, until configurable)
+  return true; // hardware CAD before TX (disabled by default, until configurable)
 }
 
 int MyMesh::calcRxDelay(float score, uint32_t air_time) const {
