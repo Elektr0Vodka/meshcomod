@@ -453,7 +453,7 @@ Bytes 5-8:   airtime_factor * 1000, uint32 little-endian
 Byte 9:      cad_enabled (0 = off, 1 = on)   [appended, see CAD note]
 ```
 
-**CAD note**: The CAD byte is backward compatible in both directions. In the set command it is optional: an app that sends only the 9-byte form (bytes 0 to 8) leaves the CAD setting unchanged. In the response it is appended: an app written before CAD existed reads only bytes 0 to 8 and ignores the trailing byte. When a set includes the CAD byte the firmware applies the change immediately, no reboot needed, and persists it. On the companion, CAD defaults to on. Enabling CAD makes the radio perform a hardware Channel Activity Detection scan before each transmit and defer if the channel is busy.
+**CAD note**: The CAD byte is backward compatible in both directions. In the set command it is optional: an app that sends only the 9-byte form (bytes 0 to 8) leaves the CAD setting unchanged. In the response it is appended: an app written before CAD existed reads only bytes 0 to 8 and ignores the trailing byte. When a set includes the CAD byte the firmware applies the change immediately, no reboot needed, and persists it. On the companion, CAD defaults to on. Enabling CAD makes the radio perform a hardware Channel Activity Detection scan before each transmit and defer if the channel is busy. See [companion_cad_toggle.md](companion_cad_toggle.md) for the on-device controls and per-board notes.
 
 ---
 
