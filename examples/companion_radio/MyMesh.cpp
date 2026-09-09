@@ -1321,6 +1321,12 @@ bool MyMesh::getCADEnabled() const {
   return _prefs.cad_enabled; // hardware CAD before TX, runtime toggleable
 }
 
+void MyMesh::setCADEnabled(bool on) {
+  _prefs.cad_enabled = on ? 1 : 0;
+  _radio->setCADEnabled(_prefs.cad_enabled); // apply live, no reboot needed
+  savePrefs();
+}
+
 int MyMesh::calcRxDelay(float score, uint32_t air_time) const {
   if (_prefs.rx_delay_base <= 0.0f) return 0;
   return (int)((pow(_prefs.rx_delay_base, 0.85f - score) - 1.0) * air_time);

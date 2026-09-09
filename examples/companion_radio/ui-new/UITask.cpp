@@ -96,6 +96,7 @@ class HomeScreen : public UIScreen {
     FIRST,
     RECENT,
     RADIO,
+    CAD,
     BLUETOOTH,
     ADVERT,
 #ifdef MULTI_TRANSPORT_COMPANION
@@ -128,6 +129,7 @@ class HomeScreen : public UIScreen {
       case HomePage::FIRST: return "HOME";
       case HomePage::RECENT: return "RECENT";
       case HomePage::RADIO: return "RADIO";
+      case HomePage::CAD: return "CAD";
       case HomePage::BLUETOOTH: return "BLUETOOTH";
       case HomePage::ADVERT: return "ADVERT";
 #ifdef MULTI_TRANSPORT_COMPANION
@@ -151,6 +153,7 @@ class HomeScreen : public UIScreen {
   ColorVal pageAccent() const {
     switch (_page) {
       case HomePage::RADIO: return UIColor::warning_txt;
+      case HomePage::CAD: return UIColor::warning_txt;
       case HomePage::BLUETOOTH: return UIColor::corp_blue;
       case HomePage::ADVERT: return UIColor::warning_txt;
 #if ENV_INCLUDE_GPS == 1
@@ -353,6 +356,20 @@ public:
       display.setCursor(0, 53);
       sprintf(tmp, "Noise floor: %d", radio_driver.getNoiseFloor());
       display.print(tmp);
+    } else if (_page == HomePage::CAD) {
+      bool cad_on = _node_prefs->cad_enabled;
+      display.setTextSize(1);
+      display.setColor(cad_on ? UIColor::primary_txt : UIColor::warning_txt);
+      display.drawTextLeftAlign(0, 20, cad_on ? "CAD on" : "CAD off");
+      display.setColor(UIColor::secondary_txt);
+      display.drawTextLeftAlign(0, 36, "Listen before talk");
+#if defined(HAS_HELTEC_V4_CAP_TOUCH)
+      display.setColor(UIColor::primary_txt);
+      display.drawTextCentered(display.width() / 2, 64 - 11, "swipe < >  CAD: hold");
+#else
+      display.setColor(UIColor::primary_txt);
+      display.drawTextCentered(display.width() / 2, 64 - 11, cad_on ? "OFF: " PRESS_LABEL : "ON: " PRESS_LABEL);
+#endif
     } else if (_page == HomePage::BLUETOOTH) {
       if (_task->hasBleCapability()) {
         // TCP-style layout: title, state, PIN when on, footer with long-press hint
@@ -699,6 +716,12 @@ public:
       } else {
         _task->showAlert("Advert failed", 1400);
       }
+      return true;
+    }
+    if ((c == KEY_ENTER || c == KEY_LONG_ENTER) && _page == HomePage::CAD) {
+      bool now_on = !_node_prefs->cad_enabled;
+      the_mesh.setCADEnabled(now_on);
+      _task->showAlert(now_on ? "CAD on" : "CAD off", 1200);
       return true;
     }
 #if ENV_INCLUDE_GPS == 1

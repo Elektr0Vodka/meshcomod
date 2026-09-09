@@ -203,6 +203,9 @@ public:
   void pushCompanionOtaProgressLine(const char* line);
 #endif
 
+  // Runtime CAD toggle: set the pref, apply to the radio live (no reboot), persist.
+  void setCADEnabled(bool on);
+
 protected:
   float getAirtimeBudgetFactor() const override;
   int getInterferenceThreshold() const override;
