@@ -92,6 +92,7 @@ class HomeScreen : public UIScreen {
     FIRST,
     RECENT,
     RADIO,
+    CAD,
     BLUETOOTH,
     ADVERT,
 #if ENV_INCLUDE_GPS == 1
@@ -237,6 +238,13 @@ public:
       sprintf(tmp, "TX%d", _node_prefs->tx_power_dbm);
       display.drawTextRightAlign(display.width(), 26, tmp);
 
+    } else if (_page == HomePage::CAD) {
+      bool cad_on = _node_prefs->cad_enabled;
+      display.setTextSize(1);
+      display.setColor(cad_on ? UIColor::primary_txt : UIColor::warning_txt);
+      display.drawTextLeftAlign(0, 8, cad_on ? "CAD on" : "CAD off");
+      display.setColor(UIColor::primary_txt);
+      display.drawTextLeftAlign(0, 26, "listen b4 talk");
     } else if (_page == HomePage::BLUETOOTH) {
       display.setColor(UIColor::corp_blue);
       display.drawXbm((display.width() - 32) / 2, 8,
@@ -405,6 +413,12 @@ public:
       } else {
         _task->showAlert("Advert failed..", 1000);
       }
+      return true;
+    }
+    if (c == KEY_ENTER && _page == HomePage::CAD) {
+      bool now_on = !_node_prefs->cad_enabled;
+      the_mesh.setCADEnabled(now_on);
+      _task->showAlert(now_on ? "CAD on" : "CAD off", 1000);
       return true;
     }
 #if ENV_INCLUDE_GPS == 1

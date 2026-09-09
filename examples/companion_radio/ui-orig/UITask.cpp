@@ -270,7 +270,15 @@ void UITask::renderCurrScreen() {
       _display->print(tmp);
       _display->setColor(UIColor::primary_txt);
     } else {
-      _display->setColor(UIColor::primary_txt); 
+      // read-only CAD status (this gesture-only UI has no on-device toggle;
+      // change CAD from the app via the tuning-params frame)
+      bool cad_on = _node_prefs->cad_enabled;
+      _display->setTextSize(1);
+      _display->setCursor(0, 43);
+      _display->setColor(cad_on ? UIColor::primary_txt : UIColor::warning_txt);
+      sprintf(tmp, "CAD: %s", cad_on ? "on" : "off");
+      _display->print(tmp);
+      _display->setColor(UIColor::primary_txt);
     }
   }
   _need_refresh = false;
