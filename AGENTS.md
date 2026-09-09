@@ -1,4 +1,36 @@
-# Agent playbook: meshcomod prebuilt firmware on GitHub
+# Agent playbook: meshcomod
+
+## Contribution conventions
+
+These apply to every change in this repo, by humans and agents alike.
+
+### Prose and formatting
+- Do not use em-dashes or en-dashes in comments, commit messages, PR text, issues, or docs. Use commas, parentheses, or separate sentences.
+- Prefer plain ASCII punctuation in new text.
+
+### Commits
+- Do not add co-authoring trailers. No `Co-Authored-By:` lines and no "Generated with" footers.
+- Use conventional-commit prefixes matching existing history: `feat(scope):`, `fix(scope):`, `release(scope):`, `docs:`, `chore:`, `ci:`.
+- Imperative subject, kept under about 72 characters. Explain the why in the body when it is not obvious.
+
+### Branches and worktrees
+- Name by change type: `Feat/<slug>`, `Fix/<slug>`, `Docs/<slug>`, `Chore/<slug>`.
+- Do not use a `claude/` prefix.
+- One logical change per branch.
+
+### Pull requests
+- Title uses the same conventional-commit prefix as the primary commit.
+- Description covers what changed, why, how it was tested, and any firmware or build impact.
+- Link the issue it closes (`Closes #NNN`).
+- No co-authoring or tool-generated footers.
+- Keep PRs focused. Split unrelated changes.
+
+### Issues
+- Clear, prefixed title (`bug:`, `feat:`, `question:`).
+- Bugs: firmware version or build, board, steps to reproduce, expected vs actual, logs if available.
+- Features: state the problem first, then the proposed behavior.
+
+## Releases: prebuilt firmware on GitHub
 
 Use this file as the **single entrypoint** when promoting ESP32 meshcomod builds into **`prebuilt/`** on **`main`**. Human-oriented detail lives in [`docs/RELEASE_PROCEDURE.md`](docs/RELEASE_PROCEDURE.md), [`docs/REPEATER_RELEASE_PROCEDURE.md`](docs/REPEATER_RELEASE_PROCEDURE.md), and [`prebuilt/README.md`](prebuilt/README.md).
 

@@ -1318,7 +1318,13 @@ int MyMesh::getInterferenceThreshold() const {
 }
 
 bool MyMesh::getCADEnabled() const {
-  return true; // hardware CAD before TX (disabled by default, until configurable)
+  return _prefs.cad_enabled; // hardware CAD before TX, runtime toggleable
+}
+
+void MyMesh::setCADEnabled(bool on) {
+  _prefs.cad_enabled = on ? 1 : 0;
+  _radio->setCADEnabled(_prefs.cad_enabled); // apply live, no reboot needed
+  savePrefs();
 }
 
 int MyMesh::calcRxDelay(float score, uint32_t air_time) const {
@@ -2332,6 +2338,7 @@ MyMesh::MyMesh(mesh::Radio &radio, mesh::RNG &rng, mesh::RTCClock &rtc, SimpleMe
   _prefs.bw = LORA_BW;
   _prefs.cr = LORA_CR;
   _prefs.tx_power_dbm = LORA_TX_POWER;
+  _prefs.cad_enabled = 1;       // hardware CAD before TX on by default
   _prefs.gps_enabled = 0;       // GPS disabled by default
   _prefs.gps_interval = 0;      // No automatic GPS updates by default
   //_prefs.rx_delay_base = 10.0f;  enable once new algo fixed
@@ -3158,6 +3165,10 @@ void MyMesh::handleCmdFrame(size_t len) {
     i += 4;
     _prefs.rx_delay_base = ((float)rx) / 1000.0f;
     _prefs.airtime_factor = ((float)af) / 1000.0f;
+    if (len >= 10) { // optional trailing byte: hardware CAD on/off (newer apps)
+      _prefs.cad_enabled = cmd_frame[i] ? 1 : 0;
+      _radio->setCADEnabled(_prefs.cad_enabled); // apply live, no reboot needed
+    }
     savePrefs();
     writeOKFrame();
   } else if (cmd_frame[0] == CMD_GET_TUNING_PARAMS) {
@@ -3166,6 +3177,7 @@ void MyMesh::handleCmdFrame(size_t len) {
     out_frame[i++] = RESP_CODE_TUNING_PARAMS;
     memcpy(&out_frame[i], &rx, 4); i += 4;
     memcpy(&out_frame[i], &af, 4); i += 4;
+    out_frame[i++] = _prefs.cad_enabled; // appended trailing byte; older apps ignore it
     _serial->writeFrame(out_frame, i);
   } else if (cmd_frame[0] == CMD_SET_OTHER_PARAMS) {
     _prefs.manual_add_contacts = cmd_frame[1];

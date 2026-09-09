@@ -14,7 +14,7 @@
 #define FIRMWARE_VER_CODE 27
 
 #ifndef FIRMWARE_BUILD_DATE
-#define FIRMWARE_BUILD_DATE "13 Aug 2026"
+#define FIRMWARE_BUILD_DATE "9 Sep 2026"
 #endif
 
 #ifndef FIRMWARE_VERSION
@@ -202,6 +202,9 @@ public:
   /** HTTP OTA: one UTF-8 line as PUSH_CODE_BINARY_RESPONSE (ESP32Board → meshcoreRepeaterTcpOtaEmitLine). */
   void pushCompanionOtaProgressLine(const char* line);
 #endif
+
+  // Runtime CAD toggle: set the pref, apply to the radio live (no reboot), persist.
+  void setCADEnabled(bool on);
 
 protected:
   float getAirtimeBudgetFactor() const override;

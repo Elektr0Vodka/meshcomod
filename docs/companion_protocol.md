@@ -428,6 +428,35 @@ Byte 0: 0x14
 
 ---
 
+### 9. Radio Tuning Parameters (and CAD)
+
+**Purpose**: Read or change runtime radio tuning: the receive delay base, the airtime factor, and the hardware Channel Activity Detection (CAD) toggle.
+
+**Set Command Format** (`CMD_SET_TUNING_PARAMS`):
+```
+Byte 0:      0x15
+Bytes 1-4:   rx_delay_base * 1000, uint32 little-endian
+Bytes 5-8:   airtime_factor * 1000, uint32 little-endian
+Byte 9:      cad_enabled (0 = off, 1 = on)   [optional, see CAD note]
+```
+
+**Get Command Format** (`CMD_GET_TUNING_PARAMS`):
+```
+Byte 0: 0x2B
+```
+
+**Response** (`PACKET_TUNING_PARAMS` / `RESP_CODE_TUNING_PARAMS`, 0x17):
+```
+Byte 0:      0x17
+Bytes 1-4:   rx_delay_base * 1000, uint32 little-endian
+Bytes 5-8:   airtime_factor * 1000, uint32 little-endian
+Byte 9:      cad_enabled (0 = off, 1 = on)   [appended, see CAD note]
+```
+
+**CAD note**: The CAD byte is backward compatible in both directions. In the set command it is optional: an app that sends only the 9-byte form (bytes 0 to 8) leaves the CAD setting unchanged. In the response it is appended: an app written before CAD existed reads only bytes 0 to 8 and ignores the trailing byte. When a set includes the CAD byte the firmware applies the change immediately, no reboot needed, and persists it. On the companion, CAD defaults to on. Enabling CAD makes the radio perform a hardware Channel Activity Detection scan before each transmit and defer if the channel is busy.
+
+---
+
 ## Channel Management
 
 ### Channel Types

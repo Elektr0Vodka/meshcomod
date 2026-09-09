@@ -290,6 +290,11 @@ void DataStore::loadPrefsInt(const char *filename, NodePrefs& _prefs, double& no
     memset(_prefs.default_scope_key, 0, sizeof(_prefs.default_scope_key));
     file.read((uint8_t *)_prefs.default_scope_name, sizeof(_prefs.default_scope_name));    // 90
     file.read((uint8_t *)_prefs.default_scope_key, sizeof(_prefs.default_scope_key));      // 121
+    _prefs.cad_enabled = 1; // default on; prefs files written before this field lack it
+    uint8_t cad_byte;
+    if (file.read(&cad_byte, sizeof(cad_byte)) == sizeof(cad_byte)) {                      // 141 appended
+      _prefs.cad_enabled = cad_byte ? 1 : 0;
+    }
 
     file.close();
 
@@ -338,6 +343,7 @@ void DataStore::savePrefs(const NodePrefs& _prefs, double node_lat, double node_
     file.write((uint8_t *)&_prefs.rx_boosted_gain, sizeof(_prefs.rx_boosted_gain));         // 92
     file.write((uint8_t *)_prefs.default_scope_name, sizeof(_prefs.default_scope_name));    // 93
     file.write((uint8_t *)_prefs.default_scope_key, sizeof(_prefs.default_scope_key));      // 125
+    file.write((uint8_t *)&_prefs.cad_enabled, sizeof(_prefs.cad_enabled));                 // 141 hardware CAD toggle (appended)
 
     file.close();
   }

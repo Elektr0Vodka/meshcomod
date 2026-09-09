@@ -922,6 +922,7 @@ struct SettingsModalState {
   lv_obj_t* exp_multi_sw;
   lv_obj_t* exp_repeat_sw;
   lv_obj_t* exp_boost_sw;
+  lv_obj_t* exp_cad_sw;
   lv_obj_t* exp_dc_sw;
   lv_obj_t* wifi_sw;
   lv_obj_t* wifi_ssid_ta;
@@ -3839,6 +3840,8 @@ static void saveExperimentalCb(lv_event_t* e) {
   uint8_t repeat = (g_set_modal.exp_repeat_sw && lv_obj_has_state(g_set_modal.exp_repeat_sw, LV_STATE_CHECKED)) ? 1u : 0u;
   uint8_t boost = (g_set_modal.exp_boost_sw && lv_obj_has_state(g_set_modal.exp_boost_sw, LV_STATE_CHECKED)) ? 1u : 0u;
   g_lv.task->setExperimentalFlags(multi, repeat, boost);
+  bool cad = (g_set_modal.exp_cad_sw && lv_obj_has_state(g_set_modal.exp_cad_sw, LV_STATE_CHECKED));
+  the_mesh.setCADEnabled(cad);
 #if defined(ESP32)
   bool dc_show = (g_set_modal.exp_dc_sw && lv_obj_has_state(g_set_modal.exp_dc_sw, LV_STATE_CHECKED));
   touchPrefsSetDutyMeterShown(dc_show);
@@ -4594,12 +4597,14 @@ static void buildExperimentalSettings() {
   mk_switch("Multi ACKs", &g_set_modal.exp_multi_sw);
   mk_switch("Client repeat", &g_set_modal.exp_repeat_sw);
   mk_switch("RX boosted gain", &g_set_modal.exp_boost_sw);
+  mk_switch("CAD", &g_set_modal.exp_cad_sw);
   mk_switch("Duty meter", &g_set_modal.exp_dc_sw);
 
   if (prefs) {
     if (prefs->multi_acks) lv_obj_add_state(g_set_modal.exp_multi_sw, LV_STATE_CHECKED);
     if (prefs->client_repeat) lv_obj_add_state(g_set_modal.exp_repeat_sw, LV_STATE_CHECKED);
     if (prefs->rx_boosted_gain) lv_obj_add_state(g_set_modal.exp_boost_sw, LV_STATE_CHECKED);
+    if (prefs->cad_enabled) lv_obj_add_state(g_set_modal.exp_cad_sw, LV_STATE_CHECKED);
   }
 #if defined(ESP32)
   if (touchPrefsGetDutyMeterShown()) lv_obj_add_state(g_set_modal.exp_dc_sw, LV_STATE_CHECKED);
