@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://meshcore-dev.github.io/meshcore/companion_protocol/">
       
       
-        <link rel="prev" href="../cli_commands/">
+        <link rel="prev" href="../companion_cad_toggle/">
       
       
         <link rel="next" href="../docs/">
@@ -558,6 +558,33 @@
     
   
     CLI Commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../companion_cad_toggle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion CAD toggle
   
 
     
@@ -1532,10 +1559,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_26" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_27" >
         
           
-          <label class="md-nav__link" for="__nav_26" id="__nav_26_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_27" id="__nav_27_label" tabindex="0">
             
   
   
@@ -1553,8 +1580,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_26_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_26">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_27_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_27">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1579,10 +1606,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_26_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_27_1" >
         
           
-          <label class="md-nav__link" for="__nav_26_1" id="__nav_26_1_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_27_1" id="__nav_27_1_label" tabindex="0">
             
   
   
@@ -1600,8 +1627,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_26_1_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_26_1">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_27_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_27_1">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -2693,7 +2720,7 @@ Bytes 1-4:   rx_delay_base * 1000, uint32 little-endian
 Bytes 5-8:   airtime_factor * 1000, uint32 little-endian
 Byte 9:      cad_enabled (0 = off, 1 = on)   [appended, see CAD note]
 </code></pre>
-<p><strong>CAD note</strong>: The CAD byte is backward compatible in both directions. In the set command it is optional: an app that sends only the 9-byte form (bytes 0 to 8) leaves the CAD setting unchanged. In the response it is appended: an app written before CAD existed reads only bytes 0 to 8 and ignores the trailing byte. When a set includes the CAD byte the firmware applies the change immediately, no reboot needed, and persists it. On the companion, CAD defaults to on. Enabling CAD makes the radio perform a hardware Channel Activity Detection scan before each transmit and defer if the channel is busy.</p>
+<p><strong>CAD note</strong>: The CAD byte is backward compatible in both directions. In the set command it is optional: an app that sends only the 9-byte form (bytes 0 to 8) leaves the CAD setting unchanged. In the response it is appended: an app written before CAD existed reads only bytes 0 to 8 and ignores the trailing byte. When a set includes the CAD byte the firmware applies the change immediately, no reboot needed, and persists it. On the companion, CAD defaults to on. Enabling CAD makes the radio perform a hardware Channel Activity Detection scan before each transmit and defer if the channel is busy. See <a href="../companion_cad_toggle/">companion_cad_toggle.md</a> for the on-device controls and per-board notes.</p>
 <hr />
 <h2 id="channel-management">Channel Management</h2>
 <h3 id="channel-types">Channel Types</h3>
