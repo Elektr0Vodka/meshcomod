@@ -29,6 +29,7 @@
 #include <SPIFFS.h>
 #endif
 
+#include "CompanionFilter.h"
 #include "DataStore.h"
 #include "NodePrefs.h"
 
@@ -239,6 +240,14 @@ protected:
   uint8_t getExtraAckTransmitCount() const override;
   uint8_t getAutoAddMaxHops() const override;
   bool filterRecvFloodPacket(mesh::Packet* packet) override;
+
+  // Companion receive filter (CompanionFilterHook.cpp)
+  bool cfilterFlood(mesh::Packet* packet);
+  bool cfilterHidden(const mesh::Packet* packet);
+  bool cfilterCommand(const char* command, char* reply);
+  CompanionFilter _cfilter;
+  uint8_t _cfilter_hidden[MAX_HASH_SIZE];
+  bool _cfilter_hidden_set = false;
   bool allowPacketForward(const mesh::Packet* packet) override;
 
   void sendFloodScoped(const TransportKey& scope, mesh::Packet* pkt, uint32_t delay_millis);

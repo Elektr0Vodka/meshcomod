@@ -491,8 +491,8 @@ bool MyMesh::handleMeshcomodCommand(const char* text, int text_len) {
 
   if (isCmd(p, "ver") || isCmd(p, "version")) {
     char r[96];
-    snprintf(r, sizeof r, "Meshcomod %s\nbuild %s  (code %d)",
-             FIRMWARE_VERSION, FIRMWARE_BUILD_DATE, FIRMWARE_VER_CODE);
+    snprintf(r, sizeof r, "Meshcomod %s%s\nbuild %s  (code %d)",
+             FIRMWARE_VERSION, CFILTER_VER_TAG, FIRMWARE_BUILD_DATE, FIRMWARE_VER_CODE);
     pushMeshcomodReply(r);
     return true;
   }
@@ -1879,7 +1879,7 @@ void MyMesh::queueMessage(const ContactInfo &from, uint8_t txt_type, mesh::Packe
 bool MyMesh::filterRecvFloodPacket(mesh::Packet* packet) {
   // REVISIT: try to determine which Region (from transport_codes[1]) that Sender is indicating for replies/responses
   //    if unknown, fallback to finding Region from transport_codes[0], the 'scope' used by Sender
-  return false;
+  return cfilterFlood(packet);   // companion receive filter
 }
 
 bool MyMesh::allowPacketForward(const mesh::Packet* packet) {
@@ -1970,6 +1970,7 @@ void MyMesh::onSignedMessageRecv(const ContactInfo &from, mesh::Packet *pkt, uin
 
 void MyMesh::onChannelMessageRecv(const mesh::GroupChannel &channel, mesh::Packet *pkt, uint32_t timestamp,
                                   const char *text) {
+  if (cfilterHidden(pkt)) return;   // companion receive filter: hidden, only let through to be repeated
   int i = 0;
   out_frame[i++] = RESP_CODE_CHANNEL_MSG_RECV_V3;
   out_frame[i++] = (int8_t)(pkt->getSNR() * 4);
@@ -2540,6 +2541,7 @@ void MyMesh::begin(bool has_display) {
 
   // load persisted prefs
   _store->loadPrefs(_prefs, sensors.node_lat, sensors.node_lon);
+  loadCompanionFilter(_cfilter, *_store);   // companion receive filter
 
   // sanitise bad pref values
   _prefs.rx_delay_base = constrain(_prefs.rx_delay_base, 0, 20.0f);
@@ -4054,7 +4056,7 @@ bool MyMesh::handleCommand(const char* command, uint32_t sender_timestamp, char*
   }
 
   if (strcmp(command, "ver") == 0) {
-    sprintf(reply, "%s (Build: %s)", FIRMWARE_VERSION, FIRMWARE_BUILD_DATE);
+    sprintf(reply, "%s%s (Build: %s)", FIRMWARE_VERSION, CFILTER_VER_TAG, FIRMWARE_BUILD_DATE);
     return true;
   }
 
@@ -4062,6 +4064,8 @@ bool MyMesh::handleCommand(const char* command, uint32_t sender_timestamp, char*
     strcpy(reply, "Error: unsupported");
     return true;
   }
+
+  if (cfilterCommand(command, reply)) return true;   // companion receive filter
 
   return false;  // not handled
 }
