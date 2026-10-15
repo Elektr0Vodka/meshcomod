@@ -28,6 +28,11 @@ Only flood traffic is filtered. Direct messages, and anything else addressed to
 this node, are never touched. Content checks run on the channels the companion
 holds the key for, which are exactly the channels the user sees.
 
+The raw RX log (`PUSH_CODE_LOG_RX_DATA`) is not filtered. The radio sends it for
+every packet it hears, before the filter runs. Apps that decode the raw log
+themselves, such as RTFM-EV, still see filtered traffic; they need their own
+rules to hide it.
+
 ---
 
 # Hidden or dropped
