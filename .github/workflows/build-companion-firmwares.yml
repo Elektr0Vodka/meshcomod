@@ -5,6 +5,11 @@ permissions:
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Firmware line, e.g. v1.18.0.1. Leave empty to use FIRMWARE_VERSION from examples/companion_radio/MyMesh.h'
+        required: false
+        default: ''
   push:
     tags:
       - 'companion-*'
@@ -21,9 +26,28 @@ jobs:
       - name: Setup Build Environment
         uses: ./.github/actions/setup-build-environment
 
-      - name: Build Firmwares
+      # A tag push uses the tag (companion-v1.18.0.1 -> v1.18.0.1). A manual run
+      # would otherwise get the branch name as its version, so it uses the
+      # `version` input, or the firmware line in MyMesh.h when that is empty.
+      - name: Resolve Firmware Version
         env:
-          FIRMWARE_VERSION: ${{ env.GIT_TAG_VERSION }}
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION="${GIT_TAG_VERSION}"
+          elif [ -n "${INPUT_VERSION}" ]; then
+            VERSION="${INPUT_VERSION}"
+          else
+            VERSION=$(sed -n 's/^#define FIRMWARE_VERSION "\(.*\)"\r\{0,1\}$/\1/p' examples/companion_radio/MyMesh.h | head -n 1)
+          fi
+          if [ -z "${VERSION}" ]; then
+            echo "Could not resolve the firmware version"
+            exit 1
+          fi
+          echo "Firmware version: ${VERSION}"
+          echo "FIRMWARE_VERSION=${VERSION}" >> "$GITHUB_ENV"
+
+      - name: Build Firmwares
         # Only the meshcomod-shipped companion boards (V4, V3, Wireless Paper,
         # Xiao — _usb_tcp). NOT build-companion-firmwares, which compiles the
         # entire 60-env upstream MeshCore family (~1h, wrong _usb/_ble variants).
