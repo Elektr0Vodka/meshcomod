@@ -30,6 +30,11 @@
 
 #define CFILTER_PREFS_FILE "/cfilter.json"
 
+// Appended to FIRMWARE_VERSION in the `ver` replies only, so a build with this
+// filter is recognisable. FIRMWARE_VERSION itself stays plain because OTA and
+// the flasher parse it.
+#define CFILTER_VER_TAG "-dmc-filter"
+
 // The tightest reply buffer is remote CLI over the mesh: the reply sits at
 // offset 5 of a 166-byte buffer (161 bytes), after an optional 3-byte "xx|"
 // prefix echoed from the command. 158 fits every caller.

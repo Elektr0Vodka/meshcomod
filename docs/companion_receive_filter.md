@@ -19,6 +19,10 @@ It filters on:
 
 The filter is **disabled by default**.
 
+A build that contains the filter reports it in `ver`, for example
+`v1.18.0.1-dmc-filter (Build: 15 Oct 2026)`. The tag is only added to the `ver`
+reply; the version string used by OTA and the flasher is unchanged.
+
 Only flood traffic is filtered. Direct messages, and anything else addressed to
 this node, are never touched. Content checks run on the channels the companion
 holds the key for, which are exactly the channels the user sees.

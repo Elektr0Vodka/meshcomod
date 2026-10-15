@@ -491,8 +491,8 @@ bool MyMesh::handleMeshcomodCommand(const char* text, int text_len) {
 
   if (isCmd(p, "ver") || isCmd(p, "version")) {
     char r[96];
-    snprintf(r, sizeof r, "Meshcomod %s\nbuild %s  (code %d)",
-             FIRMWARE_VERSION, FIRMWARE_BUILD_DATE, FIRMWARE_VER_CODE);
+    snprintf(r, sizeof r, "Meshcomod %s%s\nbuild %s  (code %d)",
+             FIRMWARE_VERSION, CFILTER_VER_TAG, FIRMWARE_BUILD_DATE, FIRMWARE_VER_CODE);
     pushMeshcomodReply(r);
     return true;
   }
@@ -4056,7 +4056,7 @@ bool MyMesh::handleCommand(const char* command, uint32_t sender_timestamp, char*
   }
 
   if (strcmp(command, "ver") == 0) {
-    sprintf(reply, "%s (Build: %s)", FIRMWARE_VERSION, FIRMWARE_BUILD_DATE);
+    sprintf(reply, "%s%s (Build: %s)", FIRMWARE_VERSION, CFILTER_VER_TAG, FIRMWARE_BUILD_DATE);
     return true;
   }
 
