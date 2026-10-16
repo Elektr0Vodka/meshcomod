@@ -207,6 +207,8 @@ static const char* kMeshcomodHelpMsg =
   "help\n"
   "status\n"
   "ota start\n"
+  "ota check\n"
+  "ota update\n"
   "ota url <https://...bin>\n"
   "ota netdiag\n"
   "ota status\n"
@@ -437,6 +439,69 @@ void MyMesh::pushMeshcomodReply(const char* text, bool immediate_current) {
     }
     pos += take;
   }
+}
+
+void MyMesh::runCompanionHttpOta(const char* url) {
+#ifdef ESP32
+#if defined(WIFI_SSID) || defined(MULTI_TRANSPORT_COMPANION)
+  {
+    char reply[160] = {0};
+#ifdef MULTI_TRANSPORT_COMPANION
+    {
+      int rt = _serial ? _serial->getReplyTarget() : REPLY_TARGET_USB;
+      if (rt == REPLY_TARGET_USB || rt == REPLY_TARGET_BLE) {
+        meshcoreRepeaterTcpOtaEmitLine("OTA: rejected need Wi-Fi TCP/WS control session");
+        pushMeshcomodReply(rt == REPLY_TARGET_BLE
+                               ? "ERR: HTTP OTA must be started from Wi-Fi TCP or WebSocket (not BLE)"
+                               : "ERR: HTTP OTA must be started from Wi-Fi TCP or WebSocket (not USB)");
+        return;
+      }
+      s_companion_ota_pinned_reply_target = rt;
+      if (_serial) _serial->prepareForHttpOta();
+      bool handled = board.startHttpOtaFromUrl(url, reply);
+      if (_serial && (strncmp(reply, "ERR:", 4) == 0 || !handled)) _serial->restoreAfterHttpOta();
+      if (!handled) {
+        StrHelper::strncpy(reply, "ERR: OTA URL not supported", sizeof(reply));
+      }
+      if (_serial) _serial->setReplyTarget(rt);
+      pushMeshcomodReply(reply);
+      pushCompanionOtaProgressLine(reply);
+      s_companion_ota_pinned_reply_target = -1;
+    }
+#elif defined(WIFI_SSID)
+    {
+      if (!_serial || !_serial->isHttpOtaWifiControlSession()) {
+        meshcoreRepeaterTcpOtaEmitLine("OTA: rejected need active Wi-Fi companion TCP session");
+        pushMeshcomodReply(WiFi.status() != WL_CONNECTED
+                               ? "ERR: WiFi not connected"
+                               : "ERR: HTTP OTA must be started from an active Wi-Fi companion connection");
+        return;
+      }
+      bool handled = board.startHttpOtaFromUrl(url, reply);
+      if (!handled) {
+        StrHelper::strncpy(reply, "ERR: OTA URL not supported", sizeof(reply));
+      }
+      pushMeshcomodReply(reply);
+      pushCompanionOtaProgressLine(reply);
+    }
+#endif
+  }
+#else
+  char reply[160];
+  if (board.startHttpOtaFromUrl(url, reply)) {
+    pushMeshcomodReply(reply);
+  } else {
+    pushMeshcomodReply("ERR: OTA URL not supported");
+  }
+#endif
+#else
+  char reply[160];
+  if (board.startHttpOtaFromUrl(url, reply)) {
+    pushMeshcomodReply(reply);
+  } else {
+    pushMeshcomodReply("ERR: OTA URL not supported");
+  }
+#endif
 }
 
 bool MyMesh::handleMeshcomodCommand(const char* text, int text_len) {
@@ -714,66 +779,23 @@ bool MyMesh::handleMeshcomodCommand(const char* text, int text_len) {
         pushMeshcomodReply("ERR: missing URL");
         return true;
       }
-#ifdef ESP32
-#if defined(WIFI_SSID) || defined(MULTI_TRANSPORT_COMPANION)
-      {
-        char reply[160] = {0};
-#ifdef MULTI_TRANSPORT_COMPANION
-        {
-          int rt = _serial ? _serial->getReplyTarget() : REPLY_TARGET_USB;
-          if (rt == REPLY_TARGET_USB || rt == REPLY_TARGET_BLE) {
-            meshcoreRepeaterTcpOtaEmitLine("OTA: rejected need Wi-Fi TCP/WS control session");
-            pushMeshcomodReply(rt == REPLY_TARGET_BLE
-                                   ? "ERR: HTTP OTA must be started from Wi-Fi TCP or WebSocket (not BLE)"
-                                   : "ERR: HTTP OTA must be started from Wi-Fi TCP or WebSocket (not USB)");
-            return true;
-          }
-          s_companion_ota_pinned_reply_target = rt;
-          if (_serial) _serial->prepareForHttpOta();
-          bool handled = board.startHttpOtaFromUrl(p, reply);
-          if (_serial && (strncmp(reply, "ERR:", 4) == 0 || !handled)) _serial->restoreAfterHttpOta();
-          if (!handled) {
-            StrHelper::strncpy(reply, "ERR: OTA URL not supported", sizeof(reply));
-          }
-          if (_serial) _serial->setReplyTarget(rt);
-          pushMeshcomodReply(reply);
-          pushCompanionOtaProgressLine(reply);
-          s_companion_ota_pinned_reply_target = -1;
-        }
-#elif defined(WIFI_SSID)
-        {
-          if (!_serial || !_serial->isHttpOtaWifiControlSession()) {
-            meshcoreRepeaterTcpOtaEmitLine("OTA: rejected need active Wi-Fi companion TCP session");
-            pushMeshcomodReply(WiFi.status() != WL_CONNECTED
-                                   ? "ERR: WiFi not connected"
-                                   : "ERR: HTTP OTA must be started from an active Wi-Fi companion connection");
-            return true;
-          }
-          bool handled = board.startHttpOtaFromUrl(p, reply);
-          if (!handled) {
-            StrHelper::strncpy(reply, "ERR: OTA URL not supported", sizeof(reply));
-          }
-          pushMeshcomodReply(reply);
-          pushCompanionOtaProgressLine(reply);
-        }
-#endif
-      }
-#else
+      runCompanionHttpOta(p);
+      return true;
+    }
+    // Manifest pull OTA from the DutchMeshCore OTA server: `ota check` reports, `ota update`
+    // installs the published build for this env through the same path as `ota url`.
+    bool is_check = strncasecmp(p, "check", 5) == 0 && (p[5] == '\0' || p[5] == ' ' || p[5] == '\t');
+    bool is_update = strncasecmp(p, "update", 6) == 0 && (p[6] == '\0' || p[6] == ' ' || p[6] == '\t');
+    if (is_check || is_update) {
       char reply[160];
-      if (board.startHttpOtaFromUrl(p, reply)) {
-        pushMeshcomodReply(reply);
-      } else {
-        pushMeshcomodReply("ERR: OTA URL not supported");
+      char file_url[256];
+      bool available = board.checkManifestOta(FIRMWARE_VERSION, file_url, sizeof(file_url), reply);
+      if (reply[0] == 0) {
+        pushMeshcomodReply("ERR: online OTA not supported on this build");
+        return true;
       }
-#endif
-#else
-      char reply[160];
-      if (board.startHttpOtaFromUrl(p, reply)) {
-        pushMeshcomodReply(reply);
-      } else {
-        pushMeshcomodReply("ERR: OTA URL not supported");
-      }
-#endif
+      pushMeshcomodReply(reply);
+      if (is_update && available) runCompanionHttpOta(file_url);
       return true;
     }
     if (strncasecmp(p, "status", 6) == 0 && (p[6] == '\0' || p[6] == ' ' || p[6] == '\t')) {
@@ -791,7 +813,7 @@ bool MyMesh::handleMeshcomodCommand(const char* text, int text_len) {
       pushMeshcomodReply(line);
       return true;
     }
-    pushMeshcomodReply("usage:\n- ota start\n- ota url <https://...bin>\n- ota netdiag\n- ota status");
+    pushMeshcomodReply("usage:\n- ota start\n- ota check\n- ota update\n- ota url <https://...bin>\n- ota netdiag\n- ota status");
     return true;
   }
 

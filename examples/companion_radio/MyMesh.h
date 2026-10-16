@@ -257,6 +257,8 @@ protected:
   bool isMeshcomodRecipient(const uint8_t* pub_key_prefix_6) const;
   bool handleMeshcomodCommand(const char* text, int text_len);
   void pushMeshcomodReply(const char* text, bool immediate_current = false);
+  /** `ota url` / `ota update`: download and flash an app image, with the Wi-Fi control-session rules. */
+  void runCompanionHttpOta(const char* url);
 
   void sendFloodScoped(const ContactInfo& recipient, mesh::Packet* pkt, uint32_t delay_millis=0) override;
   void sendFloodScoped(const mesh::GroupChannel& channel, mesh::Packet* pkt, uint32_t delay_millis=0) override;
