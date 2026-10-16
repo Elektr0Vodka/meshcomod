@@ -1399,7 +1399,7 @@ releases on that track (keeping the newest 5).</p>
 <td><code>companion-</code></td>
 <td><code>companion-v1.16.0.1</code></td>
 <td>build-companion-firmwares</td>
-<td>meshcomod boards only: V4, V3, Wireless Paper, Xiao (<code>*_companion_radio_usb_tcp</code>)</td>
+<td>the envs in <code>MESHCOMOD_COMPANION_ENVS</code> in <code>build.sh</code> (V4, V3, Wireless Paper, Xiao, V4 R8, V4 R8 TFT, V4 TFT and Wireless Stick Lite V3 <code>_usb_tcp</code>, ThinkNode M7 BLE and Ethernet)</td>
 </tr>
 <tr>
 <td>Room server</td>
@@ -1428,6 +1428,13 @@ git push origin companion-v1.16.0.1
 <p>The tag suffix becomes <code>FIRMWARE_VERSION</code> (e.g. <code>companion-v1.16.0.1</code> →
 <code>v1.16.0.1</code>), so the in-firmware version string and the release name match the
 tag.</p>
+<p>The companion workflow builds each board on its own runner, in parallel. A
+<code>prepare</code> job resolves the version once and reads the board list from
+<code>build.sh get-meshcomod-companion-firmwares-to-build</code>, so adding an env to
+<code>MESHCOMOD_COMPANION_ENVS</code> is all it takes to build and release it. PlatformIO
+toolchains are cached per <code>platformio.ini</code>, and each board's libraries per
+board. The release is only published when every board built; a failed board
+shows in the run and blocks the release instead of shipping without it.</p>
 <h2 id="over-the-air-updates">Over-the-air updates</h2>
 <p>Companion releases also feed the DutchMeshCore OTA server, which mirrors the
 newest stable <code>companion-*</code> release into per-board manifests for <code>ota check</code> /
