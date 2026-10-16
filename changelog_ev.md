@@ -16,9 +16,13 @@ Newest first. Each entry names the PR that landed it.
 
 ### Docs
 
-- **Fork changelog**: this file, `changelog_ev.md`.
-- **README describes the fork**: an "About this fork" section with per-feature test status, a hardware test column on the device table, flashing from this fork's pre-releases, and sync steps from upstream meshcomod.
-- **Dark theme for the docs site**: a light/dark toggle in the header. Light is the original look; the choice is remembered per browser.
+- **Fork changelog** (#11): this file, `changelog_ev.md`.
+- **README describes the fork** (#11): an "About this fork" section with per-feature test status, a hardware test column on the device table, flashing from this fork's pre-releases, and sync steps from upstream meshcomod.
+- **Dark theme for the docs site** (#11): a light/dark toggle in the header. Light is the original look; the choice is remembered per browser.
+
+### Fixed
+
+- **Docs site deploy**: the Pages workflow no longer writes upstream's `docs.meshcore.nz` CNAME into `gh-pages`, and `mkdocs.yml` points at this fork (`elektr0vodka.github.io/meshcomod`) instead of `meshcore-dev`. GitHub Pages must serve the `gh-pages` branch for the mkdocs site to show; it was serving `main` `/docs` through Jekyll.
 
 ## 2026-10-16
 

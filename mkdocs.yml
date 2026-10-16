@@ -1,9 +1,9 @@
-site_name: MeshCore Docs
-site_url: https://meshcore-dev.github.io/meshcore/
-site_description: Documentation for the open source MeshCore firmware
+site_name: meshcomod Docs (Elektr0Vodka fork)
+site_url: https://elektr0vodka.github.io/meshcomod/
+site_description: Documentation for the Elektr0Vodka fork of meshcomod, the multi-transport MeshCore companion firmware
 
-repo_name: meshcore-dev/meshcore
-repo_url: https://github.com/meshcore-dev/meshcore/
+repo_name: Elektr0Vodka/meshcomod
+repo_url: https://github.com/Elektr0Vodka/meshcomod/
 edit_uri: edit/main/docs/
 
 theme:
