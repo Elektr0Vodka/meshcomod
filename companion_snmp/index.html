@@ -1369,168 +1369,323 @@ so they survive a firmware update and do not change the prefs layout.</p>
 <hr />
 <h1 id="oid-reference">OID reference</h1>
 <p>All OIDs are under the temporary, unregistered enterprise number
-<code>1.3.6.1.4.1.99999</code>, the same one the observer firmware uses. All values are
-INTEGER unless noted, read at the moment the request arrives.</p>
-<h2 id="system-1x0-same-as-the-observer">System (.1.x.0), same as the observer</h2>
+<code>1.3.6.1.4.1.99999</code>. The layout follows the observer firmware's agent
+(Dutch-MeshCore <code>dmc-observer-dev</code>, <code>MQTT_SNMP.md</code>): every number the two share
+has the same meaning, type, unit and "no value" marker, so one poller template
+reads both.</p>
+<ul>
+<li>Levels (queue lengths, voltages, temperatures) are INTEGER.</li>
+<li>Running totals from <code>.2.13.0</code> on, and the receive-filter totals, are Counter32,
+  so pollers graph them as rates. They start from 0 after a reboot.</li>
+<li>The older totals in <code>.2.1.0</code> to <code>.2.11.0</code> stay INTEGER to match the observer.</li>
+<li>An OID the companion has no data for is not registered and reads
+  <code>noSuchObject</code>. It is never served as a 0 that looks like a real reading.</li>
+<li>Companion-only values use <code>.9</code> and up. The observer keeps <code>.1</code> to <code>.8</code>.</li>
+</ul>
+<h2 id="system-1x0">System (.1.x.0)</h2>
 <table>
 <thead>
 <tr>
 <th>OID</th>
+<th>Type</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>.1.1.0</code></td>
+<td>INTEGER</td>
 <td>Uptime (seconds)</td>
 </tr>
 <tr>
 <td><code>.1.2.0</code></td>
-<td>Firmware version (STRING)</td>
+<td>STRING</td>
+<td>Firmware version</td>
 </tr>
 <tr>
 <td><code>.1.3.0</code></td>
-<td>Node name (STRING)</td>
+<td>STRING</td>
+<td>Node name</td>
 </tr>
 <tr>
 <td><code>.1.4.0</code></td>
-<td>Battery voltage (mV, 0 when the board cannot measure it)</td>
+<td>INTEGER</td>
+<td>Battery voltage (mV), 0 when the board cannot measure it. Read every 30 s</td>
+</tr>
+<tr>
+<td><code>.1.5.0</code></td>
+<td>INTEGER</td>
+<td>MCU die temperature (whole °C), -127 when the board has no sensor. Read every 30 s</td>
+</tr>
+<tr>
+<td><code>.1.6.0</code></td>
+<td>INTEGER</td>
+<td>Reset reason code for this boot (ESP-IDF <code>esp_reset_reason_t</code>: 1 power-on, 3 software, 4 panic, 5/6/7 watchdog, 9 brownout)</td>
+</tr>
+<tr>
+<td><code>.1.7.0</code></td>
+<td>STRING</td>
+<td>Reset reason as text, for example <code>Brownout (low voltage)</code></td>
 </tr>
 </tbody>
 </table>
-<p><code>.1.4.0</code> is new in both firmwares: it was added to the observer agent at the same
-time (Dutch-MeshCore <code>dmc-observer-dev</code>).</p>
-<h2 id="radio-2x0-same-as-the-observer">Radio (.2.x.0), same as the observer</h2>
+<h2 id="radio-2x0">Radio (.2.x.0)</h2>
 <table>
 <thead>
 <tr>
 <th>OID</th>
+<th>Type</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>.2.1.0</code></td>
+<td>INTEGER</td>
 <td>Packets received</td>
 </tr>
 <tr>
 <td><code>.2.2.0</code></td>
+<td>INTEGER</td>
 <td>Packets sent</td>
 </tr>
 <tr>
 <td><code>.2.3.0</code></td>
+<td>INTEGER</td>
 <td>Receive errors</td>
 </tr>
 <tr>
 <td><code>.2.4.0</code></td>
+<td>INTEGER</td>
 <td>Noise floor (dBm)</td>
 </tr>
 <tr>
 <td><code>.2.5.0</code></td>
+<td>INTEGER</td>
 <td>Last RSSI (dBm)</td>
 </tr>
 <tr>
 <td><code>.2.6.0</code></td>
+<td>INTEGER</td>
 <td>Last SNR (dB x 4)</td>
 </tr>
 <tr>
 <td><code>.2.7.0</code></td>
+<td>INTEGER</td>
 <td>Flood packets sent</td>
 </tr>
 <tr>
 <td><code>.2.8.0</code></td>
+<td>INTEGER</td>
 <td>Direct packets sent</td>
 </tr>
 <tr>
 <td><code>.2.9.0</code></td>
+<td>INTEGER</td>
 <td>Flood packets received</td>
 </tr>
 <tr>
 <td><code>.2.10.0</code></td>
+<td>INTEGER</td>
 <td>Direct packets received</td>
 </tr>
 <tr>
 <td><code>.2.11.0</code></td>
+<td>INTEGER</td>
 <td>TX air time (seconds)</td>
+</tr>
+<tr>
+<td><code>.2.12.0</code></td>
+<td>INTEGER</td>
+<td>Packets waiting in the transmit queue</td>
+</tr>
+<tr>
+<td><code>.2.13.0</code></td>
+<td>Counter32</td>
+<td>Duplicate flood packets received</td>
+</tr>
+<tr>
+<td><code>.2.14.0</code></td>
+<td>Counter32</td>
+<td>Duplicate direct packets received</td>
+</tr>
+<tr>
+<td><code>.2.15.0</code></td>
+<td>Counter32</td>
+<td>RX air time (seconds)</td>
+</tr>
+<tr>
+<td><code>.2.17.0</code></td>
+<td>INTEGER</td>
+<td>Error flags since boot (bitmask: 1 packet pool full, 2 CAD timeout, 4 start-RX timeout, 8 radio watchdog)</td>
 </tr>
 </tbody>
 </table>
+<p>Not present: <code>.2.16.0</code> (TX duty cycle %). This firmware does not track a
+rolling duty cycle. Bit 8 of <code>.2.17.0</code> is never set either, because the
+companion has no radio watchdog.</p>
 <h2 id="mqtt-3x0">MQTT (.3.x.0)</h2>
-<p>Not present. The companion has no MQTT bridge. A poller asking for these gets
-<code>noSuchObject</code>.</p>
-<h2 id="memory-4x0-same-as-the-observer">Memory (.4.x.0), same as the observer</h2>
 <table>
 <thead>
 <tr>
 <th>OID</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.3.4.0</code></td>
+<td>INTEGER</td>
+<td>Clock set by NTP this boot (1 yes, 0 no)</td>
+</tr>
+</tbody>
+</table>
+<p>The companion has no MQTT bridge, so <code>.3.1.0</code> to <code>.3.3.0</code> are not present.
+<code>.3.4.0</code> is, because the companion sets its clock over SNTP once Wi-Fi is up.
+Time pushed from the app does not count.</p>
+<h2 id="memory-4x0">Memory (.4.x.0)</h2>
+<table>
+<thead>
+<tr>
+<th>OID</th>
+<th>Type</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>.4.1.0</code></td>
+<td>INTEGER</td>
 <td>Free heap (bytes)</td>
 </tr>
 <tr>
 <td><code>.4.2.0</code></td>
+<td>INTEGER</td>
 <td>Largest allocatable block (bytes)</td>
 </tr>
 <tr>
 <td><code>.4.3.0</code></td>
+<td>INTEGER</td>
 <td>Free internal RAM (bytes)</td>
 </tr>
 <tr>
 <td><code>.4.4.0</code></td>
+<td>INTEGER</td>
 <td>Free PSRAM (bytes, 0 without PSRAM)</td>
+</tr>
+<tr>
+<td><code>.4.5.0</code></td>
+<td>INTEGER</td>
+<td>Lowest free heap since boot (bytes). A value that keeps dropping points to a leak</td>
 </tr>
 </tbody>
 </table>
-<h2 id="network-5x0-same-as-the-observer">Network (.5.x.0), same as the observer</h2>
+<h2 id="network-5x0">Network (.5.x.0)</h2>
 <table>
 <thead>
 <tr>
 <th>OID</th>
+<th>Type</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>.5.1.0</code></td>
+<td>INTEGER</td>
 <td>Wi-Fi RSSI (dBm, -127 when not connected)</td>
 </tr>
 </tbody>
 </table>
-<h2 id="companion-6x0-companion-only">Companion (.6.x.0), companion only</h2>
+<h2 id="not-present-on-the-companion">Not present on the companion</h2>
+<p><code>.6</code> (duty gate), <code>.7</code> (repeater packet filter) and <code>.8</code> (neighbours) are
+repeater features and are not registered.</p>
+<h2 id="companion-9x0-companion-only">Companion (.9.x.0), companion only</h2>
 <table>
 <thead>
 <tr>
 <th>OID</th>
+<th>Type</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>.6.1.0</code></td>
+<td><code>.9.1.0</code></td>
+<td>INTEGER</td>
 <td>Connected TCP companion clients</td>
 </tr>
 <tr>
-<td><code>.6.2.0</code></td>
+<td><code>.9.2.0</code></td>
+<td>INTEGER</td>
 <td>Connected WebSocket clients</td>
 </tr>
 <tr>
-<td><code>.6.3.0</code></td>
+<td><code>.9.3.0</code></td>
+<td>INTEGER</td>
 <td>Contacts</td>
 </tr>
 <tr>
-<td><code>.6.4.0</code></td>
+<td><code>.9.4.0</code></td>
+<td>INTEGER</td>
 <td>Group channels in use</td>
-</tr>
-<tr>
-<td><code>.6.5.0</code></td>
-<td>RX air time (seconds)</td>
 </tr>
 </tbody>
 </table>
+<h2 id="receive-filter-10x0-companion-only">Receive filter (.10.x.0), companion only</h2>
+<p>The companion receive filter (<code>filter</code> CLI, see
+<a href="../companion_receive_filter/">companion_receive_filter.md</a>). These count
+messages kept from the user, not packets kept off the air, so they do not share
+the repeater filter's <code>.7</code> group. Totals start from 0 after a reboot
+(<code>filter reset</code> clears the settings, not the totals).</p>
+<table>
+<thead>
+<tr>
+<th>OID</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.10.1.0</code></td>
+<td>INTEGER</td>
+<td>Filter enabled (1 yes, 0 no)</td>
+</tr>
+<tr>
+<td><code>.10.2.0</code></td>
+<td>Counter32</td>
+<td>Malformed group texts dropped</td>
+</tr>
+<tr>
+<td><code>.10.3.0</code></td>
+<td>Counter32</td>
+<td>Group texts dropped for age</td>
+</tr>
+<tr>
+<td><code>.10.4.0</code></td>
+<td>Counter32</td>
+<td>Packets dropped by the path-prefix block list</td>
+</tr>
+<tr>
+<td><code>.10.5.0</code></td>
+<td>Counter32</td>
+<td>Group texts hidden by sender rules</td>
+</tr>
+<tr>
+<td><code>.10.6.0</code></td>
+<td>Counter32</td>
+<td>Group texts hidden by text rules</td>
+</tr>
+</tbody>
+</table>
+<h2 id="how-values-are-read">How values are read</h2>
+<p>The agent runs in the main loop, with the mesh. Most values are read when the
+request arrives. Battery and MCU temperature are read every 30 s and served
+from a copy, because the Heltec V4 battery read blocks for 10 ms. The Counter32
+totals are copied every 2 s. The reset reason is read once, when the agent
+first starts.</p>
 <hr />
 <h1 id="size">Size</h1>
 <p>Measured with <code>pio run</code>, <code>DISABLE_DEBUG=1</code>, against the same tree without
@@ -1614,6 +1769,11 @@ manifest OTA, <code>DISABLE_DEBUG=1</code>):</p>
 </tr>
 </tbody>
 </table>
+<p>These deltas were measured when the agent first went in, before the
+observer-aligned OIDs (<code>.1.5.0</code> onwards, <code>.9</code>, <code>.10</code>). With the full current
+OID set, <code>Heltec_v3_companion_radio_usb_tcp</code> builds to 1,627,545 B flash and
+110,576 B static RAM, and <code>heltec_v4_companion_radio_usb_tcp</code> to 1,625,713 B
+and 110,564 B (<code>pio run</code>, <code>DISABLE_DEBUG=1</code>, including manifest OTA).</p>
 <p>The static RAM figure is the cost while the agent is off. Turning it on
 allocates the agent (a 1.4 KB packet buffer plus the OID table) and a UDP socket
 on the heap, a few KB in total. The <code>[snmp] agent up</code> line on the serial log
