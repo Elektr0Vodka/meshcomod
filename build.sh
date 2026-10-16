@@ -334,6 +334,11 @@ MESHCOMOD_COMPANION_ENVS=(
   # as reported-not-observed.
   "ThinkNode_M7_companion_radio_ble"             # ThinkNode M7 — BLE companion
   "ThinkNode_M7_companion_radio_ethernet"        # ThinkNode M7 — PoE/Ethernet companion
+  # Seeed Wio Tracker L1 / L1 Pro (nRF52840 + SX1262, SH1106 OLED). The nRF52840 has
+  # no Wi-Fi, so there is no TCP, SNMP or manifest OTA here: these are the stock
+  # single-transport companions (one of BLE or USB). build_firmware emits .uf2 + .zip.
+  "WioTrackerL1_companion_radio_ble"             # Wio Tracker L1 (Pro), BLE companion
+  "WioTrackerL1_companion_radio_usb"             # Wio Tracker L1 (Pro), USB companion
 )
 # True if $1 is one of the boards we publish, so build_firmware knows to emit a merged image
 # regardless of how the env happens to be named.

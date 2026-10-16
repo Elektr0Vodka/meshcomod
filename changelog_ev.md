@@ -14,6 +14,14 @@ Newest first. Each entry names the PR that landed it.
 
 ## Unreleased
 
+### Added
+
+- **Seeed Wio Tracker L1 / L1 Pro companions**: the existing upstream `WioTrackerL1_companion_radio_ble` and `WioTrackerL1_companion_radio_usb` envs are now in the release list, so the fork builds and releases them (`.uf2` + DFU `.zip`). The nRF52840 has no Wi-Fi, so these are single-transport (BLE or USB) with no TCP, SNMP or manifest OTA. The CAD toggle and receive filter build in. Builds, not tested on hardware.
+
+### CI and build
+
+- **PR build check covers nRF52**: `WioTrackerL1_companion_radio_ble` joins the PR matrix so fork companion code that only builds on ESP32 is caught.
+
 ### Docs
 
 - **Fork changelog** (#11): this file, `changelog_ev.md`.
@@ -22,6 +30,7 @@ Newest first. Each entry names the PR that landed it.
 
 ### Fixed
 
+- **Companion builds on nRF52**: two pieces of upstream meshcomod companion code assumed ESP32 and broke any non-ESP32 companion build. The backup import used the ESP32 PSRAM allocator (`heap_caps_*`); it now uses the default allocator elsewhere. `ota status` read HTTP OTA progress globals that only `ESP32Board.cpp` defines; it now reports `ota: idle` on boards without HTTP OTA.
 - **Docs site deploy**: the Pages workflow no longer writes upstream's `docs.meshcore.nz` CNAME into `gh-pages`, and `mkdocs.yml` points at this fork (`elektr0vodka.github.io/meshcomod`) instead of `meshcore-dev`. GitHub Pages must serve the `gh-pages` branch for the mkdocs site to show; it was serving `main` `/docs` through Jekyll.
 
 ## 2026-10-16

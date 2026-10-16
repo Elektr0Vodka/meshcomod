@@ -832,6 +832,7 @@ bool MyMesh::handleMeshcomodCommand(const char* text, int text_len) {
     }
     if (strncasecmp(p, "status", 6) == 0 && (p[6] == '\0' || p[6] == ' ' || p[6] == '\t')) {
       char line[96];
+#ifdef ESP32   // the progress globals live in ESP32Board.cpp; no HTTP OTA elsewhere
       if (g_meshcore_http_ota_display_active) {
         if (g_meshcore_http_ota_display_pct == 0xFF) {
           snprintf(line, sizeof(line), "ota: active\n%s", g_meshcore_http_ota_display_line[0] ? g_meshcore_http_ota_display_line : "working");
@@ -839,7 +840,9 @@ bool MyMesh::handleMeshcomodCommand(const char* text, int text_len) {
           snprintf(line, sizeof(line), "ota: %u%%\n%s", (unsigned)g_meshcore_http_ota_display_pct,
                    g_meshcore_http_ota_display_line[0] ? g_meshcore_http_ota_display_line : "working");
         }
-      } else {
+      } else
+#endif
+      {
         snprintf(line, sizeof(line), "ota: idle");
       }
       pushMeshcomodReply(line);
@@ -1599,6 +1602,7 @@ bool MyMesh::uiImportBackup(Stream& in, uint8_t sections,
   (void)replace_channels;
   if (out_channels) *out_channels = 0;
   if (out_contacts) *out_contacts = 0;
+#if defined(ESP32)
   // PSRAM-backed doc so a big backup (60 KB+) doesn't exhaust internal RAM.
   struct PsAlloc : ArduinoJson::Allocator {
     void* allocate(size_t n) override { void* p = heap_caps_malloc(n, MALLOC_CAP_SPIRAM); return p ? p : malloc(n); }
@@ -1606,6 +1610,9 @@ bool MyMesh::uiImportBackup(Stream& in, uint8_t sections,
     void* reallocate(void* p, size_t n) override { void* q = heap_caps_realloc(p, n, MALLOC_CAP_SPIRAM); return q ? q : realloc(p, n); }
   } alloc;
   JsonDocument doc(&alloc);
+#else
+  JsonDocument doc;   // no heap_caps / PSRAM outside ESP32 (nRF52): default heap allocator
+#endif
   if (deserializeJson(doc, in)) return false;
   JsonObjectConst root = doc.as<JsonObjectConst>();
   if (root.isNull()) return false;
