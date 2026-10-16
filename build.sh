@@ -62,6 +62,9 @@ Environment Variables:
                    for the compile-time version string and out/ filenames. **Recommended:** e.g.
                    r1.15.0.0-room-mt (then copy-room-release-bins.sh r1.15.0.0). On-device string is
                    meshcomod-<ROOM_FIRMWARE_VERSION>-<sha>.
+  OTA_MANIFEST_BASE_URL: For *companion_radio_usb_tcp* envs, the manifest base `ota check` / `ota update`
+                   read <base>/<env>.json from. Default https://ota.dutchmeshcore.nl/meshcomod/v. Those
+                   envs also get out/<env>.partsig (partition-table signature for the OTA manifest).
 
 Examples:
 Build without debug logging:
@@ -163,6 +166,10 @@ disable_debug_flags() {
 
 # build firmware for the provided pio env in $1
 build_firmware() {
+  # Per-env -D flags (version, OTA variant) are appended below; restore the caller's
+  # flags on return so they do not leak into the next env of a multi-env build.
+  local SAVED_PIO_BUILD_FLAGS="${PLATFORMIO_BUILD_FLAGS}"
+
   # get env platform for post build actions
   ENV_PLATFORM=($(get_platform_for_env $1))
 
@@ -201,6 +208,14 @@ build_firmware() {
   # add firmware version info to end of existing platformio build flags in environment vars
   export PLATFORMIO_BUILD_FLAGS="${PLATFORMIO_BUILD_FLAGS} -DFIRMWARE_BUILD_DATE='\"${FIRMWARE_BUILD_DATE}\"' -DFIRMWARE_VERSION='\"${FIRMWARE_VERSION_STRING}\"'"
 
+  # Manifest pull OTA (`ota check` / `ota update`) for the Wi-Fi companions: the device
+  # reads <OTA_MANIFEST_BASE>/<OTA_VARIANT>.json from the DutchMeshCore OTA server, which
+  # mirrors this repo's companion-* GitHub releases. OTA_VARIANT is the env name.
+  if [[ "$1" == *companion_radio_usb_tcp* ]]; then
+    OTA_MANIFEST_BASE_URL="${OTA_MANIFEST_BASE_URL:-https://ota.dutchmeshcore.nl/meshcomod/v}"
+    export PLATFORMIO_BUILD_FLAGS="${PLATFORMIO_BUILD_FLAGS} -DOTA_VARIANT='\"$1\"' -DOTA_MANIFEST_BASE='\"${OTA_MANIFEST_BASE_URL}\"'"
+  fi
+
   # disable debug flags if requested
   disable_debug_flags
 
@@ -210,6 +225,13 @@ build_firmware() {
   # App image only in out/ (flash at partition app offset).
   if [ "$ENV_PLATFORM" == "ESP32_PLATFORM" ]; then
     cp .pio/build/$1/firmware.bin out/${FIRMWARE_FILENAME}.bin 2>/dev/null || true
+    # Partition-table signature for the OTA server's manifest (partSig): `ota update`
+    # refuses an image built for a different partition layout than the device has.
+    if [[ "$1" == *companion_radio_usb_tcp* ]] && [ -f ".pio/build/$1/partitions.bin" ]; then
+      if ! python3 scripts/partition_signature.py ".pio/build/$1/partitions.bin" > "out/$1.partsig"; then
+        rm -f "out/$1.partsig"
+      fi
+    fi
     # Companions (USB+TCP) + Heltec TCP repeaters: merged image at 0x0 for flasher / full-chip flash.
     # Anything in the release matrix gets one too, whatever its env name: the ThinkNode M7
     # ships as _companion_radio_ble / _ethernet and matches none of the suffixes below, and a
@@ -244,6 +266,7 @@ build_firmware() {
     cp .pio/build/$1/firmware.uf2 out/${FIRMWARE_FILENAME}.uf2 2>/dev/null || true
   fi
 
+  export PLATFORMIO_BUILD_FLAGS="${SAVED_PIO_BUILD_FLAGS}"
 }
 
 # firmwares containing $1 will be built
