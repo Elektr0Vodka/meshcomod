@@ -22,6 +22,10 @@ Builds with the agent (compile flag `-D WITH_SNMP=1`):
 * `Heltec_v3_companion_radio_usb_tcp` (and its `_boot_debug` variant)
 * `Heltec_Wireless_Paper_companion_radio_usb_tcp`
 * `Xiao_S3_WIO_companion_radio_usb_tcp`
+* `heltec_v4_r8_companion_radio_usb_tcp`
+* `heltec_v4_r8_tft_companion_radio_usb_tcp`
+* `heltec_v4_tft_companion_radio_usb_tcp` (V4 TFT without touch, `ui-new` screens)
+* `Heltec_WSL3_companion_radio_usb_tcp`
 
 The touch build does not include it yet: it needs a heap reading on hardware
 first, because BLE co-init there is already gated on free heap.
@@ -151,6 +155,17 @@ Wireless Paper and Xiao start from about 40 KB more static RAM than the V3
 (150 KB vs 110 KB, mostly the larger offline queue and, on the Paper, the e-ink
 buffer), so they are the boards to watch when checking free heap with Wi-Fi,
 BLE and the agent all running.
+
+The newer envs were added with the agent already in, so there is no build
+without it to compare against. Their totals (`build.sh build-firmware`, with
+manifest OTA, `DISABLE_DEBUG=1`):
+
+| Env | Flash | Static RAM | App slot used |
+| --- | --- | --- | --- |
+| `heltec_v4_r8_companion_radio_usb_tcp` | 1,635,957 B | 110,448 B | 25.0% of 6.25 MB |
+| `heltec_v4_r8_tft_companion_radio_usb_tcp` | 1,639,833 B | 110,584 B | 25.0% of 6.25 MB |
+| `heltec_v4_tft_companion_radio_usb_tcp` | 1,634,033 B | 110,612 B | 24.9% of 6.25 MB |
+| `Heltec_WSL3_companion_radio_usb_tcp` | 1,609,669 B | 110,248 B | 48.2% of 3.19 MB |
 
 The static RAM figure is the cost while the agent is off. Turning it on
 allocates the agent (a 1.4 KB packet buffer plus the OID table) and a UDP socket
