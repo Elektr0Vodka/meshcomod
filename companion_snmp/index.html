@@ -1350,6 +1350,12 @@ been tested on hardware.</p>
 <li><code>heltec_v4_tft_companion_radio_usb_tcp</code> (V4 TFT without touch, <code>ui-new</code> screens)</li>
 <li><code>Heltec_WSL3_companion_radio_usb_tcp</code></li>
 <li><code>Heltec_Wireless_Tracker_companion_radio_usb_tcp</code></li>
+<li><code>heltec_tracker_v2_companion_radio_usb_tcp</code></li>
+<li><code>Heltec_E213_companion_radio_usb_tcp</code></li>
+<li><code>Xiao_S3_companion_radio_usb_tcp</code></li>
+<li><code>RAK_3112_companion_radio_usb_tcp</code></li>
+<li><code>LilyGo_TETH_Elite_sx1262_companion_radio_usb_tcp</code></li>
+<li><code>T_Beam_S3_Supreme_SX1262_companion_radio_usb_tcp</code></li>
 </ul>
 <p>The touch build does not include it yet: it needs a heap reading on hardware
 first, because BLE co-init there is already gated on free heap.</p>
@@ -1815,6 +1821,62 @@ manifest OTA, <code>DISABLE_DEBUG=1</code>):</p>
 <p>The Wireless Tracker sits with Wireless Paper and Xiao at about 150 KB static
 RAM (the 256-entry offline queue), so it is another board to check for free
 heap on hardware.</p>
+<p>The experimental boards (see the README device table) were measured with a
+plain <code>pio run -e &lt;env&gt;</code>, so without <code>DISABLE_DEBUG=1</code> and without the OTA
+variant that <code>build.sh</code> bakes in. Expect the <code>build.sh</code> figures to differ by a
+few KB:</p>
+<table>
+<thead>
+<tr>
+<th>Env</th>
+<th>Flash</th>
+<th>Static RAM</th>
+<th>App slot used</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>heltec_tracker_v2_companion_radio_usb_tcp</code></td>
+<td>1,678,605 B</td>
+<td>164,904 B</td>
+<td>50.2% of 3.19 MB</td>
+</tr>
+<tr>
+<td><code>Heltec_E213_companion_radio_usb_tcp</code></td>
+<td>1,611,609 B</td>
+<td>162,476 B</td>
+<td>24.6% of 6.25 MB</td>
+</tr>
+<tr>
+<td><code>Xiao_S3_companion_radio_usb_tcp</code></td>
+<td>1,604,285 B</td>
+<td>152,456 B</td>
+<td>48.0% of 3.19 MB</td>
+</tr>
+<tr>
+<td><code>RAK_3112_companion_radio_usb_tcp</code></td>
+<td>1,607,765 B</td>
+<td>152,880 B</td>
+<td>48.1% of 3.19 MB</td>
+</tr>
+<tr>
+<td><code>LilyGo_TETH_Elite_sx1262_companion_radio_usb_tcp</code></td>
+<td>1,517,865 B</td>
+<td>149,872 B</td>
+<td>23.2% of 6.25 MB</td>
+</tr>
+<tr>
+<td><code>T_Beam_S3_Supreme_SX1262_companion_radio_usb_tcp</code></td>
+<td>1,608,273 B</td>
+<td>151,616 B</td>
+<td>48.1% of 3.19 MB</td>
+</tr>
+</tbody>
+</table>
+<p>All six use the 256-entry offline queue, so they start at 150 to 165 KB static
+RAM like Wireless Paper and Xiao S3 WIO. The Wireless Tracker V2 and E213 are
+the highest; the Tracker V2 has no PSRAM, so it is the first to check for free
+heap with Wi-Fi, BLE and the agent running.</p>
 <p>These deltas were measured when the agent first went in, before the
 observer-aligned OIDs (<code>.1.5.0</code> onwards, <code>.9</code>, <code>.10</code>). With the full current
 OID set, <code>Heltec_v3_companion_radio_usb_tcp</code> builds to 1,627,545 B flash and
