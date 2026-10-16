@@ -20,8 +20,11 @@ Builds with the agent (compile flag `-D WITH_SNMP=1`):
 
 * `heltec_v4_companion_radio_usb_tcp`
 * `Heltec_v3_companion_radio_usb_tcp` (and its `_boot_debug` variant)
+* `Heltec_Wireless_Paper_companion_radio_usb_tcp`
+* `Xiao_S3_WIO_companion_radio_usb_tcp`
 
-The touch build and the other companions do not include it yet.
+The touch build does not include it yet: it needs a heap reading on hardware
+first, because BLE co-init there is already gated on free heap.
 
 The agent only runs while Wi-Fi is up with an address. It stops when the link
 drops and starts again when it comes back. While it is off, nothing is
@@ -141,6 +144,13 @@ Measured with `pio run`, `DISABLE_DEBUG=1`, against the same tree without
 | --- | --- | --- | --- |
 | `Heltec_v3_companion_radio_usb_tcp` | +33,556 B | +336 B | 48.6% of 3.19 MB |
 | `heltec_v4_companion_radio_usb_tcp` | +33,340 B | +344 B | 24.8% of 6.25 MB |
+| `Heltec_Wireless_Paper_companion_radio_usb_tcp` | +33,156 B | +344 B | 47.0% of 3.19 MB |
+| `Xiao_S3_WIO_companion_radio_usb_tcp` | +33,020 B | +344 B | 46.9% of 3.19 MB |
+
+Wireless Paper and Xiao start from about 40 KB more static RAM than the V3
+(150 KB vs 110 KB, mostly the larger offline queue and, on the Paper, the e-ink
+buffer), so they are the boards to watch when checking free heap with Wi-Fi,
+BLE and the agent all running.
 
 The static RAM figure is the cost while the agent is off. Turning it on
 allocates the agent (a 1.4 KB packet buffer plus the OID table) and a UDP socket
