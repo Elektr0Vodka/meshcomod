@@ -324,6 +324,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#companion-pre-releases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Companion pre-releases
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#rolling-retention" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1257,6 +1268,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#companion-pre-releases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Companion pre-releases
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#rolling-retention" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1357,12 +1379,35 @@ git push origin companion-v1.16.0.1
 <p>The tag suffix becomes <code>FIRMWARE_VERSION</code> (e.g. <code>companion-v1.16.0.1</code> →
 <code>v1.16.0.1</code>), so the in-firmware version string and the release name match the
 tag.</p>
+<h2 id="companion-pre-releases">Companion pre-releases</h2>
+<p>There are two ways to publish companion bins as a GitHub <strong>pre-release</strong> (never
+marked "latest", so <code>releases/latest</code> keeps pointing at the newest stable build):</p>
+<ul>
+<li><strong>Manual run:</strong> Actions, then Build Companion Firmwares, then Run workflow, and
+  tick <strong>prerelease</strong>. The workflow appends <code>-pre&lt;run number&gt;</code> to the version
+  (so the firmware reports it too), creates the tag on the commit it built, and
+  publishes the pre-release. Example: <code>companion-v1.18.0.1-pre42</code>.</li>
+<li><strong>Suffix tag:</strong> push a tag with anything after the four-part version. It is
+  published as a pre-release; a plain <code>companion-vX.Y.Z.W</code> tag stays a normal
+  release.</li>
+</ul>
+<pre><code class="language-bash">git tag companion-v1.18.0.2-rc1
+git push origin companion-v1.18.0.2-rc1
+</code></pre>
+<p>A manual run without the box ticked still only uploads the bins as a workflow
+artifact.</p>
 <h2 id="rolling-retention">Rolling retention</h2>
 <p>After each release the workflow runs <code>scripts/ci/prune-releases.sh &lt;prefix&gt; 5</code>,
 which keeps the <strong>newest 5</strong> releases on that track and deletes the older ones —
 the GitHub Release, its git tag, and the attached assets. This keeps the release
 list and the tag namespace small while still allowing rollback to the last few
 versions.</p>
+<p>The companion track counts stable releases and pre-releases separately
+(<code>prune-releases.sh companion- 5 stable</code> and <code>prune-releases.sh companion- 3
+prerelease</code>), so it keeps the newest 5 stable and newest 3 pre-releases and a
+run of pre-releases never pushes stable ones out. The optional third argument
+(<code>all</code>, <code>stable</code> or <code>prerelease</code>) defaults to <code>all</code>, which is what the
+room-server track still uses.</p>
 <p>To preview what would be pruned without deleting anything, run the workflow via
 <strong>Actions → (workflow) → Run workflow</strong> after setting <code>DRY_RUN=1</code>, or locally:</p>
 <pre><code class="language-bash">DRY_RUN=1 scripts/ci/prune-releases.sh companion- 5
