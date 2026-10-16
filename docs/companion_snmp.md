@@ -27,6 +27,12 @@ Builds with the agent (compile flag `-D WITH_SNMP=1`):
 * `heltec_v4_tft_companion_radio_usb_tcp` (V4 TFT without touch, `ui-new` screens)
 * `Heltec_WSL3_companion_radio_usb_tcp`
 * `Heltec_Wireless_Tracker_companion_radio_usb_tcp`
+* `heltec_tracker_v2_companion_radio_usb_tcp`
+* `Heltec_E213_companion_radio_usb_tcp`
+* `Xiao_S3_companion_radio_usb_tcp`
+* `RAK_3112_companion_radio_usb_tcp`
+* `LilyGo_TETH_Elite_sx1262_companion_radio_usb_tcp`
+* `T_Beam_S3_Supreme_SX1262_companion_radio_usb_tcp`
 
 The touch build does not include it yet: it needs a heap reading on hardware
 first, because BLE co-init there is already gated on free heap.
@@ -227,6 +233,25 @@ manifest OTA, `DISABLE_DEBUG=1`):
 The Wireless Tracker sits with Wireless Paper and Xiao at about 150 KB static
 RAM (the 256-entry offline queue), so it is another board to check for free
 heap on hardware.
+
+The experimental boards (see the README device table) were measured with a
+plain `pio run -e <env>`, so without `DISABLE_DEBUG=1` and without the OTA
+variant that `build.sh` bakes in. Expect the `build.sh` figures to differ by a
+few KB:
+
+| Env | Flash | Static RAM | App slot used |
+| --- | --- | --- | --- |
+| `heltec_tracker_v2_companion_radio_usb_tcp` | 1,678,605 B | 164,904 B | 50.2% of 3.19 MB |
+| `Heltec_E213_companion_radio_usb_tcp` | 1,611,609 B | 162,476 B | 24.6% of 6.25 MB |
+| `Xiao_S3_companion_radio_usb_tcp` | 1,604,285 B | 152,456 B | 48.0% of 3.19 MB |
+| `RAK_3112_companion_radio_usb_tcp` | 1,607,765 B | 152,880 B | 48.1% of 3.19 MB |
+| `LilyGo_TETH_Elite_sx1262_companion_radio_usb_tcp` | 1,517,865 B | 149,872 B | 23.2% of 6.25 MB |
+| `T_Beam_S3_Supreme_SX1262_companion_radio_usb_tcp` | 1,608,273 B | 151,616 B | 48.1% of 3.19 MB |
+
+All six use the 256-entry offline queue, so they start at 150 to 165 KB static
+RAM like Wireless Paper and Xiao S3 WIO. The Wireless Tracker V2 and E213 are
+the highest; the Tracker V2 has no PSRAM, so it is the first to check for free
+heap with Wi-Fi, BLE and the agent running.
 
 These deltas were measured when the agent first went in, before the
 observer-aligned OIDs (`.1.5.0` onwards, `.9`, `.10`). With the full current

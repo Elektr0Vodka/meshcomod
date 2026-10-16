@@ -328,6 +328,12 @@ MESHCOMOD_COMPANION_ENVS=(
   "heltec_v4_tft_companion_radio_usb_tcp"        # Heltec V4 TFT without the touch UI
   "Heltec_WSL3_companion_radio_usb_tcp"          # Heltec Wireless Stick Lite V3, headless
   "Heltec_Wireless_Tracker_companion_radio_usb_tcp" # Heltec Wireless Tracker (ST7735 TFT, GPS)
+  "heltec_tracker_v2_companion_radio_usb_tcp"    # Heltec Wireless Tracker V2 (ST7735 TFT, GPS, FEM)
+  "Heltec_E213_companion_radio_usb_tcp"          # Heltec Vision Master E213 (e-ink)
+  "Xiao_S3_companion_radio_usb_tcp"              # Seeed Xiao S3 + Wio-SX1262 kit, optional SSD1306 OLED
+  "RAK_3112_companion_radio_usb_tcp"             # RAK3112 (WisBlock ESP32-S3), headless
+  "LilyGo_TETH_Elite_sx1262_companion_radio_usb_tcp" # LilyGo T-ETH Elite, headless, Wi-Fi only
+  "T_Beam_S3_Supreme_SX1262_companion_radio_usb_tcp" # LilyGo T-Beam S3 Supreme (SH1106 OLED, GPS)
   # Elecrow ThinkNode M7 (ESP32-S3 + LR1110). No _usb_tcp multi-transport variant
   # exists for this board, so these are the stock single-transport companions.
   # Hardware-validated by @ptr727 in #47; we hold none, so treat regressions here
