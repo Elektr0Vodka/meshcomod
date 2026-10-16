@@ -324,6 +324,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#over-the-air-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Over-the-air updates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#companion-pre-releases" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -676,6 +687,33 @@
     
   
     Companion CAD toggle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../companion_manifest_ota/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion manifest OTA (ota check / ota update)
   
 
     
@@ -1108,10 +1146,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_30" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_31" >
         
           
-          <label class="md-nav__link" for="__nav_30" id="__nav_30_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_31" id="__nav_31_label" tabindex="0">
             
   
   
@@ -1129,8 +1167,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_30_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_30">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_31_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_31">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1155,10 +1193,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_30_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_31_1" >
         
           
-          <label class="md-nav__link" for="__nav_30_1" id="__nav_30_1_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_31_1" id="__nav_31_1_label" tabindex="0">
             
   
   
@@ -1176,8 +1214,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_30_1_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_30_1">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_31_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_31_1">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1261,6 +1299,17 @@
     <span class="md-ellipsis">
       
         How to cut a release
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#over-the-air-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Over-the-air updates
       
     </span>
   </a>
@@ -1379,6 +1428,14 @@ git push origin companion-v1.16.0.1
 <p>The tag suffix becomes <code>FIRMWARE_VERSION</code> (e.g. <code>companion-v1.16.0.1</code> →
 <code>v1.16.0.1</code>), so the in-firmware version string and the release name match the
 tag.</p>
+<h2 id="over-the-air-updates">Over-the-air updates</h2>
+<p>Companion releases also feed the DutchMeshCore OTA server, which mirrors the
+newest stable <code>companion-*</code> release into per-board manifests for <code>ota check</code> /
+<code>ota update</code> (see <a href="../companion_manifest_ota/">Companion manifest OTA</a>). Each
+companion env uploads <code>&lt;env&gt;.partsig</code> next to its <code>.bin</code>, so the device can refuse
+a build made for a different partition layout. Only plain versions are served
+(<code>companion-v1.18.0.2</code>): the server splits asset names on <code>-</code>, so pre-release
+builds (<code>-pre42</code>, <code>-rc1</code>, see below) are not offered over the air.</p>
 <h2 id="companion-pre-releases">Companion pre-releases</h2>
 <p>There are two ways to publish companion bins as a GitHub <strong>pre-release</strong> (never
 marked "latest", so <code>releases/latest</code> keeps pointing at the newest stable build):</p>
