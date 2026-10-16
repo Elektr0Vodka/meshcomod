@@ -5,6 +5,16 @@
     --md-accent-fg-color: #1F2937;
 }
 
+/* dark theme: darker header, gray-blue background, light links */
+[data-md-color-scheme="slate"] {
+    --md-hue: 215;
+    --md-primary-fg-color: #111827;
+    --md-primary-fg-color--light: #111827;
+    --md-primary-fg-color--dark: #111827;
+    --md-accent-fg-color: #93C5FD;
+    --md-typeset-a-color: #93C5FD;
+}
+
 /* hide git repo version */
 .md-source__fact--version {
     display: none;
