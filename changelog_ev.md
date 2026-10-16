@@ -16,6 +16,7 @@ Newest first. Each entry names the PR that landed it.
 
 ### Added
 
+- **Six more multi-transport companion boards (experimental)**: `usb_tcp` envs (USB + TCP + WebSocket + BLE, SNMP, manifest OTA) for the Heltec Wireless Tracker V2, Heltec Vision Master E213, Seeed Xiao S3, RAK3112, LilyGo T-ETH Elite and LilyGo T-Beam S3 Supreme, all added to the release list. Each is an ESP32-S3 with at least 8 MB flash on its existing partition table and reuses the display driver of the board's stock companion builds (RAK3112 and T-ETH Elite are headless). The T-ETH Elite build runs over Wi-Fi; its Ethernet port is not used, as upstream has no Ethernet companion for it either. Marked experimental in the README: nobody working on the fork owns these boards, so beyond building, nothing board specific (display, buttons, battery, free heap) has been checked. Builds, not tested on hardware.
 - **Seeed Wio Tracker L1 / L1 Pro companions**: the existing upstream `WioTrackerL1_companion_radio_ble` and `WioTrackerL1_companion_radio_usb` envs are now in the release list, so the fork builds and releases them (`.uf2` + DFU `.zip`). The nRF52840 has no Wi-Fi, so these are single-transport (BLE or USB) with no TCP, SNMP or manifest OTA. The CAD toggle and receive filter build in. Builds, not tested on hardware.
 
 ### CI and build

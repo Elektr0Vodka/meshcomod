@@ -24,7 +24,7 @@ This is the **Elektr0Vodka fork** of [ALLFATHER-BV/meshcomod](https://github.com
 | [Receive filter](docs/companion_receive_filter.md) | `filter` CLI that drops junk group text (malformed, too old, relayed by a blocked repeater) and hides channel text by sender or content. Off by default. | Builds, not tested on hardware. |
 | [SNMP agent](docs/companion_snmp.md) | Read-only SNMPv2c on UDP 161, same OID layout as the Dutch-MeshCore observer. Off by default (`set snmp on`). Not in the touch build. | Builds, not tested on hardware. |
 | [Manifest OTA](docs/companion_manifest_ota.md) | `ota check` and `ota update` against the DutchMeshCore OTA server. Never downgrades, refuses a partition layout change. | Builds, not tested on hardware. |
-| Extra boards | `usb_tcp` builds for V4 R8, V4 R8 TFT, V4 TFT (no touch), Wireless Stick Lite V3 and Wireless Tracker. BLE and USB builds for the Seeed Wio Tracker L1 / L1 Pro. | Builds, not tested on hardware. |
+| Extra boards | `usb_tcp` builds for V4 R8, V4 R8 TFT, V4 TFT (no touch), Wireless Stick Lite V3 and Wireless Tracker, plus experimental ones for Wireless Tracker V2, Vision Master E213, Xiao S3, RAK3112, T-ETH Elite and T-Beam S3 Supreme. BLE and USB builds for the Seeed Wio Tracker L1 / L1 Pro. | Builds, not tested on hardware. |
 | CI | One runner per board, cached toolchains, pre-releases for test builds. | In use. |
 
 A build with the receive filter reports it in `ver`, e.g. `v1.18.0.1-<sha>-dmc-filter (Build: ...)`.
@@ -52,6 +52,8 @@ Otherwise this is the same codebase as MeshCore; upstream meshcomod syncs from M
 
 "Hardware tested" means a fork build has run on that board. Boards marked "build only" compile and are released, but nobody has flashed this fork's build on one yet.
 
+Boards marked **experimental** go one step further out: their env is the board's stock companion build moved onto the meshcomod multi-transport stack, and nobody working on the fork owns one. Beyond the general fork caveats, nothing board specific has been checked on them: display and button handling, battery reading and power off, Wi-Fi range, and free heap with Wi-Fi, BLE and SNMP all running. Flash one only if you can recover the board over USB, and please report what works and what does not.
+
 | Device | MCU | Display | Build env | Fork build |
 |---|---|---|---|---|
 | **Heltec WiFi LoRa 32 V4** | ESP32-S3 | 128×64 OLED | `heltec_v4_companion_radio_usb_tcp` | Hardware tested (v1.17.0.4-DMC-EV) |
@@ -63,6 +65,12 @@ Otherwise this is the same codebase as MeshCore; upstream meshcomod syncs from M
 | **Heltec WiFi LoRa 32 V4 TFT** | ESP32-S3 | 240×320 TFT (button UI, no touch) | `heltec_v4_tft_companion_radio_usb_tcp` | Build only, new in fork |
 | **Heltec Wireless Stick Lite V3** | ESP32-S3 | none | `Heltec_WSL3_companion_radio_usb_tcp` | Build only, new in fork |
 | **Heltec Wireless Tracker** | ESP32-S3 | 160×80 TFT, GPS | `Heltec_Wireless_Tracker_companion_radio_usb_tcp` | Build only, new in fork |
+| **Heltec Wireless Tracker V2** | ESP32-S3 | 160×80 TFT, GPS | `heltec_tracker_v2_companion_radio_usb_tcp` | **Experimental**, build only, new in fork |
+| **Heltec Vision Master E213** | ESP32-S3 | 250×122 e-ink | `Heltec_E213_companion_radio_usb_tcp` | **Experimental**, build only, new in fork |
+| **Seeed Xiao S3** (Wio-SX1262 kit) | ESP32-S3 | optional 128×64 OLED | `Xiao_S3_companion_radio_usb_tcp` | **Experimental**, build only, new in fork |
+| **RAK3112** (WisBlock) | ESP32-S3 | none | `RAK_3112_companion_radio_usb_tcp` | **Experimental**, build only, new in fork |
+| **LilyGo T-ETH Elite** | ESP32-S3 | none | `LilyGo_TETH_Elite_sx1262_companion_radio_usb_tcp` | **Experimental**, build only, new in fork (Wi-Fi, not Ethernet) |
+| **LilyGo T-Beam S3 Supreme** | ESP32-S3 | 128×64 OLED, GPS | `T_Beam_S3_Supreme_SX1262_companion_radio_usb_tcp` | **Experimental**, build only, new in fork |
 | **Seeed Wio Tracker L1 / L1 Pro** | nRF52840 | 128×64 OLED, GPS | `WioTrackerL1_companion_radio_ble`, `WioTrackerL1_companion_radio_usb` | Build only, new in fork |
 
 The SNMP, receive filter and manifest OTA features are not hardware tested on any board yet, including V4 and V3.
