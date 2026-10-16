@@ -805,6 +805,9 @@ void loop() {
            * converts to local via localtime_r() using the TZ from configTzTime. */
           rtc_clock.setCurrentTime((uint32_t)t);
           sntp_pushed = true;
+#ifdef WITH_SNMP
+          companionSnmpSetNtpSynced();
+#endif
         }
       }
     } else {

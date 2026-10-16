@@ -19,6 +19,9 @@
 // Main loop. link_up: Wi-Fi associated with an address.
 void companionSnmpLoop(bool link_up);
 
+// SNTP has set the clock (.3.4.0).
+void companionSnmpSetNtpSynced();
+
 // `get snmp`, `set snmp on|off`, `get snmp.status`, `get|set snmp.community`.
 // remote: the request came over the mesh (remote CLI), which never gets the
 // community string back. Returns false when the command is not an SNMP one.
