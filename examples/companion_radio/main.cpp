@@ -1,6 +1,7 @@
 #include <Arduino.h>   // needed for PlatformIO
 #include <Mesh.h>
 #include "MyMesh.h"
+#include "CompanionSNMP.h"
 #if defined(ESP32_PLATFORM) && defined(HAS_TOUCH_UI)
 #include <Preferences.h>
 #include <esp_system.h>
@@ -820,6 +821,10 @@ void loop() {
     serial_interface.startTcpServer(WiFi.status() == WL_CONNECTED);
     serial_interface.tickWebSocketHandshake();
   }
+#ifdef WITH_SNMP
+  // Same rule as TCP: never touch lwIP unless Wi-Fi was brought up this session.
+  companionSnmpLoop(wifi_started && WiFi.status() == WL_CONNECTED && (uint32_t)WiFi.localIP() != 0);
+#endif
 #endif
   the_mesh.loop();
 #ifdef COMPANION_USB_ETHERNET

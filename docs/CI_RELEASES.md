@@ -33,11 +33,33 @@ tag.
 ## Over-the-air updates
 
 Companion releases also feed the DutchMeshCore OTA server, which mirrors the
-newest `companion-*` release into per-board manifests for `ota check` /
+newest stable `companion-*` release into per-board manifests for `ota check` /
 `ota update` (see [Companion manifest OTA](companion_manifest_ota.md)). Each
 companion env uploads `<env>.partsig` next to its `.bin`, so the device can refuse
-a build made for a different partition layout. Keep the tag version plain
-(`companion-v1.18.0.2`, no extra `-suffix`): the server splits asset names on `-`.
+a build made for a different partition layout. Only plain versions are served
+(`companion-v1.18.0.2`): the server splits asset names on `-`, so pre-release
+builds (`-pre42`, `-rc1`, see below) are not offered over the air.
+
+## Companion pre-releases
+
+There are two ways to publish companion bins as a GitHub **pre-release** (never
+marked "latest", so `releases/latest` keeps pointing at the newest stable build):
+
+- **Manual run:** Actions, then Build Companion Firmwares, then Run workflow, and
+  tick **prerelease**. The workflow appends `-pre<run number>` to the version
+  (so the firmware reports it too), creates the tag on the commit it built, and
+  publishes the pre-release. Example: `companion-v1.18.0.1-pre42`.
+- **Suffix tag:** push a tag with anything after the four-part version. It is
+  published as a pre-release; a plain `companion-vX.Y.Z.W` tag stays a normal
+  release.
+
+```bash
+git tag companion-v1.18.0.2-rc1
+git push origin companion-v1.18.0.2-rc1
+```
+
+A manual run without the box ticked still only uploads the bins as a workflow
+artifact.
 
 ## Rolling retention
 
@@ -46,6 +68,13 @@ which keeps the **newest 5** releases on that track and deletes the older ones �
 the GitHub Release, its git tag, and the attached assets. This keeps the release
 list and the tag namespace small while still allowing rollback to the last few
 versions.
+
+The companion track counts stable releases and pre-releases separately
+(`prune-releases.sh companion- 5 stable` and `prune-releases.sh companion- 3
+prerelease`), so it keeps the newest 5 stable and newest 3 pre-releases and a
+run of pre-releases never pushes stable ones out. The optional third argument
+(`all`, `stable` or `prerelease`) defaults to `all`, which is what the
+room-server track still uses.
 
 To preview what would be pruned without deleting anything, run the workflow via
 **Actions → (workflow) → Run workflow** after setting `DRY_RUN=1`, or locally:

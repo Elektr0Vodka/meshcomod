@@ -46,4 +46,13 @@ bool wifiConfigWantsWifi();
 void wifiConfigRequestApply();
 bool wifiConfigConsumeApplyRequest();
 
+/* Optional SNMP agent (WITH_SNMP builds): on/off (default off) and the read-only
+ * community string (default "public"). Kept in NVS beside the Wi-Fi settings so the
+ * binary NodePrefs layout is untouched. */
+#define WIFI_CONFIG_SNMP_COMMUNITY_MAX 24
+bool wifiConfigGetSnmpEnabled();
+void wifiConfigSetSnmpEnabled(bool enabled);
+void wifiConfigGetSnmpCommunity(char *buf, size_t len);
+bool wifiConfigSetSnmpCommunity(const char *community);
+
 #endif

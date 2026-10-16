@@ -10,6 +10,10 @@ on:
         description: 'Firmware line, e.g. v1.18.0.1. Leave empty to use FIRMWARE_VERSION from examples/companion_radio/MyMesh.h'
         required: false
         default: ''
+      prerelease:
+        description: 'Publish the bins as a GitHub pre-release (tag companion-<version>-pre<run number>)'
+        type: boolean
+        default: false
   push:
     tags:
       - 'companion-*'
@@ -29,9 +33,15 @@ jobs:
       # A tag push uses the tag (companion-v1.18.0.1 -> v1.18.0.1). A manual run
       # would otherwise get the branch name as its version, so it uses the
       # `version` input, or the firmware line in MyMesh.h when that is empty.
+      #
+      # Pre-releases: a tag with anything after the four-part version
+      # (companion-v1.18.0.1-rc1) is published as a pre-release. A manual run
+      # with `prerelease` ticked appends -pre<run number> to the version, so the
+      # firmware reports it too, and creates the matching companion-* tag.
       - name: Resolve Firmware Version
         env:
           INPUT_VERSION: ${{ inputs.version }}
+          INPUT_PRERELEASE: ${{ inputs.prerelease }}
         run: |
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             VERSION="${GIT_TAG_VERSION}"
@@ -44,8 +54,25 @@ jobs:
             echo "Could not resolve the firmware version"
             exit 1
           fi
+
+          RELEASE_TAG=""
+          PRERELEASE=false
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            RELEASE_TAG="${GITHUB_REF#refs/tags/}"
+            if ! [[ "${VERSION}" =~ ^v[0-9]+(\.[0-9]+){3}$ ]]; then
+              PRERELEASE=true
+            fi
+          elif [ "${INPUT_PRERELEASE}" = "true" ]; then
+            VERSION="${VERSION}-pre${GITHUB_RUN_NUMBER}"
+            RELEASE_TAG="companion-${VERSION}"
+            PRERELEASE=true
+          fi
+
           echo "Firmware version: ${VERSION}"
+          echo "Release tag: ${RELEASE_TAG:-<none>} (pre-release: ${PRERELEASE})"
           echo "FIRMWARE_VERSION=${VERSION}" >> "$GITHUB_ENV"
+          echo "RELEASE_TAG=${RELEASE_TAG}" >> "$GITHUB_ENV"
+          echo "PRERELEASE=${PRERELEASE}" >> "$GITHUB_ENV"
 
       - name: Build Firmwares
         # Only the meshcomod-shipped companion boards (V4, V3, Wireless Paper,
@@ -61,20 +88,31 @@ jobs:
 
       # Published (not draft): GitHub Releases are the distribution source of
       # truth — the web flasher reads the release assets directly.
+      # A pre-release is never marked "latest", so releases/latest keeps
+      # pointing at the newest stable build. target_commitish matters for
+      # manual runs: without it the new tag lands on the default branch head
+      # instead of the commit that was built.
       - name: Create Release
         uses: softprops/action-gh-release@v3
-        if: startsWith(github.ref, 'refs/tags/')
+        if: env.RELEASE_TAG != ''
         with:
-          name: Companion Firmware ${{ env.GIT_TAG_VERSION }}
+          tag_name: ${{ env.RELEASE_TAG }}
+          target_commitish: ${{ github.sha }}
+          name: Companion Firmware ${{ env.FIRMWARE_VERSION }}
           body: ""
           draft: false
+          prerelease: ${{ env.PRERELEASE == 'true' }}
+          make_latest: ${{ env.PRERELEASE == 'true' && 'false' || 'true' }}
           generate_release_notes: true
           files: out/*
 
-      # Rolling retention: keep the newest 5 companion releases, prune older
-      # ones (release + tag + assets).
-      - name: Prune old releases (keep last 5)
-        if: startsWith(github.ref, 'refs/tags/')
+      # Rolling retention, counted separately so a run of pre-releases never
+      # pushes stable releases out: keep the newest 5 stable and newest 3
+      # pre-release companion releases, prune older ones (release + tag + assets).
+      - name: Prune old releases (keep last 5 stable, 3 pre-release)
+        if: env.RELEASE_TAG != ''
         env:
           GH_TOKEN: ${{ github.token }}
-        run: /usr/bin/env bash scripts/ci/prune-releases.sh "companion-" 5
+        run: |
+          /usr/bin/env bash scripts/ci/prune-releases.sh "companion-" 5 stable
+          /usr/bin/env bash scripts/ci/prune-releases.sh "companion-" 3 prerelease

@@ -17,6 +17,7 @@
 #include <helpers/HttpOtaDisplayState.h>
 #include <helpers/RepeaterTcpOtaEmit.h>
 #include "WiFiConfig.h"
+#include "CompanionSNMP.h"
 #ifdef ESP32
 #if defined(WIFI_SSID) || defined(MULTI_TRANSPORT_COMPANION)
 #include <WiFi.h>
@@ -4070,6 +4071,9 @@ bool MyMesh::handleCommand(const char* command, uint32_t sender_timestamp, char*
     }
     return true;
   }
+#endif
+#ifdef WITH_SNMP
+  if (companionSnmpCommand(command, sender_timestamp != 0, reply)) return true;
 #endif
 
   if (strcmp(command, "board") == 0) {
