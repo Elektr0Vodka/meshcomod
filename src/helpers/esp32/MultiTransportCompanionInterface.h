@@ -49,6 +49,7 @@ public:
   bool isWsStarted() const override { return _ws_started; }
   uint16_t getWsPort() const override { return _ws_port; }
   int getWsConnectedCount() const override { return _ws.connectedCount(); }
+  int getTcpConnectedCount() const { return _tcp.connectedCount(); }
   /** Accept WebSocket clients / handshakes; call from main loop. */
   void tickWebSocketHandshake() override;
 
