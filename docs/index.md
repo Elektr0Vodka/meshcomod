@@ -16,4 +16,4 @@ Below are a few quick start guides.
 
 If you find a mistake in any of our documentation, or find something is missing, please feel free to open a pull request for us to review.
 
-- [Documentation Source](https://github.com/meshcore-dev/MeshCore/tree/main/docs)
+- [Documentation Source](https://github.com/Elektr0Vodka/meshcomod/tree/main/docs)
