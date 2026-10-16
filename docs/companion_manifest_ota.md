@@ -60,7 +60,9 @@ The OTA server mirrors this repo's GitHub releases tagged `companion-*` (see
 - `<env>.partsig` (optional, enables the partition-layout check).
 
 The companion workflow uploads all of `out/`, so both come along with a normal tagged
-build. Keep `FIRMWARE_VERSION` free of `-` (for example `v1.18.0.2`, not
+build. Pre-releases (`companion-v1.18.0.1-pre42`, `-rc1`) are not served over the air.
+A device running a pre-release is offered the stable build of the same or a newer
+version (`v1.18.0.1-pre42` counts as `v1.18.0.1` with another commit). Keep `FIRMWARE_VERSION` free of `-` (for example `v1.18.0.2`, not
 `v1.18.0.2-DMC-EV`): the server splits asset names on `-` to find the env, version and
 hash.
 
