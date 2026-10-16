@@ -29,6 +29,8 @@ jobs:
           - Heltec_v3_companion_radio_usb_tcp
           - heltec_v4_companion_radio_usb_tcp
           - heltec_v4_tft_companion_radio_usb_tcp_touch
+          # nRF52840, catches fork companion code that only builds on ESP32
+          - WioTrackerL1_companion_radio_ble
 
     steps:
       - name: Clone Repo
