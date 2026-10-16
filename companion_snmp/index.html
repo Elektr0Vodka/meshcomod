@@ -1307,8 +1307,15 @@ been tested on hardware.</p>
 <ul>
 <li><code>heltec_v4_companion_radio_usb_tcp</code></li>
 <li><code>Heltec_v3_companion_radio_usb_tcp</code> (and its <code>_boot_debug</code> variant)</li>
+<li><code>Heltec_Wireless_Paper_companion_radio_usb_tcp</code></li>
+<li><code>Xiao_S3_WIO_companion_radio_usb_tcp</code></li>
+<li><code>heltec_v4_r8_companion_radio_usb_tcp</code></li>
+<li><code>heltec_v4_r8_tft_companion_radio_usb_tcp</code></li>
+<li><code>heltec_v4_tft_companion_radio_usb_tcp</code> (V4 TFT without touch, <code>ui-new</code> screens)</li>
+<li><code>Heltec_WSL3_companion_radio_usb_tcp</code></li>
 </ul>
-<p>The touch build and the other companions do not include it yet.</p>
+<p>The touch build does not include it yet: it needs a heap reading on hardware
+first, because BLE co-init there is already gated on free heap.</p>
 <p>The agent only runs while Wi-Fi is up with an address. It stops when the link
 drops and starts again when it comes back. While it is off, nothing is
 allocated, so a build that contains it but leaves it off costs flash only.</p>
@@ -1549,6 +1556,61 @@ time (Dutch-MeshCore <code>dmc-observer-dev</code>).</p>
 <td>+33,340 B</td>
 <td>+344 B</td>
 <td>24.8% of 6.25 MB</td>
+</tr>
+<tr>
+<td><code>Heltec_Wireless_Paper_companion_radio_usb_tcp</code></td>
+<td>+33,156 B</td>
+<td>+344 B</td>
+<td>47.0% of 3.19 MB</td>
+</tr>
+<tr>
+<td><code>Xiao_S3_WIO_companion_radio_usb_tcp</code></td>
+<td>+33,020 B</td>
+<td>+344 B</td>
+<td>46.9% of 3.19 MB</td>
+</tr>
+</tbody>
+</table>
+<p>Wireless Paper and Xiao start from about 40 KB more static RAM than the V3
+(150 KB vs 110 KB, mostly the larger offline queue and, on the Paper, the e-ink
+buffer), so they are the boards to watch when checking free heap with Wi-Fi,
+BLE and the agent all running.</p>
+<p>The newer envs were added with the agent already in, so there is no build
+without it to compare against. Their totals (<code>build.sh build-firmware</code>, with
+manifest OTA, <code>DISABLE_DEBUG=1</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Env</th>
+<th>Flash</th>
+<th>Static RAM</th>
+<th>App slot used</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>heltec_v4_r8_companion_radio_usb_tcp</code></td>
+<td>1,635,957 B</td>
+<td>110,448 B</td>
+<td>25.0% of 6.25 MB</td>
+</tr>
+<tr>
+<td><code>heltec_v4_r8_tft_companion_radio_usb_tcp</code></td>
+<td>1,639,833 B</td>
+<td>110,584 B</td>
+<td>25.0% of 6.25 MB</td>
+</tr>
+<tr>
+<td><code>heltec_v4_tft_companion_radio_usb_tcp</code></td>
+<td>1,634,033 B</td>
+<td>110,612 B</td>
+<td>24.9% of 6.25 MB</td>
+</tr>
+<tr>
+<td><code>Heltec_WSL3_companion_radio_usb_tcp</code></td>
+<td>1,609,669 B</td>
+<td>110,248 B</td>
+<td>48.2% of 3.19 MB</td>
 </tr>
 </tbody>
 </table>
