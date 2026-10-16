@@ -13,7 +13,7 @@ releases on that track (keeping the newest 5).
 
 | Track | Tag prefix | Example tag | Workflow | Builds |
 |-------|-----------|-------------|----------|--------|
-| Companion | `companion-` | `companion-v1.16.0.1` | build-companion-firmwares | the envs in `MESHCOMOD_COMPANION_ENVS` in `build.sh` (V4, V3, Wireless Paper and Xiao `_usb_tcp`, ThinkNode M7 BLE and Ethernet) |
+| Companion | `companion-` | `companion-v1.16.0.1` | build-companion-firmwares | the envs in `MESHCOMOD_COMPANION_ENVS` in `build.sh` (V4, V3, Wireless Paper, Xiao, V4 R8, V4 R8 TFT, V4 TFT and Wireless Stick Lite V3 `_usb_tcp`, ThinkNode M7 BLE and Ethernet) |
 | Room server | `room-server-` | `room-server-v1.16.0.1` | build-room-server-firmwares | `*_room_server` |
 | Repeater | — | (manual `workflow_dispatch`) | build-repeater-firmwares | `*_repeater_tcp` |
 

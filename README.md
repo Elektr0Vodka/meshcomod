@@ -37,10 +37,14 @@ Otherwise this is the same codebase as MeshCore; we sync from upstream and add o
 | **Heltec WiFi LoRa 32 V3** | ESP32-S3 | 128×64 OLED | `Heltec_v3_companion_radio_usb_tcp` |
 | **Heltec Wireless Paper** | ESP32-S3 | 213×104 e-ink | `Heltec_Wireless_Paper_companion_radio_usb_tcp` |
 | **Seeed Xiao S3 WIO** | ESP32-S3 | optional 128×64 OLED | `Xiao_S3_WIO_companion_radio_usb_tcp` |
+| **Heltec WiFi LoRa 32 V4 R8** (16 MB flash, 8 MB PSRAM) | ESP32-S3 | 128×64 OLED | `heltec_v4_r8_companion_radio_usb_tcp` |
+| **Heltec WiFi LoRa 32 V4 R8 TFT** | ESP32-S3 | 240×320 TFT (button UI) | `heltec_v4_r8_tft_companion_radio_usb_tcp` |
+| **Heltec WiFi LoRa 32 V4 TFT** | ESP32-S3 | 240×320 TFT (button UI, no touch) | `heltec_v4_tft_companion_radio_usb_tcp` |
+| **Heltec Wireless Stick Lite V3** | ESP32-S3 | none | `Heltec_WSL3_companion_radio_usb_tcp` |
 
 **Env-name casing matters when building:** V4 uses lowercase `heltec_v4_…`; V3 uses a capital H `Heltec_v3_…`. Use the exact name (see [Build it yourself](#hard--build-it-yourself)).
 
-> **Touch boards** (Heltec V4 TFT, LilyGo T-Deck) are built and released from **[wadamesh](https://github.com/ALLFATHER-BV/wadamesh)**, not here.
+> **Touch UI builds** (Heltec V4 TFT with the touchscreen, LilyGo T-Deck) are built and released from **[wadamesh](https://github.com/ALLFATHER-BV/wadamesh)**, not here.
 
 <p align="left">
   <img width="200" height="200" alt="Heltec WiFi LoRa 32 V4" src="https://github.com/user-attachments/assets/1ecd81c5-644b-4df3-99a8-e544d1864a01" />
@@ -161,7 +165,7 @@ export FIRMWARE_VERSION=v1.16.0.2
 sh build.sh build-firmware Heltec_v3_companion_radio_usb_tcp
 ```
 
-Other targets use the same flow with their env name (`Heltec_Wireless_Paper_companion_radio_usb_tcp`, `Xiao_S3_WIO_companion_radio_usb_tcp`). Build all shipped companions at once with `sh build.sh build-meshcomod-companion-firmwares`.
+Other targets use the same flow with their env name from the [Supported devices](#supported-devices) table. Build all shipped companions at once with `sh build.sh build-meshcomod-companion-firmwares`.
 
 **Outputs** (every target): app-only `out/<env>-<version>-<sha>.bin` and **merged** `out/<env>-<version>-<sha>-merged.bin` (flash from `0x0`). The merged image is also at `.pio/build/<env>/firmware-merged.bin`. The `*_companion_radio_usb_tcp` targets also get `out/<env>.partsig` (partition layout, used by `ota update`) and have the OTA manifest base baked in (`OTA_MANIFEST_BASE_URL` overrides it).
 
