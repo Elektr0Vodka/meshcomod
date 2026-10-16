@@ -12,6 +12,8 @@ static const char *WIFI_CONFIG_PWD_KEY = "wifi_pwd";
 static const char *WIFI_CONFIG_RADIO_EN_KEY = "wifi_radio_en";
 static const char *WIFI_CONFIG_WIFI_CHOSEN_KEY = "wifi_chosen";
 static const char *WIFI_CONFIG_BLE_EN_KEY = "ble_en";   // BLE radio on/off (default on)
+static const char *WIFI_CONFIG_SNMP_EN_KEY = "snmp_en";       // SNMP agent on/off (default off)
+static const char *WIFI_CONFIG_SNMP_COMM_KEY = "snmp_comm";   // SNMP community (default "public")
 
 static SdNvsPrefs s_prefs;
 static bool s_begun = false;
@@ -174,6 +176,46 @@ bool wifiConfigConsumeApplyRequest() {
   if (!s_wifi_apply_requested) return false;
   s_wifi_apply_requested = false;
   return true;
+}
+
+bool wifiConfigGetSnmpEnabled() {
+  if (!s_begun) wifiConfigBegin();
+  return s_prefs.getUChar(WIFI_CONFIG_SNMP_EN_KEY, 0) != 0;
+}
+
+void wifiConfigSetSnmpEnabled(bool enabled) {
+  if (!s_begun) wifiConfigBegin();
+  s_prefs.end();
+  if (!s_prefs.begin(WIFI_CONFIG_NAMESPACE, false)) return;
+  s_prefs.putUChar(WIFI_CONFIG_SNMP_EN_KEY, enabled ? 1 : 0);
+  s_prefs.end();
+  s_begun = s_prefs.begin(WIFI_CONFIG_NAMESPACE, true);
+}
+
+void wifiConfigGetSnmpCommunity(char *buf, size_t len) {
+  if (!buf || len == 0) return;
+  buf[0] = '\0';
+  if (!s_begun) wifiConfigBegin();
+  if (s_prefs.isKey(WIFI_CONFIG_SNMP_COMM_KEY))
+    s_prefs.getString(WIFI_CONFIG_SNMP_COMM_KEY, buf, len);
+  buf[len - 1] = '\0';
+  if (buf[0] == '\0') {
+    strncpy(buf, "public", len - 1);
+    buf[len - 1] = '\0';
+  }
+}
+
+bool wifiConfigSetSnmpCommunity(const char *community) {
+  if (!community) return false;
+  size_t n = strlen(community);
+  if (n == 0 || n >= WIFI_CONFIG_SNMP_COMMUNITY_MAX) return false;
+  if (!s_begun) wifiConfigBegin();
+  s_prefs.end();
+  if (!s_prefs.begin(WIFI_CONFIG_NAMESPACE, false)) return false;
+  bool ok = s_prefs.putString(WIFI_CONFIG_SNMP_COMM_KEY, community);
+  s_prefs.end();
+  s_begun = s_prefs.begin(WIFI_CONFIG_NAMESPACE, true);
+  return ok;
 }
 
 void wifiConfigApply() {
