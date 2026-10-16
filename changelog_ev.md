@@ -14,7 +14,11 @@ Newest first. Each entry names the PR that landed it.
 
 ## Unreleased
 
-Nothing yet.
+### Docs
+
+- **Fork changelog**: this file, `changelog_ev.md`.
+- **README describes the fork**: an "About this fork" section with per-feature test status, a hardware test column on the device table, flashing from this fork's pre-releases, and sync steps from upstream meshcomod.
+- **Dark theme for the docs site**: a light/dark toggle in the header. Light is the original look; the choice is remembered per browser.
 
 ## 2026-10-16
 

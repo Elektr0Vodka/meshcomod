@@ -9,6 +9,20 @@ edit_uri: edit/main/docs/
 theme:
   name: material
   logo: _assets/meshcore.svg
+  # Light (the original look) and dark schemes. Colors live in extra.css.
+  palette:
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark theme
+    - scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light theme
   features:
     - content.action.edit
     - content.code.copy
