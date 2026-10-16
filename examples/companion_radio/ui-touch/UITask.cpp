@@ -9124,6 +9124,7 @@ static const AdminCmdEntry k_term_cmds[] = {
   { "ver - firmware version",         "ver" },
   { "clock - show RTC time",          "clock" },
   { "status - device status",         "status" },
+  { "mac - wifi/ble MAC addresses",  "mac" },
   { "get - show radio params",        "get" },
   { "[ RADIO / MESH ]", nullptr },
   { "advert - flood advert",          "advert" },
@@ -9432,7 +9433,7 @@ static void termCmdExit() {
 static bool termIsCliKeyword(const char* word, size_t len) {
   static const char* kw[] = {
     "help", "ver", "version", "clock", "time", "status", "get", "set",
-    "advert", "advert.zerohop", "reboot", "wifi", "tcp", "ble", "ota",
+    "advert", "advert.zerohop", "reboot", "wifi", "tcp", "ble", "ota", "mac",
     "ok", "cancel",
   };
   for (const char* k : kw) {

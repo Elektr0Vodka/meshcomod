@@ -120,6 +120,7 @@ wifi.status
 | `wifi clear` | Clear runtime creds (fall back to compile-time on next boot) |
 | `tcp on` / `tcp off` / `tcp status` | Control/query the TCP server |
 | `ble on` / `ble off` / `ble status` | Control/query Bluetooth |
+| `mac` | Show the device Wi-Fi and BLE MAC addresses (also `get mac`, `get wifi.mac`, `get ble.mac` in the app console or over USB serial) |
 | `ota check` | Ask the OTA server whether a newer build exists for this device |
 | `ota update` | Install that build over Wi-Fi (see [Update over Wi-Fi](#update-over-wi-fi)) |
 
