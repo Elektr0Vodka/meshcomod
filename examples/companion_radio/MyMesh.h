@@ -190,6 +190,14 @@ public:
 #endif
   }
 
+#ifdef WITH_SNMP
+  // Read-only views for the SNMP agent (CompanionSNMP.cpp), which runs in the main loop.
+  int snmpTxQueueLen() const { return _mgr->getOutboundCount(0xFFFFFFFF); }
+  uint16_t snmpErrFlags() const { return _err_flags; }
+  bool snmpFilterEnabled() const { return _cfilter.isEnabled(); }
+  const Counters& snmpFilterCounters() const { return _cfilter.counters(); }
+#endif
+
   void loop();
   void handleCmdFrame(size_t len);
 

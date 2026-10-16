@@ -11,6 +11,7 @@
 #include <WiFiUdp.h>
 #include <SNMP_Agent.h>
 #include <esp_heap_caps.h>
+#include <math.h>
 #include <string.h>
 #include <string>
 
@@ -23,6 +24,11 @@ extern MultiTransportCompanionInterface serial_interface;
 // Temporary, unregistered enterprise number, the same one the observer firmware uses.
 #define MESHCORE_OID_BASE ".1.3.6.1.4.1.99999"
 
+// Same "no value" marker as the observer for a board without an MCU temperature sensor.
+#define SNMP_TEMP_UNAVAILABLE (-127)
+
+extern SimpleMeshTables tables;
+
 // Agent and socket are created on first start and kept, so toggling never leaks.
 static WiFiUDP* s_udp = nullptr;
 static SNMPAgent* s_agent = nullptr;
@@ -30,18 +36,65 @@ static bool s_running = false;
 static bool s_loaded = false;
 static bool s_enabled = false;
 
-// Every value is read when a request arrives. The agent runs in the main loop, the same
-// context as the mesh, so these reads need no locking and are never stale.
+// Values the agent serves from a copy instead of reading them per request.
+// Hardware (battery ADC, die temperature) is read every 30 s: the Heltec V4 battery read
+// blocks for 10 ms and neither value moves quickly. Counter32 handlers need a variable to
+// point at, so those totals are copied every 2 s. All of it happens in companionSnmpLoop(),
+// on the main loop with the mesh, never inside a request.
+static int s_battery_mv = 0;
+static int s_mcu_temp_c = SNMP_TEMP_UNAVAILABLE;
+static int s_reset_reason = 0;
+static char s_reset_reason_text[48] = "";
+static bool s_ntp_synced = false;
+static uint32_t s_flood_dups = 0;
+static uint32_t s_direct_dups = 0;
+static uint32_t s_rx_air_secs = 0;
+static uint32_t s_cf_malformed = 0;
+static uint32_t s_cf_age = 0;
+static uint32_t s_cf_path = 0;
+static uint32_t s_cf_sender = 0;
+static uint32_t s_cf_text = 0;
+static uint32_t s_last_stats_ms = 0;
+static uint32_t s_last_health_ms = 0;
+static bool s_health_read = false;
+
+static void readHealth() {
+  s_battery_mv = (int)board.getBattMilliVolts();
+  const float t = board.getMCUTemperature();
+  s_mcu_temp_c = isnan(t) ? SNMP_TEMP_UNAVAILABLE : (int)lroundf(t);
+}
+
+static void copyCounters() {
+  s_flood_dups = tables.getNumFloodDups();
+  s_direct_dups = tables.getNumDirectDups();
+  s_rx_air_secs = (uint32_t)(the_mesh.getReceiveAirTime() / 1000);
+  const Counters& c = the_mesh.snmpFilterCounters();
+  s_cf_malformed = c.malformed;
+  s_cf_age = c.age;
+  s_cf_path = c.path;
+  s_cf_sender = c.sender;
+  s_cf_text = c.text;
+}
+
+// Layout: the observer's MQTT_SNMP.md (Dutch-MeshCore dmc-observer-dev). Shared numbers keep
+// the observer's meaning, type and unit; an OID the companion has no data for is not
+// registered, so it reads noSuchObject instead of a 0 that looks real. Companion-only values
+// use .9 and up, which the observer keeps free.
 static void registerHandlers(SNMPAgent* a) {
-  // System (.1.x.0), same as the observer
+  // System (.1.x.0)
   a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".1.1.0", []() -> int { return (int)(millis() / 1000); });
   a->addDynamicReadOnlyStringHandler(MESHCORE_OID_BASE ".1.2.0", []() -> const std::string { return FIRMWARE_VERSION; });
   a->addDynamicReadOnlyStringHandler(MESHCORE_OID_BASE ".1.3.0", []() -> const std::string {
     return std::string(the_mesh.getNodePrefs()->node_name);
   });
-  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".1.4.0", []() -> int { return (int)board.getBattMilliVolts(); });
+  a->addIntegerHandler(MESHCORE_OID_BASE ".1.4.0", &s_battery_mv);
+  a->addIntegerHandler(MESHCORE_OID_BASE ".1.5.0", &s_mcu_temp_c);
+  a->addIntegerHandler(MESHCORE_OID_BASE ".1.6.0", &s_reset_reason);
+  a->addDynamicReadOnlyStringHandler(MESHCORE_OID_BASE ".1.7.0", []() -> const std::string {
+    return std::string(s_reset_reason_text);
+  });
 
-  // Radio (.2.x.0), same as the observer
+  // Radio (.2.x.0). .2.16 (TX duty cycle) is left out: this firmware does not track it.
   a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".2.1.0", []() -> int { return (int)radio_driver.getPacketsRecv(); });
   a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".2.2.0", []() -> int { return (int)radio_driver.getPacketsSent(); });
   a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".2.3.0", []() -> int { return (int)radio_driver.getPacketsRecvErrors(); });
@@ -53,26 +106,44 @@ static void registerHandlers(SNMPAgent* a) {
   a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".2.9.0", []() -> int { return (int)the_mesh.getNumRecvFlood(); });
   a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".2.10.0", []() -> int { return (int)the_mesh.getNumRecvDirect(); });
   a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".2.11.0", []() -> int { return (int)(the_mesh.getTotalAirTime() / 1000); });
+  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".2.12.0", []() -> int { return the_mesh.snmpTxQueueLen(); });
+  a->addCounter32Handler(MESHCORE_OID_BASE ".2.13.0", &s_flood_dups);
+  a->addCounter32Handler(MESHCORE_OID_BASE ".2.14.0", &s_direct_dups);
+  a->addCounter32Handler(MESHCORE_OID_BASE ".2.15.0", &s_rx_air_secs);
+  // Bits 1, 2 and 4 as on the observer. Bit 8 (radio watchdog) does not exist here and stays 0.
+  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".2.17.0", []() -> int { return (int)the_mesh.snmpErrFlags(); });
 
-  // The observer's .3 MQTT group has no companion equivalent and is left out.
+  // MQTT (.3.x.0): no bridge on the companion, so only the NTP flag, which it does have.
+  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".3.4.0", []() -> int { return s_ntp_synced ? 1 : 0; });
 
-  // Memory (.4.x.0), same as the observer. heap_caps reports 0 for PSRAM on boards without it.
+  // Memory (.4.x.0). heap_caps reports 0 for PSRAM on boards without it.
   a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".4.1.0", []() -> int { return (int)ESP.getFreeHeap(); });
   a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".4.2.0", []() -> int { return (int)ESP.getMaxAllocHeap(); });
   a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".4.3.0", []() -> int { return (int)heap_caps_get_free_size(MALLOC_CAP_INTERNAL); });
   a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".4.4.0", []() -> int { return (int)heap_caps_get_free_size(MALLOC_CAP_SPIRAM); });
+  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".4.5.0", []() -> int { return (int)ESP.getMinFreeHeap(); });
 
-  // Network (.5.x.0), same as the observer
+  // Network (.5.x.0)
   a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".5.1.0", []() -> int {
     return WiFi.status() == WL_CONNECTED ? (int)WiFi.RSSI() : -127;
   });
 
-  // Companion (.6.x.0), companion builds only
-  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".6.1.0", []() -> int { return serial_interface.getTcpConnectedCount(); });
-  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".6.2.0", []() -> int { return serial_interface.getWsConnectedCount(); });
-  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".6.3.0", []() -> int { return the_mesh.getNumContacts(); });
-  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".6.4.0", []() -> int { return the_mesh.getNumChannels(); });
-  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".6.5.0", []() -> int { return (int)(the_mesh.getReceiveAirTime() / 1000); });
+  // .6 duty gate, .7 packet filter and .8 neighbours are repeater features: not registered.
+
+  // Companion (.9.x.0), companion only
+  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".9.1.0", []() -> int { return serial_interface.getTcpConnectedCount(); });
+  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".9.2.0", []() -> int { return serial_interface.getWsConnectedCount(); });
+  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".9.3.0", []() -> int { return the_mesh.getNumContacts(); });
+  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".9.4.0", []() -> int { return the_mesh.getNumChannels(); });
+
+  // Receive filter (.10.x.0), companion only. Not the repeater's .7: these count messages
+  // kept from the user (dropped as junk or hidden by taste), not packets kept off the air.
+  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".10.1.0", []() -> int { return the_mesh.snmpFilterEnabled() ? 1 : 0; });
+  a->addCounter32Handler(MESHCORE_OID_BASE ".10.2.0", &s_cf_malformed);
+  a->addCounter32Handler(MESHCORE_OID_BASE ".10.3.0", &s_cf_age);
+  a->addCounter32Handler(MESHCORE_OID_BASE ".10.4.0", &s_cf_path);
+  a->addCounter32Handler(MESHCORE_OID_BASE ".10.5.0", &s_cf_sender);
+  a->addCounter32Handler(MESHCORE_OID_BASE ".10.6.0", &s_cf_text);
 }
 
 static void loadPrefs() {
@@ -85,6 +156,11 @@ static void startAgent() {
   char community[WIFI_CONFIG_SNMP_COMMUNITY_MAX];
   wifiConfigGetSnmpCommunity(community, sizeof(community));
   if (!s_agent) {
+    const uint32_t reason = board.getResetReason();
+    s_reset_reason = (int)reason;
+    strncpy(s_reset_reason_text, board.getResetReasonString(reason), sizeof(s_reset_reason_text) - 1);
+    s_reset_reason_text[sizeof(s_reset_reason_text) - 1] = '\0';
+
     s_udp = new WiFiUDP();
     s_agent = new SNMPAgent(community);
     registerHandlers(s_agent);
@@ -112,7 +188,23 @@ void companionSnmpLoop(bool link_up) {
   } else if (!want && s_running) {
     stopAgent();
   }
-  if (s_running) s_agent->loop();
+  if (!s_running) return;
+
+  const uint32_t now = millis();
+  if (!s_health_read || now - s_last_health_ms >= 30000) {
+    s_health_read = true;
+    s_last_health_ms = now;
+    readHealth();
+  }
+  if (s_last_stats_ms == 0 || now - s_last_stats_ms >= 2000) {
+    s_last_stats_ms = now;
+    copyCounters();
+  }
+  s_agent->loop();
+}
+
+void companionSnmpSetNtpSynced() {
+  s_ntp_synced = true;
 }
 
 bool companionSnmpCommand(const char* command, bool remote, char* reply) {
