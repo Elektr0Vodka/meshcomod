@@ -21,7 +21,8 @@ Commands:
   build-firmwares: Build all firmwares for all targets.
   build-matching-firmwares <build-match-spec>: Build all firmwares for build targets containing the string given for <build-match-spec>.
   build-companion-firmwares: Build all companion firmwares for all build targets (whole upstream board family).
-  build-meshcomod-companion-firmwares: Build only the meshcomod-shipped companion boards (V4, V3, Wireless Paper, Xiao — _usb_tcp).
+  build-meshcomod-companion-firmwares: Build only the meshcomod-shipped companion boards (MESHCOMOD_COMPANION_ENVS: the _usb_tcp boards plus ThinkNode M7).
+  get-meshcomod-companion-firmwares-to-build: Print the meshcomod-shipped companion envs, one per line (CI build matrix).
   build-repeater-firmwares: Build all TCP repeater firmwares (env names ending in _repeater_tcp).
   build-room-server-firmwares: Build all chat room server firmwares for all build targets.
   build-room-multitransport-firmwares: Build meshcomod room multitransport firmwares (env names ending in _room_server_multitransport).
@@ -322,6 +323,10 @@ MESHCOMOD_COMPANION_ENVS=(
   "Heltec_v3_companion_radio_usb_tcp"            # Heltec WiFi LoRa 32 V3 (OLED)
   "Heltec_Wireless_Paper_companion_radio_usb_tcp" # Heltec Wireless Paper (E213)
   "Xiao_S3_WIO_companion_radio_usb_tcp"          # Seeed Xiao S3 WIO (SX1262)
+  "heltec_v4_r8_companion_radio_usb_tcp"         # Heltec V4 R8 (16 MB flash, 8 MB PSRAM), OLED
+  "heltec_v4_r8_tft_companion_radio_usb_tcp"     # Heltec V4 R8 TFT, ui-new button UI
+  "heltec_v4_tft_companion_radio_usb_tcp"        # Heltec V4 TFT without the touch UI
+  "Heltec_WSL3_companion_radio_usb_tcp"          # Heltec Wireless Stick Lite V3, headless
   # Elecrow ThinkNode M7 (ESP32-S3 + LR1110). No _usb_tcp multi-transport variant
   # exists for this board, so these are the stock single-transport companions.
   # Hardware-validated by @ptr727 in #47; we hold none, so treat regressions here
@@ -424,6 +429,8 @@ elif [[ $1 == "build-room-multitransport-firmwares" ]]; then
   build_room_multitransport_firmwares
 elif [[ $1 == "build-kiss-radio-firmwares" ]]; then
   build_kiss_modem_firmwares
+elif [[ $1 == "get-meshcomod-companion-firmwares-to-build" ]]; then
+  printf '%s\n' "${MESHCOMOD_COMPANION_ENVS[@]}"
 elif [[ $1 == "get-companion-firmwares-to-build" ]]; then
   get_pio_envs_ending_with_string "_companion_radio_usb"
   get_pio_envs_ending_with_string "_companion_radio_ble"

@@ -20,15 +20,19 @@ on:
 
 jobs:
 
-  build:
+  # Resolve the version and release tag once, and list the envs to build, so every
+  # build runner embeds the same version and the release job knows what to publish.
+  prepare:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      release_tag: ${{ steps.version.outputs.release_tag }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+      envs: ${{ steps.envs.outputs.envs }}
     steps:
 
       - name: Clone Repo
         uses: actions/checkout@v6
-
-      - name: Setup Build Environment
-        uses: ./.github/actions/setup-build-environment
 
       # A tag push uses the tag (companion-v1.18.0.1 -> v1.18.0.1). A manual run
       # would otherwise get the branch name as its version, so it uses the
@@ -39,12 +43,13 @@ jobs:
       # with `prerelease` ticked appends -pre<run number> to the version, so the
       # firmware reports it too, and creates the matching companion-* tag.
       - name: Resolve Firmware Version
+        id: version
         env:
           INPUT_VERSION: ${{ inputs.version }}
           INPUT_PRERELEASE: ${{ inputs.prerelease }}
         run: |
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            VERSION="${GIT_TAG_VERSION}"
+            VERSION="${GITHUB_REF#refs/tags/companion-}"
           elif [ -n "${INPUT_VERSION}" ]; then
             VERSION="${INPUT_VERSION}"
           else
@@ -70,15 +75,98 @@ jobs:
 
           echo "Firmware version: ${VERSION}"
           echo "Release tag: ${RELEASE_TAG:-<none>} (pre-release: ${PRERELEASE})"
-          echo "FIRMWARE_VERSION=${VERSION}" >> "$GITHUB_ENV"
-          echo "RELEASE_TAG=${RELEASE_TAG}" >> "$GITHUB_ENV"
-          echo "PRERELEASE=${PRERELEASE}" >> "$GITHUB_ENV"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "release_tag=${RELEASE_TAG}" >> "$GITHUB_OUTPUT"
+          echo "prerelease=${PRERELEASE}" >> "$GITHUB_OUTPUT"
 
-      - name: Build Firmwares
-        # Only the meshcomod-shipped companion boards (V4, V3, Wireless Paper,
-        # Xiao — _usb_tcp). NOT build-companion-firmwares, which compiles the
-        # entire 60-env upstream MeshCore family (~1h, wrong _usb/_ble variants).
-        run: /usr/bin/env bash build.sh build-meshcomod-companion-firmwares
+      # The env list lives in build.sh (MESHCOMOD_COMPANION_ENVS), so adding a board
+      # there is enough to build and release it. NOT build-companion-firmwares,
+      # which is the entire upstream MeshCore family (60+ envs, wrong variants).
+      - name: List Firmwares
+        id: envs
+        run: |
+          ENVS=$(/usr/bin/env bash build.sh get-meshcomod-companion-firmwares-to-build \
+                 | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "Envs: ${ENVS}"
+          echo "envs=${ENVS}" >> "$GITHUB_OUTPUT"
+
+  # One runner per firmware, in parallel. fail-fast is off so one broken board still
+  # lets the others finish (and shows in the run), but the release job below only
+  # runs when every board built: a release never ships with a board missing.
+  build:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        env: ${{ fromJson(needs.prepare.outputs.envs) }}
+    steps:
+
+      - name: Clone Repo
+        uses: actions/checkout@v6
+
+      # Installed platforms and toolchains (espressif32 + Arduino framework are
+      # pinned in platformio.ini, so they only change when that file does). Saves
+      # the multi-hundred-MB download and unpack on every fresh runner. Compiled
+      # objects are not cached: build.sh puts the version and build date into the
+      # global flags, which invalidates every object anyway.
+      - name: Cache PlatformIO Toolchains
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.platformio/packages
+            ~/.platformio/platforms
+          key: pio-toolchains-${{ runner.os }}-${{ hashFiles('platformio.ini') }}
+          restore-keys: |
+            pio-toolchains-${{ runner.os }}-
+
+      # Libraries per env, so lib_deps are not cloned again every run. Keyed on all
+      # ini files (any lib_deps change gives a new key and a clean install) and on
+      # the in-repo file:// libraries, whose copy in libdeps would otherwise go stale.
+      - name: Cache PlatformIO Libraries
+        uses: actions/cache@v5
+        with:
+          path: .pio/libdeps/${{ matrix.env }}
+          key: pio-libdeps-${{ runner.os }}-${{ matrix.env }}-${{ hashFiles('platformio.ini', 'variants/**/platformio.ini', 'arch/esp32/AsyncElegantOTA/**') }}
+
+      - name: Setup Build Environment
+        uses: ./.github/actions/setup-build-environment
+
+      - name: Build ${{ matrix.env }}
+        env:
+          FIRMWARE_VERSION: ${{ needs.prepare.outputs.version }}
+        run: /usr/bin/env bash build.sh build-firmware ${{ matrix.env }}
+
+      - name: Upload Firmware
+        uses: actions/upload-artifact@v7
+        with:
+          name: fw-${{ matrix.env }}
+          path: out
+          if-no-files-found: error
+
+  # Collect every board's output into out/, keep the combined artifact manual runs
+  # used to get, and publish the release when there is a tag.
+  release:
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    env:
+      FIRMWARE_VERSION: ${{ needs.prepare.outputs.version }}
+      RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
+      PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+    steps:
+
+      - name: Clone Repo
+        uses: actions/checkout@v6
+
+      - name: Download All Firmwares
+        uses: actions/download-artifact@v8
+        with:
+          pattern: fw-*
+          merge-multiple: true
+          path: out
+
+      - name: List Collected Files
+        run: ls -1 out
 
       - name: Upload Workflow Artifacts
         uses: actions/upload-artifact@v7
