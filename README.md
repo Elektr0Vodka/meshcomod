@@ -8,7 +8,26 @@ Upstream: **[github.com/meshcore-dev/MeshCore](https://github.com/meshcore-dev/M
 
 > **🖐️ Looking for the touch UI?** The standalone on-device LVGL interface for the **Heltec V4 TFT** and **LilyGo T-Deck** now lives in its own project: **[ALLFATHER-BV/wadamesh](https://github.com/ALLFATHER-BV/wadamesh)**. This repo is the OLED/e-ink companion firmware (the MeshCore core it builds on) only.
 
-> **Experimental — use at your own risk.** This firmware is not officially supported. Flashing custom firmware may have unexpected effects; you are responsible for your use of it. No warranty is provided.
+> **Experimental, use at your own risk.** This firmware is not officially supported. Flashing custom firmware may have unexpected effects; you are responsible for your use of it. No warranty is provided.
+
+---
+
+## About this fork
+
+This is the **Elektr0Vodka fork** of [ALLFATHER-BV/meshcomod](https://github.com/ALLFATHER-BV/meshcomod). It tracks upstream meshcomod (currently synced at **MeshCore v1.18.0**, companion firmware `v1.18.0.1`) and adds a set of companion features on top. Every fork-only change is listed in [`changelog_ev.md`](changelog_ev.md).
+
+> **Fork status: experimental.** Most fork features and the boards this fork added are **built in CI but not yet tested on hardware**. Builds are published as **pre-releases** only. Expect rough edges, keep a known-good merged image of your current firmware for rollback, and report problems in this fork's [issues](https://github.com/Elektr0Vodka/meshcomod/issues), not upstream.
+
+| Fork feature | What it does | Status |
+|---|---|---|
+| [Runtime CAD toggle](docs/companion_cad_toggle.md) | Turn Channel Activity Detection before TX on or off from the app or the device, no reboot. On by default. | Verified on Heltec V4 and V3 (ui-new). Other UIs build only. |
+| [Receive filter](docs/companion_receive_filter.md) | `filter` CLI that drops junk group text (malformed, too old, relayed by a blocked repeater) and hides channel text by sender or content. Off by default. | Builds, not tested on hardware. |
+| [SNMP agent](docs/companion_snmp.md) | Read-only SNMPv2c on UDP 161, same OID layout as the Dutch-MeshCore observer. Off by default (`set snmp on`). Not in the touch build. | Builds, not tested on hardware. |
+| [Manifest OTA](docs/companion_manifest_ota.md) | `ota check` and `ota update` against the DutchMeshCore OTA server. Never downgrades, refuses a partition layout change. | Builds, not tested on hardware. |
+| Extra boards | `usb_tcp` builds for V4 R8, V4 R8 TFT, V4 TFT (no touch), Wireless Stick Lite V3 and Wireless Tracker. | Builds, not tested on hardware. |
+| CI | One runner per board, cached toolchains, pre-releases for test builds. | In use. |
+
+A build with the receive filter reports it in `ver`, e.g. `v1.18.0.1-<sha>-dmc-filter (Build: ...)`.
 
 ---
 
@@ -27,21 +46,25 @@ Other niceties:
 - **Push to all clients** — RX log, new messages, contact adverts, and path updates are sent to **every** connected client, so each app sees live updates.
 - **No duplicate RX log on sync** — when one client syncs history, only that client gets the sync frames; the others don't see them re-echoed.
 
-Otherwise this is the same codebase as MeshCore; we sync from upstream and add our addon customizations on top.
+Otherwise this is the same codebase as MeshCore; upstream meshcomod syncs from MeshCore, this fork syncs from upstream meshcomod, and each adds its customizations on top.
 
 ### Supported devices
 
-| Device | MCU | Display | Build env |
-|---|---|---|---|
-| **Heltec WiFi LoRa 32 V4** | ESP32-S3 | 128×64 OLED | `heltec_v4_companion_radio_usb_tcp` |
-| **Heltec WiFi LoRa 32 V3** | ESP32-S3 | 128×64 OLED | `Heltec_v3_companion_radio_usb_tcp` |
-| **Heltec Wireless Paper** | ESP32-S3 | 213×104 e-ink | `Heltec_Wireless_Paper_companion_radio_usb_tcp` |
-| **Seeed Xiao S3 WIO** | ESP32-S3 | optional 128×64 OLED | `Xiao_S3_WIO_companion_radio_usb_tcp` |
-| **Heltec WiFi LoRa 32 V4 R8** (16 MB flash, 8 MB PSRAM) | ESP32-S3 | 128×64 OLED | `heltec_v4_r8_companion_radio_usb_tcp` |
-| **Heltec WiFi LoRa 32 V4 R8 TFT** | ESP32-S3 | 240×320 TFT (button UI) | `heltec_v4_r8_tft_companion_radio_usb_tcp` |
-| **Heltec WiFi LoRa 32 V4 TFT** | ESP32-S3 | 240×320 TFT (button UI, no touch) | `heltec_v4_tft_companion_radio_usb_tcp` |
-| **Heltec Wireless Stick Lite V3** | ESP32-S3 | none | `Heltec_WSL3_companion_radio_usb_tcp` |
-| **Heltec Wireless Tracker** | ESP32-S3 | 160×80 TFT, GPS | `Heltec_Wireless_Tracker_companion_radio_usb_tcp` |
+"Hardware tested" means a fork build has run on that board. Boards marked "build only" compile and are released, but nobody has flashed this fork's build on one yet.
+
+| Device | MCU | Display | Build env | Fork build |
+|---|---|---|---|---|
+| **Heltec WiFi LoRa 32 V4** | ESP32-S3 | 128×64 OLED | `heltec_v4_companion_radio_usb_tcp` | Hardware tested (v1.17.0.4-DMC-EV) |
+| **Heltec WiFi LoRa 32 V3** | ESP32-S3 | 128×64 OLED | `Heltec_v3_companion_radio_usb_tcp` | Hardware tested (v1.17.0.4-DMC-EV) |
+| **Heltec Wireless Paper** | ESP32-S3 | 213×104 e-ink | `Heltec_Wireless_Paper_companion_radio_usb_tcp` | Build only |
+| **Seeed Xiao S3 WIO** | ESP32-S3 | optional 128×64 OLED | `Xiao_S3_WIO_companion_radio_usb_tcp` | Build only |
+| **Heltec WiFi LoRa 32 V4 R8** (16 MB flash, 8 MB PSRAM) | ESP32-S3 | 128×64 OLED | `heltec_v4_r8_companion_radio_usb_tcp` | Build only, new in fork |
+| **Heltec WiFi LoRa 32 V4 R8 TFT** | ESP32-S3 | 240×320 TFT (button UI) | `heltec_v4_r8_tft_companion_radio_usb_tcp` | Build only, new in fork |
+| **Heltec WiFi LoRa 32 V4 TFT** | ESP32-S3 | 240×320 TFT (button UI, no touch) | `heltec_v4_tft_companion_radio_usb_tcp` | Build only, new in fork |
+| **Heltec Wireless Stick Lite V3** | ESP32-S3 | none | `Heltec_WSL3_companion_radio_usb_tcp` | Build only, new in fork |
+| **Heltec Wireless Tracker** | ESP32-S3 | 160×80 TFT, GPS | `Heltec_Wireless_Tracker_companion_radio_usb_tcp` | Build only, new in fork |
+
+The SNMP, receive filter and manifest OTA features are not hardware tested on any board yet, including V4 and V3.
 
 **Env-name casing matters when building:** V4 uses lowercase `heltec_v4_…`; V3 uses a capital H `Heltec_v3_…`. Use the exact name (see [Build it yourself](#hard--build-it-yourself)).
 
@@ -110,16 +133,17 @@ wifi.status
   <img width="395" height="84" alt="Easy" src="https://github.com/user-attachments/assets/cd496321-1aad-425f-b8cf-ccba2cc9478d" />
 </p>
 
-No local build needed. Builds are published as **GitHub Releases** (tag `companion-*`); the latest is also mirrored to the web flasher.
+No local build needed. This fork's builds are published as **GitHub pre-releases** (tag `companion-*`) on [Elektr0Vodka/meshcomod releases](https://github.com/Elektr0Vodka/meshcomod/releases?q=companion).
+
+> **The flasher's Easy mode installs upstream meshcomod, not this fork.** To get the fork features, use **Custom firmware** with a `.bin` from this fork's releases.
 
 1. Open **[flasher.meshcomod.com](https://flasher.meshcomod.com)**.
-2. **Easy mode (recommended):** pick your device + version; the flasher downloads it for you.
-3. **Manual mode:** choose **Custom firmware** and upload a `.bin` from the [latest release](https://github.com/ALLFATHER-BV/meshcomod/releases?q=companion).
-4. Connect via USB, BLE (PIN on the display), and/or TCP.
+2. Choose **Custom firmware** and upload the `-merged.bin` for your board from the [latest fork pre-release](https://github.com/Elektr0Vodka/meshcomod/releases?q=companion).
+3. Connect via USB, BLE (PIN on the display), and/or TCP.
 
 > If unsure which binary to flash, use **merged** (it includes the bootloader + partition table and writes from `0x0`).
 
-Pinned older versions for rollback: see the [Release log (RELEASES.md)](RELEASES.md) and the [GitHub Releases](https://github.com/ALLFATHER-BV/meshcomod/releases) list.
+Rolling back: flash an upstream build with the flasher's Easy mode, or an older fork pre-release. Upstream pinned versions are in the [Release log (RELEASES.md)](RELEASES.md) and the [upstream GitHub Releases](https://github.com/ALLFATHER-BV/meshcomod/releases).
 
 ### Update over Wi-Fi
 
@@ -153,7 +177,7 @@ Clone the repo and build with the exact env name. Wi-Fi credentials are baked in
 ```bash
 export WIFI_SSID="YourNetworkName"
 export WIFI_PWD="YourPassword"          # open network: export WIFI_PWD=""
-export FIRMWARE_VERSION=v1.16.0.2
+export FIRMWARE_VERSION=v1.18.0.1
 sh build.sh build-firmware heltec_v4_companion_radio_usb_tcp
 ```
 
@@ -162,7 +186,7 @@ sh build.sh build-firmware heltec_v4_companion_radio_usb_tcp
 ```bash
 export WIFI_SSID="YourNetworkName"
 export WIFI_PWD="YourPassword"
-export FIRMWARE_VERSION=v1.16.0.2
+export FIRMWARE_VERSION=v1.18.0.1
 sh build.sh build-firmware Heltec_v3_companion_radio_usb_tcp
 ```
 
@@ -183,7 +207,9 @@ If the display stays black after flashing and resetting:
 
 ## Releases & CI
 
-Companion / repeater / room-server firmware is built by GitHub Actions and published as **GitHub Releases**; push a track tag (e.g. `companion-v1.16.0.2`) and the pipeline builds the shipped boards, publishes the release with the bins attached, and prunes to the newest 5. See [`docs/CI_RELEASES.md`](docs/CI_RELEASES.md).
+Companion / repeater / room-server firmware is built by GitHub Actions and published as **GitHub Releases**. Push a track tag (e.g. `companion-v1.18.0.1`) and the pipeline builds each shipped board on its own runner, publishes the release with the bins attached once every board has built, and prunes old releases.
+
+In this fork, companion test builds go out as **pre-releases**: a manual run with the `prerelease` input, or a tag with a suffix (e.g. `companion-v1.18.0.2-rc1`). Pre-releases are never marked latest and are not served over the air. The companion track keeps the newest 5 stable releases and 3 pre-releases. See [`docs/CI_RELEASES.md`](docs/CI_RELEASES.md).
 
 ---
 
@@ -193,18 +219,23 @@ Companion / repeater / room-server firmware is built by GitHub Actions and publi
 - [Packet format](docs/packet_format.md) · [Payloads](docs/payloads.md) · [Stats binary frames](docs/stats_binary_frames.md)
 - [Device WebSocket / Wi-Fi](docs/DEVICE_WEBSOCKET_WIFI.md) · [Companion manifest OTA](docs/companion_manifest_ota.md) · [FAQ](docs/faq.md)
 - [CI releases](docs/CI_RELEASES.md) · [Release process](docs/RELEASE_PROCEDURE.md) · [Release log](RELEASES.md)
+- Fork: [Changelog](changelog_ev.md) · [CAD toggle](docs/companion_cad_toggle.md) · [Receive filter](docs/companion_receive_filter.md) · [SNMP agent](docs/companion_snmp.md)
 
 ---
 
-## Syncing from upstream MeshCore
+## Syncing from upstream
+
+This fork syncs from **upstream meshcomod**, which in turn syncs from MeshCore. Do the merge on a `Chore/` branch and land it by PR.
 
 ```bash
-git remote add upstream https://github.com/meshcore-dev/MeshCore.git   # if not already added
+git remote add upstream https://github.com/ALLFATHER-BV/meshcomod.git   # if not already added
 git fetch upstream
+git switch -c Chore/upstream-sync-<version> main
 git merge upstream/main
-# resolve any conflicts, then:
-git push origin main
+# resolve any conflicts, build, then push the branch and open a PR
 ```
+
+Record the sync under **Upstream syncs** in [`changelog_ev.md`](changelog_ev.md).
 
 Contributing to **upstream MeshCore**? Use their `dev` branch for PRs; open an Issue first for larger changes — see [meshcore-dev/MeshCore](https://github.com/meshcore-dev/MeshCore).
 
