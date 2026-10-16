@@ -41,6 +41,7 @@ Otherwise this is the same codebase as MeshCore; we sync from upstream and add o
 | **Heltec WiFi LoRa 32 V4 R8 TFT** | ESP32-S3 | 240×320 TFT (button UI) | `heltec_v4_r8_tft_companion_radio_usb_tcp` |
 | **Heltec WiFi LoRa 32 V4 TFT** | ESP32-S3 | 240×320 TFT (button UI, no touch) | `heltec_v4_tft_companion_radio_usb_tcp` |
 | **Heltec Wireless Stick Lite V3** | ESP32-S3 | none | `Heltec_WSL3_companion_radio_usb_tcp` |
+| **Heltec Wireless Tracker** | ESP32-S3 | 160×80 TFT, GPS | `Heltec_Wireless_Tracker_companion_radio_usb_tcp` |
 
 **Env-name casing matters when building:** V4 uses lowercase `heltec_v4_…`; V3 uses a capital H `Heltec_v3_…`. Use the exact name (see [Build it yourself](#hard--build-it-yourself)).
 

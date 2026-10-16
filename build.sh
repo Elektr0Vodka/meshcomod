@@ -327,6 +327,7 @@ MESHCOMOD_COMPANION_ENVS=(
   "heltec_v4_r8_tft_companion_radio_usb_tcp"     # Heltec V4 R8 TFT, ui-new button UI
   "heltec_v4_tft_companion_radio_usb_tcp"        # Heltec V4 TFT without the touch UI
   "Heltec_WSL3_companion_radio_usb_tcp"          # Heltec Wireless Stick Lite V3, headless
+  "Heltec_Wireless_Tracker_companion_radio_usb_tcp" # Heltec Wireless Tracker (ST7735 TFT, GPS)
   # Elecrow ThinkNode M7 (ESP32-S3 + LR1110). No _usb_tcp multi-transport variant
   # exists for this board, so these are the stock single-transport companions.
   # Hardware-validated by @ptr727 in #47; we hold none, so treat regressions here

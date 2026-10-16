@@ -26,6 +26,7 @@ Builds with the agent (compile flag `-D WITH_SNMP=1`):
 * `heltec_v4_r8_tft_companion_radio_usb_tcp`
 * `heltec_v4_tft_companion_radio_usb_tcp` (V4 TFT without touch, `ui-new` screens)
 * `Heltec_WSL3_companion_radio_usb_tcp`
+* `Heltec_Wireless_Tracker_companion_radio_usb_tcp`
 
 The touch build does not include it yet: it needs a heap reading on hardware
 first, because BLE co-init there is already gated on free heap.
@@ -221,6 +222,11 @@ manifest OTA, `DISABLE_DEBUG=1`):
 | `heltec_v4_r8_tft_companion_radio_usb_tcp` | 1,639,833 B | 110,584 B | 25.0% of 6.25 MB |
 | `heltec_v4_tft_companion_radio_usb_tcp` | 1,634,033 B | 110,612 B | 24.9% of 6.25 MB |
 | `Heltec_WSL3_companion_radio_usb_tcp` | 1,609,669 B | 110,248 B | 48.2% of 3.19 MB |
+| `Heltec_Wireless_Tracker_companion_radio_usb_tcp` | 1,618,437 B | 151,720 B | 48.4% of 3.19 MB |
+
+The Wireless Tracker sits with Wireless Paper and Xiao at about 150 KB static
+RAM (the 256-entry offline queue), so it is another board to check for free
+heap on hardware.
 
 These deltas were measured when the agent first went in, before the
 observer-aligned OIDs (`.1.5.0` onwards, `.9`, `.10`). With the full current
