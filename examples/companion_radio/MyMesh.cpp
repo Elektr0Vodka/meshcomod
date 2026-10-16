@@ -12,6 +12,9 @@
 #ifdef ESP32
 #include <esp_system.h>          // esp_restart for the "bootloader" CLI command
 #include <soc/rtc_cntl_reg.h>    // RTC_CNTL_OPTION1_REG / FORCE_DOWNLOAD_BOOT
+#if __has_include(<esp_mac.h>)
+#include <esp_mac.h>             // esp_read_mac for the "mac" / "get mac" CLI commands
+#endif
 #endif
 #include <helpers/AdvertDataHelpers.h>
 #include <helpers/HttpOtaDisplayState.h>
@@ -227,7 +230,27 @@ static const char* kMeshcomodHelpMsg =
   "tcp status\n"
   "ble on\n"
   "ble off\n"
-  "ble status";
+  "ble status\n"
+  "mac";
+
+// Factory MAC of one ESP32 interface as "AA:BB:CC:DD:EE:FF", or "n/a" when the chip has no
+// such interface (ESP32-S2 has no Bluetooth) or this is not an ESP32. The address is read from
+// eFuse, so it is valid whether or not that radio is currently on.
+#ifdef ESP32
+static void formatDeviceMac(esp_mac_type_t type, char* out, size_t len) {
+  uint8_t m[6];
+  if (esp_read_mac(m, type) == ESP_OK) {
+    snprintf(out, len, "%02X:%02X:%02X:%02X:%02X:%02X", m[0], m[1], m[2], m[3], m[4], m[5]);
+  } else {
+    StrHelper::strncpy(out, "n/a", len);
+  }
+}
+static void getWifiMac(char* out, size_t len) { formatDeviceMac(ESP_MAC_WIFI_STA, out, len); }
+static void getBleMac(char* out, size_t len)  { formatDeviceMac(ESP_MAC_BT, out, len); }
+#else
+static void getWifiMac(char* out, size_t len) { StrHelper::strncpy(out, "n/a", len); }
+static void getBleMac(char* out, size_t len)  { StrHelper::strncpy(out, "n/a", len); }
+#endif
 
 #define MESHCOMOD_CMD_CACHE_SIZE 6
 struct MeshcomodCmdCacheEntry {
@@ -568,6 +591,14 @@ bool MyMesh::handleMeshcomodCommand(const char* text, int text_len) {
     char r[64];
     snprintf(r, sizeof r, "clock: %04d-%02d-%02d %02d:%02d:%02d UTC",
              tmv.tm_year + 1900, tmv.tm_mon + 1, tmv.tm_mday, tmv.tm_hour, tmv.tm_min, tmv.tm_sec);
+    pushMeshcomodReply(r);
+    return true;
+  }
+  if (isCmd(p, "mac")) {
+    char wifi[20], ble[20], r[64];
+    getWifiMac(wifi, sizeof wifi);
+    getBleMac(ble, sizeof ble);
+    snprintf(r, sizeof r, "wifi mac: %s\nble mac: %s", wifi, ble);
     pushMeshcomodReply(r);
     return true;
   }
@@ -4083,6 +4114,26 @@ bool MyMesh::handleCommand(const char* command, uint32_t sender_timestamp, char*
 
   if (strcmp(command, "ver") == 0) {
     sprintf(reply, "%s%s (Build: %s)", FIRMWARE_VERSION, CFILTER_VER_TAG, FIRMWARE_BUILD_DATE);
+    return true;
+  }
+
+  if (strcmp(command, "get wifi.mac") == 0) {
+    char mac[20];
+    getWifiMac(mac, sizeof(mac));
+    sprintf(reply, "> %s", mac);
+    return true;
+  }
+  if (strcmp(command, "get ble.mac") == 0) {
+    char mac[20];
+    getBleMac(mac, sizeof(mac));
+    sprintf(reply, "> %s", mac);
+    return true;
+  }
+  if (strcmp(command, "get mac") == 0) {
+    char wifi[20], ble[20];
+    getWifiMac(wifi, sizeof(wifi));
+    getBleMac(ble, sizeof(ble));
+    sprintf(reply, "> wifi=%s ble=%s", wifi, ble);
     return true;
   }
 
