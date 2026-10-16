@@ -22,6 +22,7 @@ Commands:
   build-matching-firmwares <build-match-spec>: Build all firmwares for build targets containing the string given for <build-match-spec>.
   build-companion-firmwares: Build all companion firmwares for all build targets (whole upstream board family).
   build-meshcomod-companion-firmwares: Build only the meshcomod-shipped companion boards (V4, V3, Wireless Paper, Xiao — _usb_tcp).
+  get-meshcomod-companion-firmwares-to-build: Print the meshcomod-shipped companion envs, one per line (CI build matrix).
   build-repeater-firmwares: Build all TCP repeater firmwares (env names ending in _repeater_tcp).
   build-room-server-firmwares: Build all chat room server firmwares for all build targets.
   build-room-multitransport-firmwares: Build meshcomod room multitransport firmwares (env names ending in _room_server_multitransport).
@@ -424,6 +425,8 @@ elif [[ $1 == "build-room-multitransport-firmwares" ]]; then
   build_room_multitransport_firmwares
 elif [[ $1 == "build-kiss-radio-firmwares" ]]; then
   build_kiss_modem_firmwares
+elif [[ $1 == "get-meshcomod-companion-firmwares-to-build" ]]; then
+  printf '%s\n' "${MESHCOMOD_COMPANION_ENVS[@]}"
 elif [[ $1 == "get-companion-firmwares-to-build" ]]; then
   get_pio_envs_ending_with_string "_companion_radio_usb"
   get_pio_envs_ending_with_string "_companion_radio_ble"

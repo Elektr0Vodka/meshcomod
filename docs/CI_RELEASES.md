@@ -13,7 +13,7 @@ releases on that track (keeping the newest 5).
 
 | Track | Tag prefix | Example tag | Workflow | Builds |
 |-------|-----------|-------------|----------|--------|
-| Companion | `companion-` | `companion-v1.16.0.1` | build-companion-firmwares | meshcomod boards only: V4, V3, Wireless Paper, Xiao (`*_companion_radio_usb_tcp`) |
+| Companion | `companion-` | `companion-v1.16.0.1` | build-companion-firmwares | the envs in `MESHCOMOD_COMPANION_ENVS` in `build.sh` (V4, V3, Wireless Paper and Xiao `_usb_tcp`, ThinkNode M7 BLE and Ethernet) |
 | Room server | `room-server-` | `room-server-v1.16.0.1` | build-room-server-firmwares | `*_room_server` |
 | Repeater | — | (manual `workflow_dispatch`) | build-repeater-firmwares | `*_repeater_tcp` |
 
@@ -29,6 +29,14 @@ git push origin companion-v1.16.0.1
 The tag suffix becomes `FIRMWARE_VERSION` (e.g. `companion-v1.16.0.1` →
 `v1.16.0.1`), so the in-firmware version string and the release name match the
 tag.
+
+The companion workflow builds each board on its own runner, in parallel. A
+`prepare` job resolves the version once and reads the board list from
+`build.sh get-meshcomod-companion-firmwares-to-build`, so adding an env to
+`MESHCOMOD_COMPANION_ENVS` is all it takes to build and release it. PlatformIO
+toolchains are cached per `platformio.ini`, and each board's libraries per
+board. The release is only published when every board built; a failed board
+shows in the run and blocks the release instead of shipping without it.
 
 ## Over-the-air updates
 
