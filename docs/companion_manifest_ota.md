@@ -68,5 +68,7 @@ hash.
 
 - The firmware download uses HTTPS without certificate checks, exactly like `ota url`
   today. The ESP32 image checksum still catches a corrupted download.
-- The touch env (`heltec_v4_tft_companion_radio_usb_tcp_touch`) is not in the CI
-  companion build list, so it has no published manifest until it is added there.
+- The touch env (`heltec_v4_tft_companion_radio_usb_tcp_touch`) compiles with these
+  commands, but touch boards are released from
+  [wadamesh](https://github.com/ALLFATHER-BV/wadamesh), not from this repo's CI, so
+  there is no published manifest for it here.

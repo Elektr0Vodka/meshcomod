@@ -30,6 +30,15 @@ The tag suffix becomes `FIRMWARE_VERSION` (e.g. `companion-v1.16.0.1` →
 `v1.16.0.1`), so the in-firmware version string and the release name match the
 tag.
 
+## Over-the-air updates
+
+Companion releases also feed the DutchMeshCore OTA server, which mirrors the
+newest `companion-*` release into per-board manifests for `ota check` /
+`ota update` (see [Companion manifest OTA](companion_manifest_ota.md)). Each
+companion env uploads `<env>.partsig` next to its `.bin`, so the device can refuse
+a build made for a different partition layout. Keep the tag version plain
+(`companion-v1.18.0.2`, no extra `-suffix`): the server splits asset names on `-`.
+
 ## Rolling retention
 
 After each release the workflow runs `scripts/ci/prune-releases.sh <prefix> 5`,

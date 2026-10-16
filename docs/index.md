@@ -9,6 +9,7 @@ Below are a few quick start guides.
 - [Companion Protocol](./companion_protocol.md)
 - [Web client ↔ touch UI parity matrix](./WEBCLIENT_TOUCH_PARITY.md)
 - [Touch UI hardware acceptance checklist](./HARDWARE_TOUCH_PARITY_CHECKLIST.md)
+- [Companion manifest OTA (`ota check` / `ota update`)](./companion_manifest_ota.md)
 - [Companion OTA Memory Root Cause](./COMPANION_OTA_MEMORY_ROOT_CAUSE.md)
 - [Packet Format](./packet_format.md)
 - [QR Codes](./qr_codes.md)
