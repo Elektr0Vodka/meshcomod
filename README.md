@@ -92,6 +92,8 @@ wifi.status
 | `wifi clear` | Clear runtime creds (fall back to compile-time on next boot) |
 | `tcp on` / `tcp off` / `tcp status` | Control/query the TCP server |
 | `ble on` / `ble off` / `ble status` | Control/query Bluetooth |
+| `ota check` | Ask the OTA server whether a newer build exists for this device |
+| `ota update` | Install that build over Wi-Fi (see [Update over Wi-Fi](#update-over-wi-fi)) |
 
 > Disabling wireless access is guarded: `tcp off` and `ble off` ask you to confirm with `ok` (or `cancel`) first, since you could lock yourself out.
 
@@ -113,6 +115,15 @@ No local build needed. Builds are published as **GitHub Releases** (tag `compani
 > If unsure which binary to flash, use **merged** (it includes the bootloader + partition table and writes from `0x0`).
 
 Pinned older versions for rollback: see the [Release log (RELEASES.md)](RELEASES.md) and the [GitHub Releases](https://github.com/ALLFATHER-BV/meshcomod/releases) list.
+
+### Update over Wi-Fi
+
+Once a device runs a build with manifest OTA and is on Wi-Fi, it can update itself. In the **Meshcomod** contact:
+
+- `ota check` asks the [DutchMeshCore OTA server](https://ota.dutchmeshcore.nl/stats) for the newest published build for your board and reports `up to date` or `update available: <running> -> <published>`.
+- `ota update` installs it and reboots. Start it from a **TCP or WebSocket** connection (not USB or BLE), the same as `ota url`.
+
+It never downgrades, and it refuses a build made for a different partition layout (flash the merged image over USB once in that case). Details: [Companion manifest OTA](docs/companion_manifest_ota.md).
 
 ---
 
@@ -152,7 +163,7 @@ sh build.sh build-firmware Heltec_v3_companion_radio_usb_tcp
 
 Other targets use the same flow with their env name (`Heltec_Wireless_Paper_companion_radio_usb_tcp`, `Xiao_S3_WIO_companion_radio_usb_tcp`). Build all shipped companions at once with `sh build.sh build-meshcomod-companion-firmwares`.
 
-**Outputs** (every target): app-only `out/<env>-<version>-<sha>.bin` and **merged** `out/<env>-<version>-<sha>-merged.bin` (flash from `0x0`). The merged image is also at `.pio/build/<env>/firmware-merged.bin`.
+**Outputs** (every target): app-only `out/<env>-<version>-<sha>.bin` and **merged** `out/<env>-<version>-<sha>-merged.bin` (flash from `0x0`). The merged image is also at `.pio/build/<env>/firmware-merged.bin`. The `*_companion_radio_usb_tcp` targets also get `out/<env>.partsig` (partition layout, used by `ota update`) and have the OTA manifest base baked in (`OTA_MANIFEST_BASE_URL` overrides it).
 
 ### Black screen after flashing
 
@@ -175,7 +186,7 @@ Companion / repeater / room-server firmware is built by GitHub Actions and publi
 
 - [Companion protocol](docs/companion_protocol.md) · [CLI commands](docs/cli_commands.md) · [QR codes](docs/qr_codes.md)
 - [Packet format](docs/packet_format.md) · [Payloads](docs/payloads.md) · [Stats binary frames](docs/stats_binary_frames.md)
-- [Device WebSocket / Wi-Fi](docs/DEVICE_WEBSOCKET_WIFI.md) · [FAQ](docs/faq.md)
+- [Device WebSocket / Wi-Fi](docs/DEVICE_WEBSOCKET_WIFI.md) · [Companion manifest OTA](docs/companion_manifest_ota.md) · [FAQ](docs/faq.md)
 - [CI releases](docs/CI_RELEASES.md) · [Release process](docs/RELEASE_PROCEDURE.md) · [Release log](RELEASES.md)
 
 ---

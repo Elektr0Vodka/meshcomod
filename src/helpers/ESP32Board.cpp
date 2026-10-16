@@ -7,6 +7,7 @@
 #include <helpers/HttpOtaDisplayState.h>
 #include <helpers/HttpOtaWifiSession.h>
 #include <helpers/RepeaterTcpOtaEmit.h>
+#include <helpers/OtaManifest.h>
 
 static void (*s_http_ota_minimal_prepare)(uint8_t) = nullptr;
 static void (*s_http_ota_minimal_restore)() = nullptr;
@@ -209,6 +210,10 @@ static bool meshcoreHttpOtaUrlAllowed(const char* u) {
   // RAM-tight touch builds can't follow). This is the touch OTA source.
   if (strncmp(u, "http://app.meshcomod.com/firmware-download/", 43) == 0) return true;
   if (strncmp(u, "https://app.meshcomod.com/firmware-download/", 44) == 0) return true;
+#if defined(OTA_MANIFEST_BASE)
+  // Images the OTA server's manifest points at (`ota update`).
+  if (ota_firmware_url_allowed(u, OTA_MANIFEST_BASE)) return true;
+#endif
   return false;
 }
 
@@ -863,6 +868,138 @@ void ESP32Board::pollHttpOtaReboot() {
   }
 }
 
+#if defined(OTA_MANIFEST_BASE) && defined(OTA_VARIANT)
+#include <ArduinoJson.h>
+#include <esp_partition.h>
+
+// Signature of the partition table flashed on this device, in the format of
+// scripts/partition_signature.py (which build.sh runs to produce the manifest's partSig).
+static void otaDevicePartitionSignature(char* out, size_t out_sz) {
+  OtaPartEntry e[24];
+  int n = 0;
+  esp_partition_iterator_t it = esp_partition_find(ESP_PARTITION_TYPE_ANY, ESP_PARTITION_SUBTYPE_ANY, nullptr);
+  while (it != nullptr && n < (int)(sizeof(e) / sizeof(e[0]))) {
+    const esp_partition_t* p = esp_partition_get(it);
+    e[n].type = (uint8_t)p->type;
+    e[n].subtype = (uint8_t)p->subtype;
+    e[n].offset = p->address;
+    e[n].size = p->size;
+    n++;
+    it = esp_partition_next(it);
+  }
+  esp_partition_iterator_release(it);  // safe on NULL (loop exhausted)
+  ota_partsig_format(e, n, out, out_sz);
+}
+
+bool ESP32Board::checkManifestOta(const char* current_ver, char* file_url, size_t file_url_sz, char reply[]) {
+  if (file_url_sz) file_url[0] = 0;
+  if (WiFi.status() != WL_CONNECTED) {
+    strcpy(reply, "ERR: WiFi not connected");
+    return false;
+  }
+  if (s_http_ota_busy) {
+    strcpy(reply, "ERR: OTA already running");
+    return false;
+  }
+
+  char murl[192];
+  if (!ota_manifest_url(OTA_MANIFEST_BASE, OTA_VARIANT, murl, sizeof(murl))) {
+    strcpy(reply, "ERR: manifest URL too long");
+    return false;
+  }
+
+  // Plain HTTP: no mbedTLS context, so this is safe on the RAM-tight touch builds.
+  WiFiClient client;
+  HTTPClient http;
+  http.setTimeout(15000);
+  http.setUserAgent("MeshCore-OTA/1.0");
+  // HTTP/1.0: a CDN answers 1.1 with a chunked body, which the JSON parser cannot read raw.
+  http.useHTTP10(true);
+  if (!http.begin(client, murl)) {
+    strcpy(reply, "ERR: manifest connect failed");
+    return false;
+  }
+  int code = http.GET();
+  if (code != HTTP_CODE_OK) {
+    if (code == 404) {
+      snprintf(reply, 160, "ERR: no published build for %s", OTA_VARIANT);
+    } else if (code < 0) {
+      snprintf(reply, 160, "ERR: manifest %s", http.errorToString(code).c_str());
+    } else {
+      snprintf(reply, 160, "ERR: manifest HTTP %d", code);
+    }
+    http.end();
+    return false;
+  }
+
+  JsonDocument doc;
+  DeserializationError err = deserializeJson(doc, http.getStream());
+  http.end();
+  if (err) {
+    snprintf(reply, 160, "ERR: manifest parse (%s)", err.c_str());
+    return false;
+  }
+  char url[256] = {0}, version[32] = {0}, hash[24] = {0}, partsig[256] = {0};
+  strncpy(url, doc["file"] | "", sizeof(url) - 1);
+  strncpy(version, doc["version"] | "", sizeof(version) - 1);
+  strncpy(hash, doc["hash"] | "", sizeof(hash) - 1);
+  strncpy(partsig, doc["partSig"] | "", sizeof(partsig) - 1);
+  doc.clear();
+
+  if (!url[0]) {
+    strcpy(reply, "ERR: manifest missing file");
+    return false;
+  }
+  // The manifest may only send the device to this product's firmware path.
+  if (!ota_firmware_url_allowed(url, OTA_MANIFEST_BASE)) {
+    strcpy(reply, "ERR: manifest file URL not allowed");
+    return false;
+  }
+
+  // OTA writes the app slot only; an image built for another partition layout
+  // needs a USB flash. Manifests without partSig skip the guard.
+  bool partition_change = false;
+  if (partsig[0]) {
+    char own_sig[256];
+    otaDevicePartitionSignature(own_sig, sizeof(own_sig));
+    partition_change = (strcmp(own_sig, partsig) != 0);
+  }
+
+  char avail[64];
+  if (version[0]) snprintf(avail, sizeof(avail), "%s (%s)", version, hash);
+  else            snprintf(avail, sizeof(avail), "%s", hash);
+
+  OtaVerdict verdict = ota_compare(current_ver, version, hash);
+  if (verdict == OTA_VERDICT_CURRENT) {
+    snprintf(reply, 160, "up to date: %s", avail);
+    return false;
+  }
+  if (verdict == OTA_VERDICT_OLDER) {
+    snprintf(reply, 160, "running %s, newer than published %s", current_ver, avail);
+    return false;
+  }
+  const char* kind = (verdict == OTA_VERDICT_REBUILD) ? " (same version, other build)" : "";
+  if (partition_change) {
+    snprintf(reply, 160, "update %s%s needs a USB flash (partition layout changed)", avail, kind);
+    return false;
+  }
+  snprintf(reply, 160, "update available: %s -> %s%s", current_ver, avail, kind);
+  if (strlen(url) >= file_url_sz) {
+    strcpy(reply, "ERR: firmware URL too long");
+    return false;
+  }
+  strcpy(file_url, url);
+  return true;
+}
+#else
+bool ESP32Board::checkManifestOta(const char* current_ver, char* file_url, size_t file_url_sz, char reply[]) {
+  (void)current_ver;
+  if (file_url_sz) file_url[0] = 0;
+  strcpy(reply, "ERR: OTA manifest not configured (build via build.sh)");
+  return false;
+}
+#endif  // OTA_MANIFEST_BASE && OTA_VARIANT
+
 #else
 bool ESP32Board::startOTAUpdate(const char* id, char reply[]) {
   return false; // not supported
@@ -877,6 +1014,13 @@ bool ESP32Board::startHttpOtaFromUrl(const char* url, char reply[]) {
 void ESP32Board::emitHttpOtaNetDiagnosticLines() {}
 
 void ESP32Board::pollHttpOtaReboot() {}
+
+bool ESP32Board::checkManifestOta(const char* current_ver, char* file_url, size_t file_url_sz, char reply[]) {
+  (void)current_ver;
+  if (file_url_sz) file_url[0] = 0;
+  reply[0] = 0;  // no Wi-Fi OTA in this build
+  return false;
+}
 #endif
 
 void ESP32Board::powerOff() {

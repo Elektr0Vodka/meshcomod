@@ -159,6 +159,7 @@ public:
   void restoreHttpOtaMinimalTransport();
   void emitHttpOtaNetDiagnosticLines();
   void pollHttpOtaReboot();
+  bool checkManifestOta(const char* current_ver, char* file_url, size_t file_url_sz, char reply[]) override;
 
   void setInhibitSleep(bool inhibit) {
     inhibit_sleep = inhibit;

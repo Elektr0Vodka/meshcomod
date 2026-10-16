@@ -73,6 +73,16 @@ public:
   /** ESP32 HTTP OTA builds: emit WiFi/DNS diagnostic lines via meshcoreRepeaterTcpOtaEmitLine (no download). */
   virtual void emitHttpOtaNetDiagnosticLines() { }
   virtual void pollHttpOtaReboot() { }
+  /** Manifest pull OTA (`ota check` / `ota update`): read this build's manifest on the OTA server and
+   *  compare it with current_ver. Returns true when an installable update exists; file_url then holds
+   *  the image URL for startHttpOtaFromUrl(). reply (160 bytes) gets a one-line report, and stays
+   *  empty when the board has no manifest OTA. */
+  virtual bool checkManifestOta(const char* current_ver, char* file_url, size_t file_url_sz, char reply[]) {
+    (void)current_ver;
+    if (file_url_sz) file_url[0] = 0;
+    reply[0] = 0;
+    return false;
+  }
 
   virtual bool setLoRaFemLnaEnabled(bool enable) { return false; }
   virtual bool canControlLoRaFemLna() const { return false; }
