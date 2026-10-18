@@ -33,6 +33,14 @@ Builds with the agent (compile flag `-D WITH_SNMP=1`):
 * `RAK_3112_companion_radio_usb_tcp`
 * `LilyGo_TETH_Elite_sx1262_companion_radio_usb_tcp`
 * `T_Beam_S3_Supreme_SX1262_companion_radio_usb_tcp`
+* `Heltec_E290_companion_radio_usb_tcp`
+* `Heltec_T190_companion_radio_usb_tcp`
+* `heltec_rc32_companion_radio_usb_tcp`
+* `LilyGo_TBeam_1W_companion_radio_usb_tcp`
+* `meshnology_w12_companion_radio_usb_tcp`
+* `Station_G2_companion_radio_usb_tcp`
+* `Station_G3_ESP32_companion_radio_usb_tcp`
+* `ThinkNode_M9_companion_radio_usb_tcp`
 
 The touch build does not include it yet: it needs a heap reading on hardware
 first, because BLE co-init there is already gated on free heap.
@@ -247,11 +255,23 @@ few KB:
 | `RAK_3112_companion_radio_usb_tcp` | 1,607,765 B | 152,880 B | 48.1% of 3.19 MB |
 | `LilyGo_TETH_Elite_sx1262_companion_radio_usb_tcp` | 1,517,865 B | 149,872 B | 23.2% of 6.25 MB |
 | `T_Beam_S3_Supreme_SX1262_companion_radio_usb_tcp` | 1,608,273 B | 151,616 B | 48.1% of 3.19 MB |
+| `Heltec_E290_companion_radio_usb_tcp` | 1,618,137 B | 162,748 B | 24.7% of 6.25 MB |
+| `Heltec_T190_companion_radio_usb_tcp` | 1,599,645 B | 162,520 B | 24.4% of 6.25 MB |
+| `heltec_rc32_companion_radio_usb_tcp` | 1,633,749 B | 153,056 B | 24.9% of 6.25 MB |
+| `LilyGo_TBeam_1W_companion_radio_usb_tcp` | 1,615,437 B | 163,384 B | 24.6% of 6.25 MB |
+| `meshnology_w12_companion_radio_usb_tcp` | 1,644,421 B | 153,424 B | 25.1% of 6.25 MB |
+| `Station_G2_companion_radio_usb_tcp` | 1,668,817 B | 165,344 B | 25.5% of 6.25 MB |
+| `Station_G3_ESP32_companion_radio_usb_tcp` | 1,670,341 B | 165,352 B | 25.5% of 6.25 MB |
+| `ThinkNode_M9_companion_radio_usb_tcp` | 1,646,057 B | 152,824 B | 25.1% of 6.25 MB |
 
 All six use the 256-entry offline queue, so they start at 150 to 165 KB static
 RAM like Wireless Paper and Xiao S3 WIO. The Wireless Tracker V2 and E213 are
 the highest; the Tracker V2 has no PSRAM, so it is the first to check for free
 heap with Wi-Fi, BLE and the agent running.
+
+The second batch (E290 to ThinkNode M9) was measured with `build.sh` and
+without `DISABLE_DEBUG=1`. All eight are 16 MB boards on the `default_16MB.csv`
+layout and land at 152 to 166 KB static RAM.
 
 These deltas were measured when the agent first went in, before the
 observer-aligned OIDs (`.1.5.0` onwards, `.9`, `.10`). With the full current

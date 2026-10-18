@@ -334,6 +334,14 @@ MESHCOMOD_COMPANION_ENVS=(
   "RAK_3112_companion_radio_usb_tcp"             # RAK3112 (WisBlock ESP32-S3), headless
   "LilyGo_TETH_Elite_sx1262_companion_radio_usb_tcp" # LilyGo T-ETH Elite, headless, Wi-Fi only
   "T_Beam_S3_Supreme_SX1262_companion_radio_usb_tcp" # LilyGo T-Beam S3 Supreme (SH1106 OLED, GPS)
+  "Heltec_E290_companion_radio_usb_tcp"           # Heltec Vision Master E290 (e-ink)
+  "Heltec_T190_companion_radio_usb_tcp"           # Heltec Vision Master T190 (ST7789 TFT)
+  "heltec_rc32_companion_radio_usb_tcp"           # Heltec RC32 (NV3001B TFT, rotary, GPS)
+  "LilyGo_TBeam_1W_companion_radio_usb_tcp"       # LilyGo T-Beam 1W (SH1106 OLED, GPS)
+  "meshnology_w12_companion_radio_usb_tcp"        # Meshnology W12 (LR2021, SSD1306 OLED, GPS)
+  "Station_G2_companion_radio_usb_tcp"            # Station G2 (SH1106 OLED)
+  "Station_G3_ESP32_companion_radio_usb_tcp"      # Station G3, ESP32-S3 (SH1106 OLED)
+  "ThinkNode_M9_companion_radio_usb_tcp"          # Elecrow ThinkNode M9 (LR1110, ST7789 TFT, GPS)
   # Elecrow ThinkNode M7 (ESP32-S3 + LR1110). No _usb_tcp multi-transport variant
   # exists for this board, so these are the stock single-transport companions.
   # Hardware-validated by @ptr727 in #47; we hold none, so treat regressions here
