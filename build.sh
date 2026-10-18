@@ -353,6 +353,10 @@ MESHCOMOD_COMPANION_ENVS=(
   # single-transport companions (one of BLE or USB). build_firmware emits .uf2 + .zip.
   "WioTrackerL1_companion_radio_ble"             # Wio Tracker L1 (Pro), BLE companion
   "WioTrackerL1_companion_radio_usb"             # Wio Tracker L1 (Pro), USB companion
+  # LilyGo T-Echo (nRF52840 + SX1262, 200x200 e-ink, GPS). Same deal as the Wio
+  # Tracker L1: no Wi-Fi, so single-transport BLE or USB with .uf2 + .zip.
+  "LilyGo_T-Echo_companion_radio_ble"            # T-Echo, BLE companion
+  "LilyGo_T-Echo_companion_radio_usb"            # T-Echo, USB companion
 )
 # True if $1 is one of the boards we publish, so build_firmware knows to emit a merged image
 # regardless of how the env happens to be named.
