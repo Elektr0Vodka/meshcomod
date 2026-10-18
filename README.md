@@ -24,7 +24,7 @@ This is the **Elektr0Vodka fork** of [ALLFATHER-BV/meshcomod](https://github.com
 | [Receive filter](docs/companion_receive_filter.md) | `filter` CLI that drops junk group text (malformed, too old, relayed by a blocked repeater) and hides channel text by sender or content. Off by default. | Builds, not tested on hardware. |
 | [SNMP agent](docs/companion_snmp.md) | Read-only SNMPv2c on UDP 161, same OID layout as the Dutch-MeshCore observer. Off by default (`set snmp on`). Not in the touch build. | Builds, not tested on hardware. |
 | [Manifest OTA](docs/companion_manifest_ota.md) | `ota check` and `ota update` against the DutchMeshCore OTA server. Never downgrades, refuses a partition layout change. | Builds, not tested on hardware. |
-| Extra boards | `usb_tcp` builds for V4 R8, V4 R8 TFT, V4 TFT (no touch), Wireless Stick Lite V3 and Wireless Tracker, plus experimental ones for Wireless Tracker V2, Vision Master E213, Xiao S3, RAK3112, T-ETH Elite and T-Beam S3 Supreme. BLE and USB builds for the Seeed Wio Tracker L1 / L1 Pro. | Builds, not tested on hardware. |
+| Extra boards | `usb_tcp` builds for V4 R8, V4 R8 TFT, V4 TFT (no touch), Wireless Stick Lite V3 and Wireless Tracker, plus experimental ones for Wireless Tracker V2, Vision Master E213, Xiao S3, RAK3112, T-ETH Elite, T-Beam S3 Supreme, Vision Master E290 and T190, RC32, T-Beam 1W, Meshnology W12, Station G2 and G3, and ThinkNode M9. BLE and USB builds for the Seeed Wio Tracker L1 / L1 Pro. | Builds, not tested on hardware. |
 | CI | One runner per board, cached toolchains, pre-releases for test builds. | In use. |
 
 A build with the receive filter reports it in `ver`, e.g. `v1.18.0.1-<sha>-dmc-filter (Build: ...)`.
@@ -71,6 +71,14 @@ Boards marked **experimental** go one step further out: their env is the board's
 | **RAK3112** (WisBlock) | ESP32-S3 | none | `RAK_3112_companion_radio_usb_tcp` | **Experimental**, build only, new in fork |
 | **LilyGo T-ETH Elite** | ESP32-S3 | none | `LilyGo_TETH_Elite_sx1262_companion_radio_usb_tcp` | **Experimental**, build only, new in fork (Wi-Fi, not Ethernet) |
 | **LilyGo T-Beam S3 Supreme** | ESP32-S3 | 128×64 OLED, GPS | `T_Beam_S3_Supreme_SX1262_companion_radio_usb_tcp` | **Experimental**, build only, new in fork |
+| **Heltec Vision Master E290** | ESP32-S3 | 296×128 e-ink | `Heltec_E290_companion_radio_usb_tcp` | **Experimental**, build only, new in fork |
+| **Heltec Vision Master T190** | ESP32-S3 | 320×170 TFT | `Heltec_T190_companion_radio_usb_tcp` | **Experimental**, build only, new in fork |
+| **Heltec RC32** | ESP32-S3 | TFT, rotary input, GPS | `heltec_rc32_companion_radio_usb_tcp` | **Experimental**, build only, new in fork |
+| **LilyGo T-Beam 1W** | ESP32-S3 | 128×64 OLED, GPS | `LilyGo_TBeam_1W_companion_radio_usb_tcp` | **Experimental**, build only, new in fork |
+| **Meshnology W12** | ESP32-S3 | 128×64 OLED, GPS | `meshnology_w12_companion_radio_usb_tcp` | **Experimental**, build only, new in fork |
+| **Station G2** | ESP32-S3 | 128×64 OLED | `Station_G2_companion_radio_usb_tcp` | **Experimental**, build only, new in fork |
+| **Station G3** (ESP32-S3) | ESP32-S3 | 128×64 OLED | `Station_G3_ESP32_companion_radio_usb_tcp` | **Experimental**, build only, new in fork |
+| **Elecrow ThinkNode M9** | ESP32-S3 | 320×240 TFT, GPS | `ThinkNode_M9_companion_radio_usb_tcp` | **Experimental**, build only, new in fork |
 | **Seeed Wio Tracker L1 / L1 Pro** | nRF52840 | 128×64 OLED, GPS | `WioTrackerL1_companion_radio_ble`, `WioTrackerL1_companion_radio_usb` | Build only, new in fork |
 
 The SNMP, receive filter and manifest OTA features are not hardware tested on any board yet, including V4 and V3.
