@@ -11,7 +11,13 @@
 #include <time.h>     // gmtime_r for the "clock" CLI command
 #ifdef ESP32
 #include <esp_system.h>          // esp_restart for the "bootloader" CLI command
+#if __has_include(<soc/rtc_cntl_reg.h>)
 #include <soc/rtc_cntl_reg.h>    // RTC_CNTL_OPTION1_REG / FORCE_DOWNLOAD_BOOT
+#endif
+// The force-download bit exists on the S2/S3 and C3, not on the classic ESP32 or the C6.
+#if defined(RTC_CNTL_OPTION1_REG) && defined(RTC_CNTL_FORCE_DOWNLOAD_BOOT)
+#define MESHCOMOD_HAS_FORCE_DOWNLOAD 1
+#endif
 #if __has_include(<esp_mac.h>)
 #include <esp_mac.h>             // esp_read_mac for the "mac" / "get mac" CLI commands
 #endif
@@ -617,7 +623,7 @@ bool MyMesh::handleMeshcomodCommand(const char* text, int text_len) {
     return true;   // not reached
   }
   if (isCmd(p, "bootloader") || isCmd(p, "dfu")) {
-#ifdef ESP32
+#if defined(ESP32) && defined(MESHCOMOD_HAS_FORCE_DOWNLOAD)
     // Force the ROM into serial/USB download mode on the next reset, so the
     // board can be flashed without the (flaky) trackball+reset combo. The
     // FORCE_DOWNLOAD_BOOT bit lives in the RTC domain and survives the restart.
@@ -636,10 +642,12 @@ bool MyMesh::handleMeshcomodCommand(const char* text, int text_len) {
     uint32_t opt1 = REG_READ(RTC_CNTL_OPTION1_REG);
     REG_WRITE(RTC_CNTL_OPTION1_REG, opt1 | RTC_CNTL_FORCE_DOWNLOAD_BOOT);
     board.reboot();
+#elif defined(ESP32)
+    pushMeshcomodReply("bootloader: not supported on this chip");
 #else
     pushMeshcomodReply("bootloader: ESP32-only");
 #endif
-    return true;   // not reached on ESP32
+    return true;   // not reached when download mode is supported
   }
   if (isCmd(p, "get")) {
     NodePrefs* pr = getNodePrefs();
