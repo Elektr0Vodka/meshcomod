@@ -1356,6 +1356,14 @@ been tested on hardware.</p>
 <li><code>RAK_3112_companion_radio_usb_tcp</code></li>
 <li><code>LilyGo_TETH_Elite_sx1262_companion_radio_usb_tcp</code></li>
 <li><code>T_Beam_S3_Supreme_SX1262_companion_radio_usb_tcp</code></li>
+<li><code>Heltec_E290_companion_radio_usb_tcp</code></li>
+<li><code>Heltec_T190_companion_radio_usb_tcp</code></li>
+<li><code>heltec_rc32_companion_radio_usb_tcp</code></li>
+<li><code>LilyGo_TBeam_1W_companion_radio_usb_tcp</code></li>
+<li><code>meshnology_w12_companion_radio_usb_tcp</code></li>
+<li><code>Station_G2_companion_radio_usb_tcp</code></li>
+<li><code>Station_G3_ESP32_companion_radio_usb_tcp</code></li>
+<li><code>ThinkNode_M9_companion_radio_usb_tcp</code></li>
 </ul>
 <p>The touch build does not include it yet: it needs a heap reading on hardware
 first, because BLE co-init there is already gated on free heap.</p>
@@ -1871,12 +1879,63 @@ few KB:</p>
 <td>151,616 B</td>
 <td>48.1% of 3.19 MB</td>
 </tr>
+<tr>
+<td><code>Heltec_E290_companion_radio_usb_tcp</code></td>
+<td>1,618,137 B</td>
+<td>162,748 B</td>
+<td>24.7% of 6.25 MB</td>
+</tr>
+<tr>
+<td><code>Heltec_T190_companion_radio_usb_tcp</code></td>
+<td>1,599,645 B</td>
+<td>162,520 B</td>
+<td>24.4% of 6.25 MB</td>
+</tr>
+<tr>
+<td><code>heltec_rc32_companion_radio_usb_tcp</code></td>
+<td>1,633,749 B</td>
+<td>153,056 B</td>
+<td>24.9% of 6.25 MB</td>
+</tr>
+<tr>
+<td><code>LilyGo_TBeam_1W_companion_radio_usb_tcp</code></td>
+<td>1,615,437 B</td>
+<td>163,384 B</td>
+<td>24.6% of 6.25 MB</td>
+</tr>
+<tr>
+<td><code>meshnology_w12_companion_radio_usb_tcp</code></td>
+<td>1,644,421 B</td>
+<td>153,424 B</td>
+<td>25.1% of 6.25 MB</td>
+</tr>
+<tr>
+<td><code>Station_G2_companion_radio_usb_tcp</code></td>
+<td>1,668,817 B</td>
+<td>165,344 B</td>
+<td>25.5% of 6.25 MB</td>
+</tr>
+<tr>
+<td><code>Station_G3_ESP32_companion_radio_usb_tcp</code></td>
+<td>1,670,341 B</td>
+<td>165,352 B</td>
+<td>25.5% of 6.25 MB</td>
+</tr>
+<tr>
+<td><code>ThinkNode_M9_companion_radio_usb_tcp</code></td>
+<td>1,646,057 B</td>
+<td>152,824 B</td>
+<td>25.1% of 6.25 MB</td>
+</tr>
 </tbody>
 </table>
 <p>All six use the 256-entry offline queue, so they start at 150 to 165 KB static
 RAM like Wireless Paper and Xiao S3 WIO. The Wireless Tracker V2 and E213 are
 the highest; the Tracker V2 has no PSRAM, so it is the first to check for free
 heap with Wi-Fi, BLE and the agent running.</p>
+<p>The second batch (E290 to ThinkNode M9) was measured with <code>build.sh</code> and
+without <code>DISABLE_DEBUG=1</code>. All eight are 16 MB boards on the <code>default_16MB.csv</code>
+layout and land at 152 to 166 KB static RAM.</p>
 <p>These deltas were measured when the agent first went in, before the
 observer-aligned OIDs (<code>.1.5.0</code> onwards, <code>.9</code>, <code>.10</code>). With the full current
 OID set, <code>Heltec_v3_companion_radio_usb_tcp</code> builds to 1,627,545 B flash and
