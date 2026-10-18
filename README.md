@@ -216,7 +216,7 @@ sh build.sh build-firmware Heltec_v3_companion_radio_usb_tcp
 
 Other targets use the same flow with their env name from the [Supported devices](#supported-devices) table. Build all shipped companions at once with `sh build.sh build-meshcomod-companion-firmwares`.
 
-**Outputs** (ESP32 targets): app-only `out/<env>-<version>-<sha>.bin` and **merged** `out/<env>-<version>-<sha>-merged.bin` (flash from `0x0`). The merged image is also at `.pio/build/<env>/firmware-merged.bin`. The `*_companion_radio_usb_tcp` targets also get `out/<env>.partsig` (partition layout, used by `ota update`) and have the OTA manifest base baked in (`OTA_MANIFEST_BASE_URL` overrides it). nRF52 targets produce `out/<env>-<version>-<sha>.uf2` and a DFU `.zip` instead. Do not set `DISABLE_DEBUG=1` for nRF52 targets: it undefines `CFG_DEBUG`, which the nRF52 Arduino core needs to compile.
+**Outputs** (ESP32 targets): app-only `out/<env>-<version>-<sha>.bin` and **merged** `out/<env>-<version>-<sha>-merged.bin` (flash from `0x0`). The merged image is also at `.pio/build/<env>/firmware-merged.bin`. The `*_companion_radio_usb_tcp` targets also get `out/<env>.partsig` (partition layout, used by `ota update`) and have the OTA manifest base baked in (`OTA_MANIFEST_BASE_URL` overrides it). nRF52 targets produce `out/<env>-<version>-<sha>.uf2` and a DFU `.zip` instead.
 
 ### Black screen after flashing
 
