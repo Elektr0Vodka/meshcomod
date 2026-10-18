@@ -13,7 +13,7 @@ releases on that track (keeping the newest 5).
 
 | Track | Tag prefix | Example tag | Workflow | Builds |
 |-------|-----------|-------------|----------|--------|
-| Companion | `companion-` | `companion-v1.16.0.1` | build-companion-firmwares | the envs in `MESHCOMOD_COMPANION_ENVS` in `build.sh` (V4, V3, Wireless Paper, Xiao, V4 R8, V4 R8 TFT, V4 TFT, Wireless Stick Lite V3, Wireless Tracker, Wireless Tracker V2, E213, Xiao S3, RAK3112, T-ETH Elite, T-Beam S3 Supreme, E290, T190, RC32, T-Beam 1W, Meshnology W12, Station G2, Station G3 and ThinkNode M9 `_usb_tcp`, ThinkNode M7 BLE and Ethernet, Wio Tracker L1, T-Echo and T-Echo Card BLE and USB) |
+| Companion | `companion-` | `companion-v1.16.0.1` | build-companion-firmwares | the envs in `MESHCOMOD_COMPANION_ENVS` in `build.sh` (V4, V3, Wireless Paper, Xiao, V4 R8, V4 R8 TFT, V4 TFT, Wireless Stick Lite V3, Wireless Tracker, Wireless Tracker V2, E213, Xiao S3, RAK3112, T-ETH Elite, T-Beam S3 Supreme, E290, T190, RC32, T-Beam 1W, Meshnology W12, Station G2, Station G3 and ThinkNode M9 `_usb_tcp`, ThinkNode M7 BLE and Ethernet, BLE and USB for 16 nRF52840 boards: Wio Tracker L1, T-Echo, T-Echo Card, T-Echo Lite, RAK4631, RAK3401, T1000-E, Heltec T114, T1, T096 and MeshPocket, ThinkNode M1 and M8, Nano G2 Ultra, Pro Micro and Keepteen LT1) |
 | Room server | `room-server-` | `room-server-v1.16.0.1` | build-room-server-firmwares | `*_room_server` |
 | Repeater | — | (manual `workflow_dispatch`) | build-repeater-firmwares | `*_repeater_tcp` |
 
