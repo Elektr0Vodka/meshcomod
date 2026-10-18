@@ -35,6 +35,7 @@ Newest first. Each entry names the PR that landed it.
 
 ### Fixed
 
+- **`DISABLE_DEBUG=1` builds on nRF52**: `build.sh` undefined `CFG_DEBUG`, which the nRF52 Arduino core reads unconditionally, so every nRF52 build with `DISABLE_DEBUG=1` failed. It now sets `CFG_DEBUG=0`.
 - **T-Echo Card companions build again** (#16): the ui-tiny UI still took the upstream 1.18 `MultiSerialInterface*`, while meshcomod passes the board's own serial interface. It now takes `BaseSerialInterface*` like ui-new.
 - **Companion builds on classic ESP32** (#17): the `bootloader` CLI command wrote the RTC force-download bit, which only the S2, S3 and C3 have, so every classic ESP32 companion (Heltec V2, T-Beam, T-LoRa and others) failed to compile. Chips without the bit now reply `bootloader: not supported on this chip`. The ESP32-C6 envs still do not build: they run Arduino core 3.x while `esp32_base` pins NimBLE-Arduino 1.4.3, which needs core 2.x.
 - **Companion builds on nRF52**: two pieces of upstream meshcomod companion code assumed ESP32 and broke any non-ESP32 companion build. The backup import used the ESP32 PSRAM allocator (`heap_caps_*`); it now uses the default allocator elsewhere. `ota status` read HTTP OTA progress globals that only `ESP32Board.cpp` defines; it now reports `ota: idle` on boards without HTTP OTA.
