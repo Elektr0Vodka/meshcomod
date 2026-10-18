@@ -1,5 +1,7 @@
 # Prebuilt firmware (flasher / releases)
 
+> **Legacy, retired in the Elektr0Vodka fork.** New releases are built and published by CI from a tag; see [`../docs/CI_RELEASES.md`](../docs/CI_RELEASES.md). This page describes upstream meshcomod's old flow of committing bins to `prebuilt/` and is kept for reference and upstream syncs.
+
 Binaries are **not** always committed; this folder defines **where promoted builds live** so tools and humans match the same layout.
 
 ## Layout

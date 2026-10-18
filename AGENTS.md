@@ -30,7 +30,18 @@ These apply to every change in this repo, by humans and agents alike.
 - Bugs: firmware version or build, board, steps to reproduce, expected vs actual, logs if available.
 - Features: state the problem first, then the proposed behavior.
 
-## Releases: prebuilt firmware on GitHub
+## Releases in this fork
+
+Releases go out through CI, not through `prebuilt/`. Push a track tag and the workflow builds every env in `MESHCOMOD_COMPANION_ENVS` on its own runner and publishes a GitHub Release with everything in `out/` attached (`.bin` and merged `.bin` for ESP32, `.uf2` and DFU `.zip` for nRF52). Details: [`docs/CI_RELEASES.md`](docs/CI_RELEASES.md).
+
+- Test builds: a tag with a suffix (`companion-v1.18.0.2-rc1`) or a manual run with `prerelease` ticked. Pre-releases are never marked latest and the OTA server does not serve them.
+- To add a board, add its env to `MESHCOMOD_COMPANION_ENVS` in `build.sh`, build it locally with `build.sh build-firmware <env>`, and update the README device table, `docs/CI_RELEASES.md` and `changelog_ev.md` in the same PR.
+- Changes reach `main` only by PR on `origin` (Elektr0Vodka/meshcomod). Never push to `upstream` (ALLFATHER-BV/meshcomod).
+- Every PR adds an entry under **Unreleased** in [`changelog_ev.md`](changelog_ev.md), tagged with its PR number.
+
+The sections below are upstream meshcomod's **legacy** flow (committing bins to `prebuilt/`). They are kept for upstream syncs and old release folders. Do not use them for new releases here.
+
+## Releases: prebuilt firmware on GitHub (legacy, upstream flow)
 
 Use this file as the **single entrypoint** when promoting ESP32 meshcomod builds into **`prebuilt/`** on **`main`**. Human-oriented detail lives in [`docs/RELEASE_PROCEDURE.md`](docs/RELEASE_PROCEDURE.md), [`docs/REPEATER_RELEASE_PROCEDURE.md`](docs/REPEATER_RELEASE_PROCEDURE.md), and [`prebuilt/README.md`](prebuilt/README.md).
 
@@ -100,7 +111,7 @@ sh scripts/copy-heltec-v4-meshcomod-extras.sh vX.Y.Z.W
 git push allfather main
 ```
 
-(Adjust remote/branch if your fork uses different names.)
+(Adjust remote/branch if your fork uses different names.) **Not in this fork:** here every change lands on `main` by PR, see [Releases in this fork](#releases-in-this-fork).
 
 ## Do not
 
@@ -113,6 +124,7 @@ git push allfather main
 
 - **Tag workflow** **[`.github/workflows/build-companion-firmwares.yml`](.github/workflows/build-companion-firmwares.yml)** (e.g. tag **`companion-v1.14.0.20`**) uploads **`out/`** to a **draft GitHub Release**. It does **not** update **`prebuilt/`** on **`main`**.
 - **Canonical flasher / OTA URLs** for meshcomod are the committed trees under **`prebuilt/`** and **`prebuilt/releases/`** on **`main`**, unless you change release policy.
+- **This fork changed that policy:** GitHub Releases are the source of truth, and the tag workflow publishes them (not as drafts). See [`docs/CI_RELEASES.md`](docs/CI_RELEASES.md).
 
 ## Optional checks
 
