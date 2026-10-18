@@ -1417,7 +1417,8 @@ flasher reads the release assets), so new bins are <strong>not</strong> committe
 <code>prebuilt/</code> anymore.</p>
 <h2 id="how-to-cut-a-release">How to cut a release</h2>
 <p>Push a tag on the track you want. The matching workflow builds the firmwares,
-publishes a GitHub Release with the <code>.bin</code> files attached, and prunes old
+publishes a GitHub Release with the firmware files attached (<code>.bin</code> and merged
+<code>.bin</code> for ESP32, <code>.uf2</code> and DFU <code>.zip</code> for nRF52), and prunes old
 releases on that track (keeping the newest 5).</p>
 <table>
 <thead>

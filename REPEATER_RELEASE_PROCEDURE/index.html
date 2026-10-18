@@ -1411,6 +1411,9 @@
 
 
 <h1 id="tcp-repeater-release-procedure-prebuilt-flasher">TCP repeater release procedure (prebuilt / flasher)</h1>
+<blockquote>
+<p><strong>Legacy, retired in the Elektr0Vodka fork.</strong> New releases are built and published by CI from a tag; see <a href="../CI_RELEASES/"><code>CI_RELEASES.md</code></a>. This page describes upstream meshcomod's old flow of committing bins to <code>prebuilt/</code> and is kept for reference and upstream syncs.</p>
+</blockquote>
 <p><strong>Repeater TCP</strong> uses a four-part <strong><code>rX.Y.Z.W</code></strong> directory under <strong><code>prebuilt/releases/repeater/</code></strong> (parallel numeric train to companion <strong><code>vX.Y.Z.W</code></strong>) plus a fixed <strong><code>‑repeater-tcp</code></strong> suffix in <strong><code>REPEATER_FIRMWARE_VERSION</code></strong> so <code>out/</code> filenames and on-device strings stay distinct from companion builds. <strong><code>build.sh</code></strong> prefixes the compile-time macro with <strong><code>meshcomod-</code></strong>, e.g. <strong><code>meshcomod-r1.14.1.0-repeater-tcp-&lt;gitsha&gt;</code></strong> for new builds.</p>
 <p><strong>Shipped <code>r1.14.1.0</code> bins</strong> in this repo still report <strong><code>meshcomod-v1.14.1.0-repeater-tcp-&lt;gitsha&gt;</code></strong> (built before the <strong><code>r*</code></strong> naming cutover). <strong><code>copy-repeater-release-bins.sh v1.14.1.0</code></strong> still works: it maps to <strong><code>repeater/r1.14.1.0/</code></strong> and globs <strong><code>v1.14.1.0-repeater-tcp</code></strong> in <strong><code>out/</code></strong>.</p>
 <p><strong>Legacy:</strong> older drops used <strong><code>repeater-1.0.x</code></strong>; the copy script places those under <strong><code>prebuilt/releases/repeater/repeater-1.0.x/</code></strong> if you recreate them in a fork.</p>
