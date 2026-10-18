@@ -1,5 +1,7 @@
 # Release procedure (companion firmware)
 
+> **Legacy, retired in the Elektr0Vodka fork.** New releases are built and published by CI from a tag; see [`CI_RELEASES.md`](CI_RELEASES.md). This page describes upstream meshcomod's old flow of committing bins to `prebuilt/` and is kept for reference and upstream syncs.
+
 Use this for every new fix or release. **Rule: every release gets a new version number; never overwrite an existing version’s binaries.**
 
 Current latest version in the repo: **v1.15.0.1** (bump to next for the following release).

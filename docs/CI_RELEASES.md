@@ -8,7 +8,8 @@ flasher reads the release assets), so new bins are **not** committed into
 ## How to cut a release
 
 Push a tag on the track you want. The matching workflow builds the firmwares,
-publishes a GitHub Release with the `.bin` files attached, and prunes old
+publishes a GitHub Release with the firmware files attached (`.bin` and merged
+`.bin` for ESP32, `.uf2` and DFU `.zip` for nRF52), and prunes old
 releases on that track (keeping the newest 5).
 
 | Track | Tag prefix | Example tag | Workflow | Builds |

@@ -1,5 +1,7 @@
 # TCP repeater release procedure (prebuilt / flasher)
 
+> **Legacy, retired in the Elektr0Vodka fork.** New releases are built and published by CI from a tag; see [`CI_RELEASES.md`](CI_RELEASES.md). This page describes upstream meshcomod's old flow of committing bins to `prebuilt/` and is kept for reference and upstream syncs.
+
 **Repeater TCP** uses a four-part **`rX.Y.Z.W`** directory under **`prebuilt/releases/repeater/`** (parallel numeric train to companion **`vX.Y.Z.W`**) plus a fixed **`‑repeater-tcp`** suffix in **`REPEATER_FIRMWARE_VERSION`** so `out/` filenames and on-device strings stay distinct from companion builds. **`build.sh`** prefixes the compile-time macro with **`meshcomod-`**, e.g. **`meshcomod-r1.14.1.0-repeater-tcp-<gitsha>`** for new builds.
 
 **Shipped `r1.14.1.0` bins** in this repo still report **`meshcomod-v1.14.1.0-repeater-tcp-<gitsha>`** (built before the **`r*`** naming cutover). **`copy-repeater-release-bins.sh v1.14.1.0`** still works: it maps to **`repeater/r1.14.1.0/`** and globs **`v1.14.1.0-repeater-tcp`** in **`out/`**.
