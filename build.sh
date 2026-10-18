@@ -357,6 +357,9 @@ MESHCOMOD_COMPANION_ENVS=(
   # Tracker L1: no Wi-Fi, so single-transport BLE or USB with .uf2 + .zip.
   "LilyGo_T-Echo_companion_radio_ble"            # T-Echo, BLE companion
   "LilyGo_T-Echo_companion_radio_usb"            # T-Echo, USB companion
+  # LilyGo T-Echo Card (nRF52840 + SX1262, small OLED, ui-tiny UI). Single-transport too.
+  "LilyGo_T-Echo_Card_companion_radio_ble"       # T-Echo Card, BLE companion
+  "LilyGo_T-Echo_Card_companion_radio_usb"       # T-Echo Card, USB companion
 )
 # True if $1 is one of the boards we publish, so build_firmware knows to emit a merged image
 # regardless of how the env happens to be named.
