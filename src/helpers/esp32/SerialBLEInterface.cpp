@@ -1,4 +1,7 @@
 #include "SerialBLEInterface.h"
+#if __has_include(<esp_mac.h>)
+#include <esp_mac.h>   // esp_efuse_mac_get_default moved here in core 3.x
+#endif
 
 // See the following for generating UUIDs:
 // https://www.uuidgenerator.net/
@@ -74,7 +77,11 @@ void SerialBLEInterface::begin(const char* prefix, char* name, uint32_t pin_code
   // was unidentifiable in a list of peers. The name rides the scan response when
   // it doesn't fit beside the 128-bit service UUID in the 31-byte adv packet.
   adv->setName(dev_name);
+#ifdef MESHCOMOD_NIMBLE2
+  adv->enableScanResponse(true);
+#else
   adv->setScanResponse(true);
+#endif
 }
 
 void SerialBLEInterface::startAdvertising() {
@@ -82,7 +89,72 @@ void SerialBLEInterface::startAdvertising() {
   adv_restart_time = 0;
 }
 
-// -------- NimBLEServerCallbacks: security
+// -------- callback bodies shared by both NimBLE APIs
+
+void SerialBLEInterface::handleAuthComplete(bool encrypted, uint16_t conn_handle) {
+  if (encrypted) {
+    BLE_DEBUG_PRINTLN(" - SecurityCallback - Authentication Success");
+    deviceConnected = true;
+  } else {
+    BLE_DEBUG_PRINTLN(" - SecurityCallback - Authentication Failure*");
+    if (pServer) pServer->disconnect(conn_handle);
+    adv_restart_time = millis() + ADVERT_RESTART_DELAY;
+  }
+}
+
+void SerialBLEInterface::handleConnect(uint16_t conn_handle, const uint8_t* peer_addr) {
+  BLE_DEBUG_PRINTLN("onConnect(), conn_id=%d", conn_handle);
+  last_conn_id = conn_handle;
+  memcpy(_peer_bda, peer_addr, 6);   // NimBLE addr is little-endian
+  _peer_bda_valid = true;
+}
+
+void SerialBLEInterface::handleDisconnect() {
+  BLE_DEBUG_PRINTLN("onDisconnect()");
+  _peer_bda_valid = false;
+  if (_isEnabled) {
+    adv_restart_time = millis() + ADVERT_RESTART_DELAY;
+    // loop() will detect this on next loop, and set deviceConnected to false
+  }
+}
+
+#ifdef MESHCOMOD_NIMBLE2
+
+// -------- NimBLE 2.x callbacks
+
+uint32_t SerialBLEInterface::onPassKeyDisplay() {
+  BLE_DEBUG_PRINTLN("onPassKeyDisplay()");
+  return _pin_code;
+}
+
+void SerialBLEInterface::onConfirmPassKey(NimBLEConnInfo& connInfo, uint32_t pass_key) {
+  BLE_DEBUG_PRINTLN("onConfirmPassKey(%u)", pass_key);
+  NimBLEDevice::injectConfirmPasskey(connInfo, true);
+}
+
+void SerialBLEInterface::onAuthenticationComplete(NimBLEConnInfo& connInfo) {
+  handleAuthComplete(connInfo.isEncrypted(), connInfo.getConnHandle());
+}
+
+void SerialBLEInterface::onConnect(NimBLEServer* pServer, NimBLEConnInfo& connInfo) {
+  handleConnect(connInfo.getConnHandle(), connInfo.getAddress().getVal());
+}
+
+void SerialBLEInterface::onMTUChange(uint16_t MTU, NimBLEConnInfo& connInfo) {
+  BLE_DEBUG_PRINTLN("onMTUChange(), mtu=%d", MTU);
+}
+
+void SerialBLEInterface::onDisconnect(NimBLEServer* pServer, NimBLEConnInfo& connInfo, int reason) {
+  handleDisconnect();
+}
+
+void SerialBLEInterface::onWrite(NimBLECharacteristic* pCharacteristic, NimBLEConnInfo& connInfo) {
+  handleWrite(pCharacteristic);
+}
+
+#else
+
+// -------- NimBLE 1.4.x callbacks
 
 uint32_t SerialBLEInterface::onPassKeyRequest() {
   BLE_DEBUG_PRINTLN("onPassKeyRequest()");
@@ -95,25 +167,11 @@ bool SerialBLEInterface::onConfirmPIN(uint32_t pass_key) {
 }
 
 void SerialBLEInterface::onAuthenticationComplete(ble_gap_conn_desc* desc) {
-  if (desc && desc->sec_state.encrypted) {
-    BLE_DEBUG_PRINTLN(" - SecurityCallback - Authentication Success");
-    deviceConnected = true;
-  } else {
-    BLE_DEBUG_PRINTLN(" - SecurityCallback - Authentication Failure*");
-    if (pServer) pServer->disconnect(desc ? desc->conn_handle : last_conn_id);
-    adv_restart_time = millis() + ADVERT_RESTART_DELAY;
-  }
+  handleAuthComplete(desc && desc->sec_state.encrypted, desc ? desc->conn_handle : last_conn_id);
 }
 
-// -------- NimBLEServerCallbacks: connection lifecycle
-
 void SerialBLEInterface::onConnect(NimBLEServer* pServer, ble_gap_conn_desc* desc) {
-  BLE_DEBUG_PRINTLN("onConnect(), conn_id=%d", desc ? desc->conn_handle : -1);
-  if (desc) {
-    last_conn_id = desc->conn_handle;
-    memcpy(_peer_bda, desc->peer_ota_addr.val, 6);   // NimBLE addr is little-endian
-    _peer_bda_valid = true;
-  }
+  if (desc) handleConnect(desc->conn_handle, desc->peer_ota_addr.val);
 }
 
 void SerialBLEInterface::onMTUChange(uint16_t MTU, ble_gap_conn_desc* desc) {
@@ -121,17 +179,18 @@ void SerialBLEInterface::onMTUChange(uint16_t MTU, ble_gap_conn_desc* desc) {
 }
 
 void SerialBLEInterface::onDisconnect(NimBLEServer* pServer) {
-  BLE_DEBUG_PRINTLN("onDisconnect()");
-  _peer_bda_valid = false;
-  if (_isEnabled) {
-    adv_restart_time = millis() + ADVERT_RESTART_DELAY;
-    // loop() will detect this on next loop, and set deviceConnected to false
-  }
+  handleDisconnect();
 }
 
-// -------- NimBLECharacteristicCallbacks
-
 void SerialBLEInterface::onWrite(NimBLECharacteristic* pCharacteristic) {
+  handleWrite(pCharacteristic);
+}
+
+#endif
+
+// -------- RX characteristic write
+
+void SerialBLEInterface::handleWrite(NimBLECharacteristic* pCharacteristic) {
   NimBLEAttValue val = pCharacteristic->getValue();
   int len = val.length();
   const uint8_t* rxValue = val.data();

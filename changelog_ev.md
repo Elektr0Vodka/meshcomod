@@ -35,6 +35,7 @@ Newest first. Each entry names the PR that landed it.
 
 ### Fixed
 
+- **ESP32-C6 companions build**: the C6 envs run Arduino core 3.x but inherited NimBLE-Arduino 1.4.3, which only builds against core 2.x. `esp32c6_base` now uses NimBLE-Arduino 2.3.9, and `SerialBLEInterface` implements both callback APIs (picked at compile time), so the S3 boards stay on 1.4.3. All C6 companion envs (Xiao C6, Meshimi, WHY2025 badge, T-LoRa C6, M5Stack Unit C6L) build. Builds, not tested on hardware.
 - **`DISABLE_DEBUG=1` builds on nRF52**: `build.sh` undefined `CFG_DEBUG`, which the nRF52 Arduino core reads unconditionally, so every nRF52 build with `DISABLE_DEBUG=1` failed. It now sets `CFG_DEBUG=0`.
 - **T-Echo Card companions build again** (#16): the ui-tiny UI still took the upstream 1.18 `MultiSerialInterface*`, while meshcomod passes the board's own serial interface. It now takes `BaseSerialInterface*` like ui-new.
 - **Companion builds on classic ESP32** (#17): the `bootloader` CLI command wrote the RTC force-download bit, which only the S2, S3 and C3 have, so every classic ESP32 companion (Heltec V2, T-Beam, T-LoRa and others) failed to compile. Chips without the bit now reply `bootloader: not supported on this chip`. The ESP32-C6 envs still do not build: they run Arduino core 3.x while `esp32_base` pins NimBLE-Arduino 1.4.3, which needs core 2.x.

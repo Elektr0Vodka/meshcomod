@@ -3,6 +3,12 @@
 #include "../BaseSerialInterface.h"
 #include <NimBLEDevice.h>
 
+// NimBLE-Arduino 2.x (needed on Arduino core 3.x boards such as the ESP32-C6) changed the
+// callback signatures. Only 2.x ships NimBLEAdvertisementData.h, so use that to tell them apart.
+#if __has_include(<NimBLEAdvertisementData.h>)
+  #define MESHCOMOD_NIMBLE2 1
+#endif
+
 // NimBLE port of the companion BLE (Nordic UART) transport. Public API is kept
 // identical to the previous Bluedroid implementation so MultiTransportCompanionInterface
 // and the plain *_ble envs need no changes. NimBLE's host is ~tens of KB lighter on the
@@ -36,8 +42,26 @@ class SerialBLEInterface : public BaseSerialInterface, public NimBLEServerCallba
   void clearBuffers() { recv_queue_len = 0; send_queue_len = 0; }
   void startAdvertising();
 
+  // Callback bodies shared by both NimBLE APIs.
+  void handleConnect(uint16_t conn_handle, const uint8_t* peer_addr);
+  void handleDisconnect();
+  void handleAuthComplete(bool encrypted, uint16_t conn_handle);
+  void handleWrite(NimBLECharacteristic* pCharacteristic);
+
 protected:
-  // NimBLEServerCallbacks — connection lifecycle + security
+#ifdef MESHCOMOD_NIMBLE2
+  // NimBLEServerCallbacks (2.x): connection lifecycle + security
+  void onConnect(NimBLEServer* pServer, NimBLEConnInfo& connInfo) override;
+  void onDisconnect(NimBLEServer* pServer, NimBLEConnInfo& connInfo, int reason) override;
+  void onMTUChange(uint16_t MTU, NimBLEConnInfo& connInfo) override;
+  uint32_t onPassKeyDisplay() override;
+  void onConfirmPassKey(NimBLEConnInfo& connInfo, uint32_t pass_key) override;
+  void onAuthenticationComplete(NimBLEConnInfo& connInfo) override;
+
+  // NimBLECharacteristicCallbacks (2.x)
+  void onWrite(NimBLECharacteristic* pCharacteristic, NimBLEConnInfo& connInfo) override;
+#else
+  // NimBLEServerCallbacks (1.4.x): connection lifecycle + security
   void onConnect(NimBLEServer* pServer, ble_gap_conn_desc* desc) override;
   void onDisconnect(NimBLEServer* pServer) override;
   void onMTUChange(uint16_t MTU, ble_gap_conn_desc* desc) override;
@@ -45,8 +69,9 @@ protected:
   bool onConfirmPIN(uint32_t pass_key) override;
   void onAuthenticationComplete(ble_gap_conn_desc* desc) override;
 
-  // NimBLECharacteristicCallbacks
+  // NimBLECharacteristicCallbacks (1.4.x)
   void onWrite(NimBLECharacteristic* pCharacteristic) override;
+#endif
 
 public:
   SerialBLEInterface() {
