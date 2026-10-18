@@ -24,7 +24,7 @@ This is the **Elektr0Vodka fork** of [ALLFATHER-BV/meshcomod](https://github.com
 | [Receive filter](docs/companion_receive_filter.md) | `filter` CLI that drops junk group text (malformed, too old, relayed by a blocked repeater) and hides channel text by sender or content. Off by default. | Builds, not tested on hardware. |
 | [SNMP agent](docs/companion_snmp.md) | Read-only SNMPv2c on UDP 161, same OID layout as the Dutch-MeshCore observer. Off by default (`set snmp on`). Not in the touch build. | Builds, not tested on hardware. |
 | [Manifest OTA](docs/companion_manifest_ota.md) | `ota check` and `ota update` against the DutchMeshCore OTA server. Never downgrades, refuses a partition layout change. | Builds, not tested on hardware. |
-| Extra boards | `usb_tcp` builds for V4 R8, V4 R8 TFT, V4 TFT (no touch), Wireless Stick Lite V3 and Wireless Tracker, plus experimental ones for Wireless Tracker V2, Vision Master E213, Xiao S3, RAK3112, T-ETH Elite, T-Beam S3 Supreme, Vision Master E290 and T190, RC32, T-Beam 1W, Meshnology W12, Station G2 and G3, and ThinkNode M9. BLE and USB builds for the Seeed Wio Tracker L1 / L1 Pro, the LilyGo T-Echo and the T-Echo Card. | Builds, not tested on hardware. |
+| Extra boards | `usb_tcp` builds for V4 R8, V4 R8 TFT, V4 TFT (no touch), Wireless Stick Lite V3 and Wireless Tracker, plus experimental ones for Wireless Tracker V2, Vision Master E213, Xiao S3, RAK3112, T-ETH Elite, T-Beam S3 Supreme, Vision Master E290 and T190, RC32, T-Beam 1W, Meshnology W12, Station G2 and G3, and ThinkNode M9. BLE and USB builds for 16 nRF52840 boards, among them the Wio Tracker L1, T-Echo family, RAK4631, T1000-E, Heltec T114 and ThinkNode M1 / M8. | Builds, not tested on hardware. |
 | CI | One runner per board, cached toolchains, pre-releases for test builds. | In use. |
 
 A build with the receive filter reports it in `ver`, e.g. `v1.18.0.1-<sha>-dmc-filter (Build: ...)`.
@@ -82,10 +82,24 @@ Boards marked **experimental** go one step further out: their env is the board's
 | **Seeed Wio Tracker L1 / L1 Pro** | nRF52840 | 128×64 OLED, GPS | `WioTrackerL1_companion_radio_ble`, `WioTrackerL1_companion_radio_usb` | Build only, new in fork |
 | **LilyGo T-Echo** | nRF52840 | 200×200 e-ink, GPS | `LilyGo_T-Echo_companion_radio_ble`, `LilyGo_T-Echo_companion_radio_usb` | Build only, new in fork |
 | **LilyGo T-Echo Card** | nRF52840 | 72×40 OLED, GPS | `LilyGo_T-Echo_Card_companion_radio_ble`, `LilyGo_T-Echo_Card_companion_radio_usb` | Build only, new in fork |
+| **LilyGo T-Echo Lite** | nRF52840 | e-ink, GPS | `LilyGo_T-Echo-Lite_companion_radio_ble`, `LilyGo_T-Echo-Lite_companion_radio_usb` | Build only, new in fork |
+| **LilyGo T-Echo Lite** (no shell) | nRF52840 | e-ink, GPS | `LilyGo_T-Echo-Lite_non_shell_companion_radio_ble`, `LilyGo_T-Echo-Lite_non_shell_companion_radio_usb` | Build only, new in fork |
+| **RAK WisBlock RAK4631** | nRF52840 | optional 128×64 OLED | `RAK_4631_companion_radio_ble`, `RAK_4631_companion_radio_usb` | Build only, new in fork |
+| **RAK WisBlock RAK3401** | nRF52840 | 128×64 OLED | `RAK_3401_companion_radio_ble`, `RAK_3401_companion_radio_usb` | Build only, new in fork |
+| **Seeed SenseCAP T1000-E** | nRF52840 | none, GPS | `t1000e_companion_radio_ble`, `t1000e_companion_radio_usb` | Build only, new in fork |
+| **Heltec Mesh Node T114** | nRF52840 | TFT, GPS | `Heltec_t114_companion_radio_ble`, `Heltec_t114_companion_radio_usb` | Build only, new in fork |
+| **Heltec T1** | nRF52840 | TFT, GPS | `Heltec_t1_companion_radio_ble`, `Heltec_t1_companion_radio_usb` | Build only, new in fork |
+| **Heltec T096** | nRF52840 | TFT, GPS | `Heltec_t096_companion_radio_ble`, `Heltec_t096_companion_radio_usb` | Build only, new in fork |
+| **Heltec MeshPocket** | nRF52840 | e-ink | `Mesh_pocket_companion_radio_ble`, `Mesh_pocket_companion_radio_usb` | Build only, new in fork |
+| **Elecrow ThinkNode M1** | nRF52840 | e-ink, GPS | `ThinkNode_M1_companion_radio_ble`, `ThinkNode_M1_companion_radio_usb` | Build only, new in fork |
+| **Elecrow ThinkNode M8** | nRF52840 | e-ink, GPS | `ThinkNode_M8_companion_radio_ble`, `ThinkNode_M8_companion_radio_usb` | Build only, new in fork |
+| **B&Q Nano G2 Ultra** | nRF52840 | 128×64 OLED | `Nano_G2_Ultra_companion_radio_ble`, `Nano_G2_Ultra_companion_radio_usb` | Build only, new in fork |
+| **nRF52840 Pro Micro** (DIY) | nRF52840 | optional 128×64 OLED, GPS | `ProMicro_companion_radio_ble`, `ProMicro_companion_radio_usb` | Build only, new in fork |
+| **Keepteen LT1** | nRF52840 | 128×64 OLED, GPS | `KeepteenLT1_companion_radio_ble`, `KeepteenLT1_companion_radio_usb` | Build only, new in fork |
 
 The SNMP, receive filter and manifest OTA features are not hardware tested on any board yet, including V4 and V3.
 
-The **Wio Tracker L1**, **T-Echo** and **T-Echo Card** have no Wi-Fi (nRF52840), so they get the stock single-transport companions: one image for BLE, one for USB, not both at once. TCP, WebSocket, SNMP and manifest OTA are not available on them. The CAD toggle and receive filter are included. Flash the `.uf2` by double-tapping reset and copying it to the USB drive that appears; the `.zip` is the DFU package for OTA over BLE.
+The **nRF52840 boards** (Wio Tracker L1 and every board below it in the table) have no Wi-Fi, so they get the stock single-transport companions: one image for BLE, one for USB, not both at once. TCP, WebSocket, SNMP and manifest OTA are not available on them. The CAD toggle and receive filter are included. Flash the `.uf2` by double-tapping reset and copying it to the USB drive that appears; the `.zip` is the DFU package for OTA over BLE.
 
 **Env-name casing matters when building:** V4 uses lowercase `heltec_v4_…`; V3 uses a capital H `Heltec_v3_…`. Use the exact name (see [Build it yourself](#hard--build-it-yourself)).
 
@@ -163,7 +177,7 @@ No local build needed. This fork's builds are published as **GitHub pre-releases
 2. Choose **Custom firmware** and upload the `-merged.bin` for your board from the [latest fork pre-release](https://github.com/Elektr0Vodka/meshcomod/releases?q=companion).
 3. Connect via USB, BLE (PIN on the display), and/or TCP.
 
-> **nRF52 boards** (Wio Tracker L1, T-Echo, T-Echo Card) do not use the web flasher. Double-tap reset, then copy the `.uf2` for your board onto the USB drive that appears. The `.zip` in the same release is the DFU package for updating over BLE. Pick the `_ble` or `_usb` image for the transport you want.
+> **nRF52 boards** (the nRF52840 rows in the device table) do not use the web flasher. Double-tap reset, then copy the `.uf2` for your board onto the USB drive that appears. The `.zip` in the same release is the DFU package for updating over BLE. Pick the `_ble` or `_usb` image for the transport you want.
 
 > If unsure which binary to flash, use **merged** (it includes the bootloader + partition table and writes from `0x0`).
 
