@@ -33,7 +33,7 @@ A build with the receive filter reports it in `ver`, e.g. `v1.18.0.1-<sha>-dmc-f
 
 ## What's different in meshcomod
 
-A single firmware image supports **USB, Bluetooth, and TCP** companion connections at the same time (e.g. Home Assistant on USB, the MeshCore app on BLE, the web client on TCP). Use one, two, or all three; BLE and TCP can be toggled from the device UI.
+On the Wi-Fi boards (every ESP32-S3 `_usb_tcp` build), a single firmware image supports **USB, Bluetooth, and TCP** companion connections at the same time (e.g. Home Assistant on USB, the MeshCore app on BLE, the web client on TCP). Use one, two, or all three; BLE and TCP can be toggled from the device UI.
 
 - **USB** — always on when the device is powered.
 - **Bluetooth** — the pairing PIN is shown on the device's **Bluetooth tab** (state + pairing info). **Long-press** the tab to enable/disable BLE; the footer reads "ON: long press" / "OFF: long press".
@@ -163,6 +163,8 @@ No local build needed. This fork's builds are published as **GitHub pre-releases
 2. Choose **Custom firmware** and upload the `-merged.bin` for your board from the [latest fork pre-release](https://github.com/Elektr0Vodka/meshcomod/releases?q=companion).
 3. Connect via USB, BLE (PIN on the display), and/or TCP.
 
+> **nRF52 boards** (Wio Tracker L1, T-Echo, T-Echo Card) do not use the web flasher. Double-tap reset, then copy the `.uf2` for your board onto the USB drive that appears. The `.zip` in the same release is the DFU package for updating over BLE. Pick the `_ble` or `_usb` image for the transport you want.
+
 > If unsure which binary to flash, use **merged** (it includes the bootloader + partition table and writes from `0x0`).
 
 Rolling back: flash an upstream build with the flasher's Easy mode, or an older fork pre-release. Upstream pinned versions are in the [Release log (RELEASES.md)](RELEASES.md) and the [upstream GitHub Releases](https://github.com/ALLFATHER-BV/meshcomod/releases).
@@ -214,7 +216,7 @@ sh build.sh build-firmware Heltec_v3_companion_radio_usb_tcp
 
 Other targets use the same flow with their env name from the [Supported devices](#supported-devices) table. Build all shipped companions at once with `sh build.sh build-meshcomod-companion-firmwares`.
 
-**Outputs** (every target): app-only `out/<env>-<version>-<sha>.bin` and **merged** `out/<env>-<version>-<sha>-merged.bin` (flash from `0x0`). The merged image is also at `.pio/build/<env>/firmware-merged.bin`. The `*_companion_radio_usb_tcp` targets also get `out/<env>.partsig` (partition layout, used by `ota update`) and have the OTA manifest base baked in (`OTA_MANIFEST_BASE_URL` overrides it).
+**Outputs** (ESP32 targets): app-only `out/<env>-<version>-<sha>.bin` and **merged** `out/<env>-<version>-<sha>-merged.bin` (flash from `0x0`). The merged image is also at `.pio/build/<env>/firmware-merged.bin`. The `*_companion_radio_usb_tcp` targets also get `out/<env>.partsig` (partition layout, used by `ota update`) and have the OTA manifest base baked in (`OTA_MANIFEST_BASE_URL` overrides it). nRF52 targets produce `out/<env>-<version>-<sha>.uf2` and a DFU `.zip` instead. Do not set `DISABLE_DEBUG=1` for nRF52 targets: it undefines `CFG_DEBUG`, which the nRF52 Arduino core needs to compile.
 
 ### Black screen after flashing
 
