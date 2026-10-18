@@ -22,10 +22,10 @@ The on-device control depends on the UI the board uses:
 
 | UI variant | Boards (examples) | CAD control |
 |-----------|-------------------|-------------|
-| ui-new | Heltec V4, Heltec V3 (OLED) | Dedicated CAD page. Swipe to it, ENTER or long-press toggles. Tested on hardware. |
+| ui-new | Heltec V4 and V3 (OLED), every other released `_usb_tcp` board with a display, the Wio Tracker L1 and the T-Echo | Dedicated CAD page. Swipe to it, ENTER or long-press toggles. Tested on hardware on the V4 and V3 only. |
 | ui-touch | Heltec V4 TFT touch | Settings > Experimental > CAD switch, then Save. |
-| ui-tiny | LilyGo T-Echo Card | Dedicated CAD page. ENTER toggles. |
-| ui-orig | Meshtracker X1, MinewSemi ME25LS01, Muziworks R1 Neo, RAK 3112, and similar | Read-only CAD status on the home screen. No on-device toggle (this UI is gesture-only with no free gesture); change CAD from the app. |
+| ui-tiny | LilyGo T-Echo Card (released from this fork) | Dedicated CAD page. ENTER toggles. |
+| ui-orig | ThinkNode M7 (released from this fork), Meshtracker X1, MinewSemi ME25LS01, Muziworks R1 Neo, the stock RAK 3112 builds, and similar | Read-only CAD status on the home screen. No on-device toggle (this UI is gesture-only with no free gesture); change CAD from the app. |
 
 ## Default and persistence
 
