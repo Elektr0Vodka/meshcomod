@@ -24,6 +24,7 @@ Newest first. Each entry names the PR that landed it.
 
 ### CI and build
 
+- **PR build check covers classic ESP32**: `Heltec_v2_companion_radio_ble` joins the PR matrix so companion code that only builds on the S3, like the `bootloader` register write fixed in #17, is caught before merge.
 - **PR build check covers nRF52**: `WioTrackerL1_companion_radio_ble` joins the PR matrix so fork companion code that only builds on ESP32 is caught.
 
 ### Docs
