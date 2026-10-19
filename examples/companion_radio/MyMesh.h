@@ -30,6 +30,7 @@
 #endif
 
 #include "CompanionFilter.h"
+#include "FullCapture.h"
 #include "DataStore.h"
 #include "NodePrefs.h"
 
@@ -254,6 +255,17 @@ protected:
   bool cfilterHidden(const mesh::Packet* packet);
   bool cfilterCommand(const char* command, char* reply);
   CompanionFilter _cfilter;
+
+  // Full capture (FullCaptureHook.cpp): RAM only, cleared when no app is connected.
+  void fcCommand(uint8_t flags);
+  void fcSendParts(uint8_t status, float snr, float rssi, const uint8_t raw[], int len);
+  void fcLogRxLong(float snr, float rssi, const uint8_t raw[], int len);
+  void fcLoop();
+  void logRxBad(float snr, float rssi, int16_t err, const uint8_t raw[], int len) override;
+  uint8_t _fc_flags = 0;
+  uint8_t _fc_tag = 0;
+  uint32_t _fc_last_drops = 0;
+  unsigned long _fc_last_notice_ms = 0;
   uint8_t _cfilter_hidden[MAX_HASH_SIZE];
   bool _cfilter_hidden_set = false;
   bool allowPacketForward(const mesh::Packet* packet) override;
