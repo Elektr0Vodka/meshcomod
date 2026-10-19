@@ -2435,9 +2435,37 @@ uint32_t MyMesh::calcDirectTimeoutMillisFor(uint32_t pkt_airtime_millis, uint8_t
 
 void MyMesh::onSendTimeout() {}
 
+static bool repeatFreqOk(uint32_t freq_khz);   // below, next to the frequency table
+
+// Build-time values for the settings table: radio defaults from the board macros and the
+// checks the table cannot do on its own.
+static SettingsBuild makeSettingsBuild() {
+  SettingsBuild b;
+  b.freq = LORA_FREQ;
+  b.bw = LORA_BW;
+  b.sf = LORA_SF;
+  b.cr = LORA_CR;
+  b.tx_power = LORA_TX_POWER;
+  b.max_tx_power = MAX_LORA_TX_POWER;
+#if defined(USE_SX1262) || defined(USE_SX1268)
+#ifdef SX126X_RX_BOOSTED_GAIN
+  b.rx_boost_default = SX126X_RX_BOOSTED_GAIN ? 1 : 0;
+#else
+  b.rx_boost_default = 1; // enabled by default
+#endif
+#else
+  b.rx_boost_default = 0;
+#endif
+  b.name_ok = AdvertDataParser::isValidName;
+  b.repeat_freq_ok = repeatFreqOk;
+  return b;
+}
+
 MyMesh::MyMesh(mesh::Radio &radio, mesh::RNG &rng, mesh::RTCClock &rtc, SimpleMeshTables &tables, DataStore& store, AbstractUITask* ui)
     : BaseChatMesh(radio, *new ArduinoMillis(), rng, rtc, *new StaticPoolPacketManager(16), tables),
-      _serial(NULL), telemetry(MAX_PACKET_PAYLOAD - 4), _store(&store), _ui(ui), _listener(NULL) {
+      _serial(NULL), telemetry(MAX_PACKET_PAYLOAD - 4), _store(&store),
+      _settings(makeSettingsBuild()), _prefs(_settings.editable()), _prefs_store(store),
+      _ui(ui), _listener(NULL) {
   _iter_started = false;
   _contact_send_index = 0;
   _contact_list_reply_target = -1;
@@ -2459,36 +2487,72 @@ MyMesh::MyMesh(mesh::Radio &radio, mesh::RNG &rng, mesh::RTCClock &rtc, SimpleMe
   memset(send_scope.key, 0, sizeof(send_scope.key));
   send_unscoped = false;
 
-  // defaults
-  memset(&_prefs, 0, sizeof(_prefs));
-  _prefs.airtime_factor = 1.0;
-  strcpy(_prefs.node_name, "NONAME");
-  _prefs.freq = LORA_FREQ;
-  _prefs.sf = LORA_SF;
-  _prefs.bw = LORA_BW;
-  _prefs.cr = LORA_CR;
-  _prefs.tx_power_dbm = LORA_TX_POWER;
-  _prefs.cad_enabled = 1;       // hardware CAD before TX on by default
-  _prefs.gps_enabled = 0;       // GPS disabled by default
-  _prefs.gps_interval = 0;      // No automatic GPS updates by default
+  // defaults (from the settings table)
+  _settings.loadDefaults();
   //_prefs.rx_delay_base = 10.0f;  enable once new algo fixed
-#if defined(USE_SX1262) || defined(USE_SX1268)
-#ifdef SX126X_RX_BOOSTED_GAIN
-  _prefs.rx_boosted_gain = SX126X_RX_BOOSTED_GAIN ? 1 : 0;
-#else
-  _prefs.rx_boosted_gain = 1; // enabled by default
-#endif
-#endif
 }
 
 void MyMesh::applyRadioFromPrefs() {
-  radio_driver.setParams(_prefs.freq, _prefs.bw, _prefs.sf, _prefs.cr);
-  radio_driver.setTxPower(_prefs.tx_power_dbm);
+  _settings.applyAll();   // freq/bw/sf/cr, TX power, RX boost (SX126x), CAD
+}
+
+bool MyMesh::supports(Kind kind) const {
+  switch (kind) {
+    case RxBoost:
 #if defined(USE_SX1262) || defined(USE_SX1268)
-  _prefs.rx_boosted_gain = _prefs.rx_boosted_gain ? 1 : 0;
-  radio_driver.setRxBoostedGainMode(_prefs.rx_boosted_gain != 0);
+      return true;
+#else
+      return false;
+#endif
+    case Gps:
+#if ENV_INCLUDE_GPS == 1
+      return true;
+#else
+      return false;
+#endif
+    default:
+      return true;
+  }
+}
+
+bool MyMesh::applyRadio(float freq, float bw, uint8_t sf, uint8_t cr) {
+  radio_driver.setParams(freq, bw, sf, cr);
+  return true;
+}
+
+bool MyMesh::applyTxPower(int8_t dbm) {
+  radio_driver.setTxPower(dbm);
+  return true;
+}
+
+bool MyMesh::applyRxBoost(bool on) {
+#if defined(USE_SX1262) || defined(USE_SX1268)
+  radio_driver.setRxBoostedGainMode(on);
   MESH_DEBUG_PRINTLN("RX Boosted Gain Mode: %s",
                      radio_driver.getRxBoostedGainMode() ? "Enabled" : "Disabled");
+  return true;
+#else
+  (void)on;
+  return false;
+#endif
+}
+
+bool MyMesh::applyCad(bool on) {
+  _radio->setCADEnabled(on);
+  return true;
+}
+
+bool MyMesh::applyGps(bool on, uint32_t interval_s) {
+#if ENV_INCLUDE_GPS == 1
+  char n[12];
+  snprintf(n, sizeof(n), "%lu", (unsigned long)interval_s);
+  bool ok = sensors.setSettingValue("gps", on ? "1" : "0");
+  sensors.setSettingValue("gps_interval", n);
+  return ok;
+#else
+  (void)on;
+  (void)interval_s;
+  return false;
 #endif
 }
 
@@ -2563,6 +2627,8 @@ void MyMesh::begin(bool has_display) {
     _store->saveMainIdentity(self_id);
   }
 
+  _settings.begin(_prefs_store, *this, &sensors.node_lat, &sensors.node_lon);
+
 // if name is provided as a build flag, use that as default node name instead
 #ifdef ADVERT_NAME
   strcpy(_prefs.node_name, ADVERT_NAME);
@@ -2573,24 +2639,9 @@ void MyMesh::begin(bool has_display) {
   strcpy(_prefs.node_name, pub_key_hex);
 #endif
 
-  // load persisted prefs
-  _store->loadPrefs(_prefs, sensors.node_lat, sensors.node_lon);
+  // load persisted prefs; the settings table enforces the boot ranges
+  _settings.load();
   loadCompanionFilter(_cfilter, *_store);   // companion receive filter
-
-  // sanitise bad pref values
-  _prefs.rx_delay_base = constrain(_prefs.rx_delay_base, 0, 20.0f);
-  _prefs.airtime_factor = constrain(_prefs.airtime_factor, 0, 9.0f);
-  _prefs.freq = constrain(_prefs.freq, 400.0f, 2500.0f);
-  _prefs.bw = constrain(_prefs.bw, 7.8f, 500.0f);
-  _prefs.sf = constrain(_prefs.sf, 5, 12);
-  _prefs.cr = constrain(_prefs.cr, 5, 8);
-  _prefs.tx_power_dbm = constrain(_prefs.tx_power_dbm, -9, MAX_LORA_TX_POWER);
-  _prefs.gps_enabled = constrain(_prefs.gps_enabled, 0, 1);  // Ensure boolean 0 or 1
-  _prefs.gps_interval = constrain(_prefs.gps_interval, 0, 86400);  // Max 24 hours
-  _prefs.path_hash_mode = constrain(_prefs.path_hash_mode, 0, 2);
-  if (_prefs.autoadd_max_hops > 64) {
-    _prefs.autoadd_max_hops = 64;
-  }
 
 #ifdef BLE_PIN_CODE // 123456 by default
   if (_prefs.ble_pin == 0) {
@@ -2671,12 +2722,16 @@ static FreqRange repeat_freq_ranges[] = {
   #endif
 };
 
-bool MyMesh::isValidClientRepeatFreq(uint32_t f) const {
+static bool repeatFreqOk(uint32_t f) {
   for (int i = 0; i < sizeof(repeat_freq_ranges)/sizeof(repeat_freq_ranges[0]); i++) {
     auto r = &repeat_freq_ranges[i];
     if (f >= r->lower_freq && f <= r->upper_freq) return true;
   }
   return false;
+}
+
+bool MyMesh::isValidClientRepeatFreq(uint32_t f) const {
+  return repeatFreqOk(f);
 }
 
 void MyMesh::startInterface(BaseSerialInterface &serial) {

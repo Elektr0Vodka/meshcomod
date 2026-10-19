@@ -33,6 +33,8 @@
 #include "FullCapture.h"
 #include "DataStore.h"
 #include "NodePrefs.h"
+#include "CompanionSettings.h"
+#include "DataStorePrefsStore.h"
 
 /* Synthetic local command contact: appears in contact list, messages to it are intercepted and never sent over mesh. */
 #define MESHCOMOD_NAME "Meshcomod"
@@ -109,7 +111,7 @@ struct AdvertPath {
   uint8_t path[MAX_PATH_SIZE];
 };
 
-class MyMesh : public BaseChatMesh, public DataStoreHost {
+class MyMesh : public BaseChatMesh, public DataStoreHost, public SettingsApplier {
 public:
   class Listener {
     public:
@@ -574,7 +576,7 @@ public:
 private:
 
 public:
-  void savePrefs() { _store->savePrefs(_prefs, sensors.node_lat, sensors.node_lon); }
+  void savePrefs() { _settings.save(); }
 
   // Set the default flood scope (region) used to tag outgoing flood packets, so
   // repeaters on region-scoped networks ("flood only for their region") will
@@ -593,6 +595,16 @@ public:
   // the live radio — the same calls begin() makes at boot. Lets the UI change
   // region / radio params and have them take effect immediately, no reboot.
   void applyRadioFromPrefs();
+  CompanionSettings& settings() { return _settings; }
+
+  // SettingsApplier: how CompanionSettings puts a changed setting into effect.
+  bool supports(Kind kind) const override;
+  bool applyRadio(float freq, float bw, uint8_t sf, uint8_t cr) override;
+  bool applyTxPower(int8_t dbm) override;
+  bool applyRxBoost(bool on) override;
+  bool applyCad(bool on) override;
+  bool applyGps(bool on, uint32_t interval_s) override;
+  void onChanged(SettingId id) override { (void)id; }
 
   /** Find the first unused channel slot, or -1 if the table is full. A slot
    *  is considered free when its name is empty (matches getNumChannels). */
@@ -767,7 +779,9 @@ private:
   void saveContacts();
 
   DataStore* _store;
-  NodePrefs _prefs;
+  CompanionSettings _settings;   // owns the prefs; declared before _prefs, which refers into it
+  NodePrefs& _prefs;             // existing reads and not-yet-migrated writers use this name
+  DataStorePrefsStore _prefs_store;
   uint32_t pending_login;
   uint32_t pending_status;
   uint32_t pending_telemetry, pending_discovery;   // pending _TELEMETRY_REQ
