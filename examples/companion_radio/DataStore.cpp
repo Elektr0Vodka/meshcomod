@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <string.h>
 #include "DataStore.h"
+#include "PrefsCodec.h"
 #if defined(ESP32)
 #include <SD.h>
 #endif
@@ -215,140 +216,41 @@ void DataStore::loadPrefs(NodePrefs& prefs, double& node_lat, double& node_lon) 
 
 namespace {
 
-void default_rx_boosted_gain_pref(uint8_t& out) {
+uint8_t default_rx_boosted_gain_pref() {
 #if defined(USE_SX1262) || defined(USE_SX1268) || defined(SX126X_RX_BOOSTED_GAIN)
   #ifdef SX126X_RX_BOOSTED_GAIN
-  out = (SX126X_RX_BOOSTED_GAIN != 0) ? 1 : 0;
+  return (SX126X_RX_BOOSTED_GAIN != 0) ? 1 : 0;
   #else
-  out = 1;
+  return 1;
   #endif
 #else
-  out = 0;
+  return 0;
 #endif
-}
-
-// After multi_acks (byte offset 78): upstream meshcore-dev layout is 15 bytes tail; legacy Meshcomod
-// used 13 bytes (path_hash, autoadd_max, ble_pin..autoadd without reserved pad or trailing rx_boost).
-void load_prefs_tail_meshcomod_legacy(NodePrefs& p, const uint8_t* tail) {
-  p.path_hash_mode = tail[0];
-  p.autoadd_max_hops = tail[1];
-  memcpy(&p.ble_pin, tail + 2, 4);
-  p.buzzer_quiet = tail[6];
-  p.gps_enabled = tail[7];
-  memcpy(&p.gps_interval, tail + 8, 4);
-  p.autoadd_config = tail[12];
-  default_rx_boosted_gain_pref(p.rx_boosted_gain);
-}
-
-void load_prefs_tail_upstream(NodePrefs& p, const uint8_t* tail, size_t n) {
-  p.path_hash_mode = tail[0];
-  // tail[1] reserved
-  memcpy(&p.ble_pin, tail + 2, 4);
-  p.buzzer_quiet = tail[6];
-  p.gps_enabled = tail[7];
-  memcpy(&p.gps_interval, tail + 8, 4);
-  p.autoadd_config = tail[12];
-  p.autoadd_max_hops = tail[13];
-  if (n >= 15) {
-    p.rx_boosted_gain = tail[14] ? 1 : 0;
-  } else {
-    default_rx_boosted_gain_pref(p.rx_boosted_gain);
-  }
 }
 
 }  // namespace
 
+// The byte layout and its legacy variants live in PrefsCodec; this only does the file I/O.
 void DataStore::loadPrefsInt(const char *filename, NodePrefs& _prefs, double& node_lat, double& node_lon) {
   File file = openRead(_fs, filename);
   if (file) {
-    uint8_t pad[8];
-
-    file.read((uint8_t *)&_prefs.airtime_factor, sizeof(float));                           // 0
-    file.read((uint8_t *)_prefs.node_name, sizeof(_prefs.node_name));                      // 4
-    file.read(pad, 4);                                                                     // 36
-    file.read((uint8_t *)&node_lat, sizeof(node_lat));                                     // 40
-    file.read((uint8_t *)&node_lon, sizeof(node_lon));                                     // 48
-    file.read((uint8_t *)&_prefs.freq, sizeof(_prefs.freq));                               // 56
-    file.read((uint8_t *)&_prefs.sf, sizeof(_prefs.sf));                                   // 60
-    file.read((uint8_t *)&_prefs.cr, sizeof(_prefs.cr));                                   // 61
-    file.read((uint8_t *)&_prefs.client_repeat, sizeof(_prefs.client_repeat));             // 62
-    file.read((uint8_t *)&_prefs.manual_add_contacts, sizeof(_prefs.manual_add_contacts)); // 63
-    file.read((uint8_t *)&_prefs.bw, sizeof(_prefs.bw));                                   // 64
-    file.read((uint8_t *)&_prefs.tx_power_dbm, sizeof(_prefs.tx_power_dbm));               // 68
-    file.read((uint8_t *)&_prefs.telemetry_mode_base, sizeof(_prefs.telemetry_mode_base)); // 69
-    file.read((uint8_t *)&_prefs.telemetry_mode_loc, sizeof(_prefs.telemetry_mode_loc));   // 70
-    file.read((uint8_t *)&_prefs.telemetry_mode_env, sizeof(_prefs.telemetry_mode_env));   // 71
-    file.read((uint8_t *)&_prefs.rx_delay_base, sizeof(_prefs.rx_delay_base));             // 72
-    file.read((uint8_t *)&_prefs.advert_loc_policy, sizeof(_prefs.advert_loc_policy));     // 76
-    file.read((uint8_t *)&_prefs.multi_acks, sizeof(_prefs.multi_acks));                   // 77
-    uint8_t tail[15];
-    size_t n = file.read(tail, sizeof(tail));
-    bool migrated_legacy = false;
-    if (n == 13) {
-      load_prefs_tail_meshcomod_legacy(_prefs, tail);
-      migrated_legacy = true;
-    } else if (n >= 14) {
-      load_prefs_tail_upstream(_prefs, tail, n);
-    }
-    memset(_prefs.default_scope_name, 0, sizeof(_prefs.default_scope_name));
-    memset(_prefs.default_scope_key, 0, sizeof(_prefs.default_scope_key));
-    file.read((uint8_t *)_prefs.default_scope_name, sizeof(_prefs.default_scope_name));    // 90
-    file.read((uint8_t *)_prefs.default_scope_key, sizeof(_prefs.default_scope_key));      // 121
-    _prefs.cad_enabled = 1; // default on; prefs files written before this field lack it
-    uint8_t cad_byte;
-    if (file.read(&cad_byte, sizeof(cad_byte)) == sizeof(cad_byte)) {                      // 141 appended
-      _prefs.cad_enabled = cad_byte ? 1 : 0;
-    }
-
+    uint8_t buf[PREFS_FILE_MAX];
+    size_t n = file.read(buf, sizeof(buf));
     file.close();
 
-    if (migrated_legacy) {
+    PrefsDecodeResult r = decodePrefs(buf, n, _prefs, node_lat, node_lon, default_rx_boosted_gain_pref());
+    if (r.needs_resave) {
       savePrefs(_prefs, node_lat, node_lon);
     }
   }
 }
 
 void DataStore::savePrefs(const NodePrefs& _prefs, double node_lat, double node_lon) {
+  uint8_t buf[PREFS_FILE_SIZE];
+  size_t n = encodePrefs(_prefs, node_lat, node_lon, buf, sizeof(buf));
   File file = openWrite(_fs, "/new_prefs");
   if (file) {
-    uint8_t pad[8];
-    memset(pad, 0, sizeof(pad));
-
-    file.write((uint8_t *)&_prefs.airtime_factor, sizeof(float));                           // 0
-    file.write((uint8_t *)_prefs.node_name, sizeof(_prefs.node_name));                      // 4
-    file.write(pad, 4);                                                                     // 36
-    file.write((uint8_t *)&node_lat, sizeof(node_lat));                                     // 40
-    file.write((uint8_t *)&node_lon, sizeof(node_lon));                                     // 48
-    file.write((uint8_t *)&_prefs.freq, sizeof(_prefs.freq));                               // 56
-    file.write((uint8_t *)&_prefs.sf, sizeof(_prefs.sf));                                   // 60
-    file.write((uint8_t *)&_prefs.cr, sizeof(_prefs.cr));                                   // 61
-    file.write((uint8_t *)&_prefs.client_repeat, sizeof(_prefs.client_repeat));             // 62
-    file.write((uint8_t *)&_prefs.manual_add_contacts, sizeof(_prefs.manual_add_contacts)); // 63
-    file.write((uint8_t *)&_prefs.bw, sizeof(_prefs.bw));                                   // 64
-    file.write((uint8_t *)&_prefs.tx_power_dbm, sizeof(_prefs.tx_power_dbm));               // 68
-    file.write((uint8_t *)&_prefs.telemetry_mode_base, sizeof(_prefs.telemetry_mode_base)); // 69
-    file.write((uint8_t *)&_prefs.telemetry_mode_loc, sizeof(_prefs.telemetry_mode_loc));   // 70
-    file.write((uint8_t *)&_prefs.telemetry_mode_env, sizeof(_prefs.telemetry_mode_env));   // 71
-    file.write((uint8_t *)&_prefs.rx_delay_base, sizeof(_prefs.rx_delay_base));             // 72
-    file.write((uint8_t *)&_prefs.advert_loc_policy, sizeof(_prefs.advert_loc_policy));     // 76
-    file.write((uint8_t *)&_prefs.multi_acks, sizeof(_prefs.multi_acks));                   // 77
-    file.write((uint8_t *)&_prefs.path_hash_mode, sizeof(_prefs.path_hash_mode));            // 78
-    file.write(pad, 1);                                                                     // 79 reserved (upstream layout)
-    file.write((uint8_t *)&_prefs.ble_pin, sizeof(_prefs.ble_pin));                         // 80
-    file.write((uint8_t *)&_prefs.buzzer_quiet, sizeof(_prefs.buzzer_quiet));               // 84
-    file.write((uint8_t *)&_prefs.gps_enabled, sizeof(_prefs.gps_enabled));                 // 85
-    // gps_interval (4B) — was MISSING here; the loader (load_prefs_tail_*) reads
-    // it at tail[8..11], so omitting it shifted autoadd_config/max_hops/rx_boost
-    // and the scope fields by 4 bytes on every load (auto-add types read garbage
-    // -> appeared to reset on reboot). Writing it realigns save with load.
-    file.write((uint8_t *)&_prefs.gps_interval, sizeof(_prefs.gps_interval));               // 86
-    file.write((uint8_t *)&_prefs.autoadd_config, sizeof(_prefs.autoadd_config));           // 90
-    file.write((uint8_t *)&_prefs.autoadd_max_hops, sizeof(_prefs.autoadd_max_hops));       // 91
-    file.write((uint8_t *)&_prefs.rx_boosted_gain, sizeof(_prefs.rx_boosted_gain));         // 92
-    file.write((uint8_t *)_prefs.default_scope_name, sizeof(_prefs.default_scope_name));    // 93
-    file.write((uint8_t *)_prefs.default_scope_key, sizeof(_prefs.default_scope_key));      // 125
-    file.write((uint8_t *)&_prefs.cad_enabled, sizeof(_prefs.cad_enabled));                 // 141 hardware CAD toggle (appended)
-
+    file.write(buf, n);
     file.close();
   }
 }
