@@ -25,11 +25,14 @@ Newest first. Each entry names the PR that landed it.
 
 ### CI and build
 
+- **Companion releases build without debug logging** (#26): the companion release workflow now sets `DISABLE_DEBUG=1`, as the repeater release already did. Before, released envs that enable `BLE_DEBUG_LOGGING` or `MESH_DEBUG` in their ini (several nRF52 BLE boards, e.g. the Wio Tracker L1) shipped with it on. The Wio Tracker L1 BLE build drops about 2.4 KB of flash.
+- **PR build check builds through `build.sh`** (#26): it now runs `build.sh build-firmware` with `DISABLE_DEBUG=1`, like the release, instead of plain `pio run`, so the flags `build.sh` adds (the manifest OTA code via `OTA_VARIANT`, the debug-flag removal) compile on every PR. Changes to `build.sh` and `scripts/` now trigger the check.
 - **PR build check covers classic ESP32** (#21): `Heltec_v2_companion_radio_ble` joins the PR matrix so companion code that only builds on the S3, like the `bootloader` register write fixed in #17, is caught before merge.
 - **PR build check covers nRF52** (#14): `WioTrackerL1_companion_radio_ble` joins the PR matrix so fork companion code that only builds on ESP32 is caught.
 
 ### Docs
 
+- **README lists the ThinkNode M7** (#26): its BLE and Ethernet companions were in the release list but missing from the device table. The nRF52 board count in the README and `CI_RELEASES.md` is now 17 (T-Echo Lite with and without shell are separate builds).
 - **Docs match the release flow**: `AGENTS.md` gains a "Releases in this fork" section (CI tags, PR-only changes to `main`, changelog per PR) and marks the `prebuilt/` flow as upstream legacy. `RELEASE_PROCEDURE.md`, `REPEATER_RELEASE_PROCEDURE.md` and `prebuilt/README.md` say the same at the top. The docs site home links the fork docs, and `CI_RELEASES.md` names the nRF52 `.uf2` / `.zip` assets.
 - **Docs follow the new boards** (#19): README notes for flashing and building nRF52 boards, CAD toggle board examples, PR tags on changelog entries.
 - **Fork changelog** (#11): this file, `changelog_ev.md`.
