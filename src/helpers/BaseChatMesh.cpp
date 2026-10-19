@@ -682,6 +682,7 @@ bool BaseChatMesh::sendGroupMessage(uint32_t timestamp, mesh::GroupChannel& chan
   char *ep = strchr((char *) &temp[5], 0);
   int prefix_len = ep - (char *) &temp[5];
 
+  if (text_len < 0) return false;
   if (text_len + prefix_len > MAX_TEXT_LEN) text_len = MAX_TEXT_LEN - prefix_len;
   memcpy(ep, text, text_len);
   ep[text_len] = 0;  // C-string terminator in the buffer (NOT transmitted — payload_len excludes it)

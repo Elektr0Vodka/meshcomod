@@ -2720,6 +2720,29 @@ void MyMesh::startInterface(BaseSerialInterface &serial) {
 }
 
 void MyMesh::handleCmdFrame(size_t len) {
+  // Minimum frame length for commands whose branch below reads fixed payload bytes without
+  // checking len. cmd_frame is reused between frames, so a short frame would act on bytes left
+  // over from the previous one (or, for channel text, hand a negative length to memcpy).
+  static const struct { uint8_t cmd; uint8_t min_len; } min_frame_len[] = {
+    { CMD_SEND_CHANNEL_TXT_MSG, 1 + 1 + 1 + 4 },  // txt_type, channel_idx, timestamp
+    { CMD_REMOVE_CONTACT, 1 + PUB_KEY_SIZE },
+    { CMD_SHARE_CONTACT, 1 + PUB_KEY_SIZE },
+    { CMD_GET_CONTACT_BY_KEY, 1 + PUB_KEY_SIZE },
+    { CMD_SET_RADIO_PARAMS, 1 + 4 + 4 + 1 + 1 },  // freq, bw, sf, cr
+    { CMD_SET_RADIO_TX_POWER, 2 },
+    { CMD_SET_TUNING_PARAMS, 1 + 4 + 4 },         // rx_delay_base, airtime_factor
+    { CMD_SET_OTHER_PARAMS, 2 },
+    { CMD_SET_AUTOADD_CONFIG, 2 },
+    { CMD_REBOOT, 1 + 6 },                        // "reboot"
+    { CMD_FACTORY_RESET, 1 + 5 },                 // "reset"
+  };
+  for (const auto& m : min_frame_len) {
+    if (cmd_frame[0] == m.cmd && len < m.min_len) {
+      writeErrFrame(ERR_CODE_ILLEGAL_ARG);
+      return;
+    }
+  }
+
   if (cmd_frame[0] == CMD_DEVICE_QUERY && len >= 2) { // sent when app establishes connection
     app_target_ver = cmd_frame[1];                    // which version of protocol does app understand
     char client_id[MAX_CLIENT_ID_LEN + 1];
@@ -3350,10 +3373,10 @@ void MyMesh::handleCmdFrame(size_t len) {
     _prefs.rx_delay_base = ((float)rx) / 1000.0f;
     _prefs.airtime_factor = ((float)af) / 1000.0f;
     if (len >= 10) { // optional trailing byte: hardware CAD on/off (newer apps)
-      _prefs.cad_enabled = cmd_frame[i] ? 1 : 0;
-      _radio->setCADEnabled(_prefs.cad_enabled); // apply live, no reboot needed
+      setCADEnabled(cmd_frame[i] != 0); // applies live and saves all prefs
+    } else {
+      savePrefs();
     }
-    savePrefs();
     writeOKFrame();
   } else if (cmd_frame[0] == CMD_GET_TUNING_PARAMS) {
     uint32_t rx = _prefs.rx_delay_base * 1000, af = _prefs.airtime_factor * 1000;
@@ -4315,9 +4338,20 @@ bool MyMesh::handleRadioCommand(const char* command, char* reply) {
     return true;
   }
 
-  // No field in meshcomod's prefs (CAD and interference threshold are fixed off in the companion).
+  // Same syntax and replies as the server roles (CommonRadioPrefs).
+  if (strcmp(command, "get cad") == 0) {
+    sprintf(reply, "> %s", getCADEnabled() ? "on" : "off");
+    return true;
+  }
+  if (memcmp(command, "set cad ", 8) == 0) {
+    setCADEnabled(memcmp(&command[8], "on", 2) == 0);  // applies live and saves
+    strcpy(reply, "OK");
+    return true;
+  }
+
+  // No field in meshcomod's prefs (interference threshold is fixed off in the companion).
   static const char* const unsupported[] = {
-    "cad", "int.thresh", "agc.reset.interval", "txdelay", "direct.txdelay"
+    "int.thresh", "agc.reset.interval", "txdelay", "direct.txdelay"
   };
   for (const char* name : unsupported) {
     size_t n = strlen(name);

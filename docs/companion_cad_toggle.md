@@ -16,6 +16,13 @@ Use the tuning-params frames documented in
 `CMD_GET_TUNING_PARAMS` returns it. The change applies live (no reboot) and
 persists. Both additions are backward compatible, so older apps keep working.
 
+## Change it from the CLI
+
+`get cad` replies `> on` or `> off`, and `set cad on` / `set cad off` applies the
+change live and persists it, with the same syntax as the repeater and room
+server CLI. Use it from the app's command line (`CMD_RUN_CLI_COMMAND`), USB
+serial, or a remote admin session.
+
 ## Change it on the device
 
 The on-device control depends on the UI the board uses:

@@ -270,16 +270,17 @@ size_t WebSocketCompanionServer::pollRecvFrame(uint8_t dest[], int* client_index
         continue;
       }
       if (c->ws_state == WS_STATE_LEN_EXT) {
+        // RFC 6455 extended payload lengths are in network byte order (big-endian).
         if (c->ws_payload_len == 126) {
           if (cl->available() < 2) break;
-          uint8_t lo = (uint8_t)cl->read();
           uint8_t hi = (uint8_t)cl->read();
-          c->ws_payload_len = (uint16_t)lo | ((uint16_t)hi << 8);
+          uint8_t lo = (uint8_t)cl->read();
+          c->ws_payload_len = ((uint16_t)hi << 8) | (uint16_t)lo;
         } else {
           if (cl->available() < 8) break;
           c->ws_payload_len = 0;
           for (int i = 0; i < 8; i++)
-            c->ws_payload_len |= (uint64_t)(uint8_t)cl->read() << (i * 8);
+            c->ws_payload_len = (c->ws_payload_len << 8) | (uint8_t)cl->read();
         }
         c->ws_state = WS_STATE_MASK;
         continue;
