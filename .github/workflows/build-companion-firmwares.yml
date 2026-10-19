@@ -79,7 +79,7 @@ jobs:
           echo "release_tag=${RELEASE_TAG}" >> "$GITHUB_OUTPUT"
           echo "prerelease=${PRERELEASE}" >> "$GITHUB_OUTPUT"
 
-      # The env list lives in build.sh (MESHCOMOD_COMPANION_ENVS), so adding a board
+      # The env list lives in companion_boards.ini (read by build.sh), so adding a board
       # there is enough to build and release it. NOT build-companion-firmwares,
       # which is the entire upstream MeshCore family (60+ envs, wrong variants).
       - name: List Firmwares

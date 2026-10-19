@@ -14,7 +14,7 @@ releases on that track (keeping the newest 5).
 
 | Track | Tag prefix | Example tag | Workflow | Builds |
 |-------|-----------|-------------|----------|--------|
-| Companion | `companion-` | `companion-v1.16.0.1` | build-companion-firmwares | the envs in `MESHCOMOD_COMPANION_ENVS` in `build.sh` (V4, V3, Wireless Paper, Xiao, V4 R8, V4 R8 TFT, V4 TFT, Wireless Stick Lite V3, Wireless Tracker, Wireless Tracker V2, E213, Xiao S3, RAK3112, T-ETH Elite, T-Beam S3 Supreme, E290, T190, RC32, T-Beam 1W, Meshnology W12, Station G2, Station G3 and ThinkNode M9 `_usb_tcp`, ThinkNode M7 BLE and Ethernet, BLE and USB for 17 nRF52840 boards: Wio Tracker L1, T-Echo, T-Echo Card, T-Echo Lite with and without shell, RAK4631, RAK3401, T1000-E, Heltec T114, T1, T096 and MeshPocket, ThinkNode M1 and M8, Nano G2 Ultra, Pro Micro and Keepteen LT1) |
+| Companion | `companion-` | `companion-v1.16.0.1` | build-companion-firmwares | the envs in [`companion_boards.ini`](../companion_boards.ini), one row per board in the README device table: the ESP32-S3 `_usb_tcp` boards, ThinkNode M7 BLE and Ethernet, and BLE and USB for the nRF52840 boards |
 | Room server | `room-server-` | `room-server-v1.16.0.1` | build-room-server-firmwares | `*_room_server` |
 | Repeater | — | (manual `workflow_dispatch`) | build-repeater-firmwares | `*_repeater_tcp` |
 
@@ -33,8 +33,11 @@ tag.
 
 The companion workflow builds each board on its own runner, in parallel. A
 `prepare` job resolves the version once and reads the board list from
-`build.sh get-meshcomod-companion-firmwares-to-build`, so adding an env to
-`MESHCOMOD_COMPANION_ENVS` is all it takes to build and release it. PlatformIO
+`build.sh get-meshcomod-companion-firmwares-to-build`, which reads
+`companion_boards.ini`, so adding a board section there is all it takes to build
+and release it. The PR build check takes its matrix from the same file (each
+board's `pr_check` envs plus `[ci] pr_check_extra`), and the Companion Boards
+Check workflow fails when the README device table no longer matches it. PlatformIO
 toolchains are cached per `platformio.ini`, and each board's libraries per
 board. The release is only published when every board built; a failed board
 shows in the run and blocks the release instead of shipping without it.

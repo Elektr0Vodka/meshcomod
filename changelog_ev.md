@@ -25,6 +25,8 @@ Newest first. Each entry names the PR that landed it.
 
 ### CI and build
 
+- **One board list: `companion_boards.ini`** (#27): the released companion boards now live in one fork-owned file, one section per board (name, MCU, display, envs, status, PR-check envs). `scripts/companion_boards.py` derives the `build.sh` release list, the PR build matrix and the README device table from it, and a new Companion Boards Check workflow fails when the README table is stale, an env is listed twice or has no `[env:...]` section. Adding a board is now one ini section plus `python3 scripts/companion_boards.py readme --write`. The env list and PR matrix are unchanged by the move (same 59 release envs in the same order, same 5 PR envs).
+
 - **Companion releases build without debug logging** (#26): the companion release workflow now sets `DISABLE_DEBUG=1`, as the repeater release already did. Before, released envs that enable `BLE_DEBUG_LOGGING` or `MESH_DEBUG` in their ini (several nRF52 BLE boards, e.g. the Wio Tracker L1) shipped with it on. The Wio Tracker L1 BLE build drops about 2.4 KB of flash.
 - **PR build check builds through `build.sh`** (#26): it now runs `build.sh build-firmware` with `DISABLE_DEBUG=1`, like the release, instead of plain `pio run`, so the flags `build.sh` adds (the manifest OTA code via `OTA_VARIANT`, the debug-flag removal) compile on every PR. Changes to `build.sh` and `scripts/` now trigger the check.
 - **PR build check covers classic ESP32** (#21): `Heltec_v2_companion_radio_ble` joins the PR matrix so companion code that only builds on the S3, like the `bootloader` register write fixed in #17, is caught before merge.

@@ -1,0 +1,35 @@
+name: Companion Boards Check
+
+# companion_boards.ini is the one list of released companion boards. This fails when
+# the README device table no longer matches it, an env is listed twice, or a listed
+# env has no [env:...] section.
+
+on:
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - 'companion_boards.ini'
+      - 'README.md'
+      - 'scripts/companion_boards.py'
+      - 'variants/**'
+      - 'platformio.ini'
+      - '.github/workflows/companion-boards.yml'
+  push:
+    branches: [main, dev]
+    paths:
+      - 'companion_boards.ini'
+      - 'README.md'
+      - 'scripts/companion_boards.py'
+      - 'variants/**'
+      - 'platformio.ini'
+      - '.github/workflows/companion-boards.yml'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone Repo
+        uses: actions/checkout@v4
+
+      - name: Check companion_boards.ini against README and variants
+        run: python3 scripts/companion_boards.py check
