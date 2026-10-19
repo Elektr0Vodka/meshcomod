@@ -684,6 +684,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#change-it-from-the-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Change it from the CLI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#change-it-on-the-device" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1331,6 +1342,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#change-it-from-the-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Change it from the CLI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#change-it-on-the-device" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1403,6 +1425,11 @@ compile, but their on-device CAD controls have not been tested on hardware.</p>
 <code>CMD_SET_TUNING_PARAMS</code> carries an optional trailing CAD byte, and
 <code>CMD_GET_TUNING_PARAMS</code> returns it. The change applies live (no reboot) and
 persists. Both additions are backward compatible, so older apps keep working.</p>
+<h2 id="change-it-from-the-cli">Change it from the CLI</h2>
+<p><code>get cad</code> replies <code>&gt; on</code> or <code>&gt; off</code>, and <code>set cad on</code> / <code>set cad off</code> applies the
+change live and persists it, with the same syntax as the repeater and room
+server CLI. Use it from the app's command line (<code>CMD_RUN_CLI_COMMAND</code>), USB
+serial, or a remote admin session.</p>
 <h2 id="change-it-on-the-device">Change it on the device</h2>
 <p>The on-device control depends on the UI the board uses:</p>
 <table>
