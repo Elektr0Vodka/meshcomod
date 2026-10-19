@@ -8,6 +8,8 @@ on:
       - 'examples/**'
       - 'variants/**'
       - 'platformio.ini'
+      - 'build.sh'
+      - 'scripts/**'
       - '.github/workflows/pr-build-check.yml'
   push:
     branches: [main, dev]
@@ -16,6 +18,8 @@ on:
       - 'examples/**'
       - 'variants/**'
       - 'platformio.ini'
+      - 'build.sh'
+      - 'scripts/**'
       - '.github/workflows/pr-build-check.yml'
 
 jobs:
@@ -41,5 +45,10 @@ jobs:
       - name: Setup Build Environment
         uses: ./.github/actions/setup-build-environment
 
+      # Build through build.sh with the same flags as the release workflow, so the
+      # flags it adds (OTA_VARIANT and the manifest OTA code, DISABLE_DEBUG) compile on PRs too.
       - name: Build ${{ matrix.environment }}
-        run: pio run -e ${{ matrix.environment }}
+        env:
+          FIRMWARE_VERSION: v0.0.0.0-pr
+          DISABLE_DEBUG: '1'
+        run: /usr/bin/env bash build.sh build-firmware ${{ matrix.environment }}

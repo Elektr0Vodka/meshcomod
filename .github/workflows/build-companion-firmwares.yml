@@ -135,6 +135,9 @@ jobs:
       - name: Build ${{ matrix.env }}
         env:
           FIRMWARE_VERSION: ${{ needs.prepare.outputs.version }}
+          # Strip debug logging (MESH_DEBUG, BLE_DEBUG_LOGGING, ...) that some envs
+          # enable, like the repeater release does. See disable_debug_flags in build.sh.
+          DISABLE_DEBUG: '1'
         run: /usr/bin/env bash build.sh build-firmware ${{ matrix.env }}
 
       - name: Upload Firmware
