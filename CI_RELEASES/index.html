@@ -1436,7 +1436,7 @@ releases on that track (keeping the newest 5).</p>
 <td><code>companion-</code></td>
 <td><code>companion-v1.16.0.1</code></td>
 <td>build-companion-firmwares</td>
-<td>the envs in <code>MESHCOMOD_COMPANION_ENVS</code> in <code>build.sh</code> (V4, V3, Wireless Paper, Xiao, V4 R8, V4 R8 TFT, V4 TFT, Wireless Stick Lite V3, Wireless Tracker, Wireless Tracker V2, E213, Xiao S3, RAK3112, T-ETH Elite, T-Beam S3 Supreme, E290, T190, RC32, T-Beam 1W, Meshnology W12, Station G2, Station G3 and ThinkNode M9 <code>_usb_tcp</code>, ThinkNode M7 BLE and Ethernet, BLE and USB for 17 nRF52840 boards: Wio Tracker L1, T-Echo, T-Echo Card, T-Echo Lite with and without shell, RAK4631, RAK3401, T1000-E, Heltec T114, T1, T096 and MeshPocket, ThinkNode M1 and M8, Nano G2 Ultra, Pro Micro and Keepteen LT1)</td>
+<td>the envs in <a href="../companion_boards.ini"><code>companion_boards.ini</code></a>, one row per board in the README device table: the ESP32-S3 <code>_usb_tcp</code> boards, ThinkNode M7 BLE and Ethernet, and BLE and USB for the nRF52840 boards</td>
 </tr>
 <tr>
 <td>Room server</td>
@@ -1467,8 +1467,11 @@ git push origin companion-v1.16.0.1
 tag.</p>
 <p>The companion workflow builds each board on its own runner, in parallel. A
 <code>prepare</code> job resolves the version once and reads the board list from
-<code>build.sh get-meshcomod-companion-firmwares-to-build</code>, so adding an env to
-<code>MESHCOMOD_COMPANION_ENVS</code> is all it takes to build and release it. PlatformIO
+<code>build.sh get-meshcomod-companion-firmwares-to-build</code>, which reads
+<code>companion_boards.ini</code>, so adding a board section there is all it takes to build
+and release it. The PR build check takes its matrix from the same file (each
+board's <code>pr_check</code> envs plus <code>[ci] pr_check_extra</code>), and the Companion Boards
+Check workflow fails when the README device table no longer matches it. PlatformIO
 toolchains are cached per <code>platformio.ini</code>, and each board's libraries per
 board. The release is only published when every board built; a failed board
 shows in the run and blocks the release instead of shipping without it.</p>
