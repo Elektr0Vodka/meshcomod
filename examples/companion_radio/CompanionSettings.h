@@ -74,7 +74,15 @@ public:
   SetResult setScope(const char* name, const uint8_t key[16]);
   Edit edit() { return Edit(*this); }
 
+  // Text front end for the CLIs: "set <key> <value>" and "get <key>". Both return false,
+  // leaving reply untouched, when the key is unknown or not a CLI setting. Otherwise reply
+  // holds the text to send back ("OK", "> 20", "Error, must be -9 to 20" ...).
+  bool setByKey(const char* key, const char* value, Origin origin, char* reply, size_t reply_len);
+  bool getByKey(const char* key, char* reply, size_t reply_len) const;
+
 private:
+  void formatValue(const SettingInfo& s, char* out, size_t len) const;
+
   SettingsBuild _b;
   NodePrefs _p;
   PrefsStore* _store;

@@ -1,7 +1,11 @@
 #include "CompanionSettings.h"
 
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+
+#include <helpers/TxtDataHelpers.h>
 
 namespace {
 
@@ -287,4 +291,124 @@ SetResult CompanionSettings::Edit::commit(Origin origin) {
 
   if (clamped) return {SetResult::Clamped};
   return {reboot ? SetResult::OkReboot : SetResult::Ok};
+}
+
+// ---- Text front end ----
+
+namespace {
+
+// Copies value without surrounding spaces, tabs, CR or LF. False when it does not fit.
+bool trimmed(const char* value, char* out, size_t len) {
+  const char* a = value ? value : "";
+  while (*a == ' ' || *a == '\t' || *a == '\r' || *a == '\n') a++;
+  size_t n = strlen(a);
+  while (n && (a[n - 1] == ' ' || a[n - 1] == '\t' || a[n - 1] == '\r' || a[n - 1] == '\n')) n--;
+  if (n >= len) return false;
+  memcpy(out, a, n);
+  out[n] = 0;
+  return true;
+}
+
+bool parseLong(const char* s, long& v) {
+  if (!*s) return false;
+  char* end;
+  v = strtol(s, &end, 10);
+  return *end == 0;
+}
+
+bool parseDouble(const char* s, double& v) {
+  if (!*s) return false;
+  char* end;
+  v = strtod(s, &end);
+  return *end == 0;
+}
+
+void formatNumber(const SettingInfo& s, double v, char* out, size_t len) {
+  if (s.type == SettingType::Float || s.type == SettingType::Double) snprintf(out, len, "%s", StrHelper::ftoa((float)v));
+  else snprintf(out, len, "%ld", (long)v);
+}
+
+}  // namespace
+
+void CompanionSettings::formatValue(const SettingInfo& s, char* out, size_t len) const {
+  switch (s.type) {
+    case SettingType::Bool: snprintf(out, len, "%s", readField(_p, s) != 0 ? "on" : "off"); break;
+    case SettingType::Text: snprintf(out, len, "%s", _p.node_name); break;
+    case SettingType::Scope: snprintf(out, len, "%s", _p.default_scope_name); break;
+    case SettingType::Double: formatNumber(s, s.id == SettingId::Lat ? *_lat : *_lon, out, len); break;
+    default: formatNumber(s, readField(_p, s), out, len); break;
+  }
+}
+
+bool CompanionSettings::getByKey(const char* key, char* reply, size_t reply_len) const {
+  const SettingInfo* s = findSettingByKey(key);
+  if (!s) return false;
+  char v[40];
+  formatValue(*s, v, sizeof(v));
+  snprintf(reply, reply_len, "> %s", v);
+  return true;
+}
+
+bool CompanionSettings::setByKey(const char* key, const char* value, Origin origin, char* reply, size_t reply_len) {
+  const SettingInfo* s = findSettingByKey(key);
+  if (!s) return false;
+
+  char v[40];
+  SetResult r = {SetResult::BadValue};
+  bool parsed = trimmed(value, v, sizeof(v));
+  if (parsed) {
+    long n;
+    double d;
+    switch (s->type) {
+      case SettingType::Bool:
+        if (strcmp(v, "on") == 0 || strcmp(v, "1") == 0) r = setInt(s->id, 1, origin);
+        else if (strcmp(v, "off") == 0 || strcmp(v, "0") == 0) r = setInt(s->id, 0, origin);
+        else {
+          snprintf(reply, reply_len, "Error, must be on or off");
+          return true;
+        }
+        break;
+      case SettingType::Text: r = setText(s->id, v, origin); break;
+      case SettingType::Float:
+      case SettingType::Double:
+        if (parseDouble(v, d)) r = setDouble(s->id, d, origin);
+        break;
+      case SettingType::Scope: break;   // not a CLI setting
+      default:
+        if (parseLong(v, n)) r = setInt(s->id, (int32_t)n, origin);
+        break;
+    }
+  }
+
+  switch (r.code) {
+    case SetResult::Ok:
+    case SetResult::OkReboot:
+      if (s->ok_fmt) snprintf(reply, reply_len, s->ok_fmt, (unsigned)readField(_p, *s));
+      else snprintf(reply, reply_len, "%s", r.code == SetResult::OkReboot ? "OK - reboot to apply" : "OK");
+      break;
+    case SetResult::Clamped: {
+      char now[40];
+      formatValue(*s, now, sizeof(now));
+      snprintf(reply, reply_len, "OK - clamped to %s", now);
+      break;
+    }
+    case SetResult::Unsupported:
+      snprintf(reply, reply_len, "Error: unsupported");
+      break;
+    case SetResult::BadValue:
+      if (s->type == SettingType::Bool) {
+        snprintf(reply, reply_len, "Error, must be on or off");
+      } else if (s->err_fmt && strstr(s->err_fmt, "%d")) {
+        snprintf(reply, reply_len, s->err_fmt, (int)settingMax(*s, _b));
+      } else if (s->err_fmt) {
+        snprintf(reply, reply_len, "%s", s->err_fmt);
+      } else {
+        char lo[24], hi[24];
+        formatNumber(*s, s->min, lo, sizeof(lo));
+        formatNumber(*s, settingMax(*s, _b), hi, sizeof(hi));
+        snprintf(reply, reply_len, "Error, must be %s to %s", lo, hi);
+      }
+      break;
+  }
+  return true;
 }
