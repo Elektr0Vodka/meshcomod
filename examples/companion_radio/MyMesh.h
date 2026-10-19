@@ -779,8 +779,8 @@ private:
   void saveContacts();
 
   DataStore* _store;
-  CompanionSettings _settings;   // owns the prefs; declared before _prefs, which refers into it
-  NodePrefs& _prefs;             // existing reads and not-yet-migrated writers use this name
+  NodePrefs _prefs;               // read everywhere; changed only through _settings
+  CompanionSettings _settings;    // owns defaults, ranges, persistence and apply of _prefs
   DataStorePrefsStore _prefs_store;
   uint32_t pending_login;
   uint32_t pending_status;

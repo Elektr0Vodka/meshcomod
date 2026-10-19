@@ -82,7 +82,8 @@ struct SettingsFixture {
   FakeApplier applier;
   FakeStore store;
   double lat = 0, lon = 0;
-  CompanionSettings settings{testBuild()};
+  NodePrefs storage;
+  CompanionSettings settings{testBuild(), storage};
 
   SettingsFixture() {
     settings.loadDefaults();
@@ -90,8 +91,9 @@ struct SettingsFixture {
   }
   // Store what a file would hold: defaults with edits applied by the caller.
   NodePrefs defaults() const {
-    CompanionSettings s{testBuild()};
+    NodePrefs p;
+    CompanionSettings s{testBuild(), p};
     s.loadDefaults();
-    return s.prefs();
+    return p;
   }
 };

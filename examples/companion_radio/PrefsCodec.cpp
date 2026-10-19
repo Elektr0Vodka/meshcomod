@@ -1,8 +1,38 @@
 #include "PrefsCodec.h"
 
+#include <stddef.h>
 #include <string.h>
 
 namespace {
+
+// One entry per field in file order: where it sits in NodePrefs and how many bytes it has.
+// PAD writes zeros and skips on read; LAT and LON are the position, kept outside NodePrefs.
+enum : uint16_t { PAD = 0xFFFF, LAT = 0xFFFE, LON = 0xFFFD };
+struct Field {
+  uint16_t at;
+  uint8_t size;
+};
+#define F(field) { (uint16_t)offsetof(NodePrefs, field), (uint8_t)sizeof(((NodePrefs*)0)->field) }
+
+// Offsets 0-77, the same in every layout.
+static const Field HEAD[] = {
+  F(airtime_factor), F(node_name), {PAD, 4}, {LAT, 8}, {LON, 8}, F(freq), F(sf), F(cr),
+  F(client_repeat), F(manual_add_contacts), F(bw), F(tx_power_dbm), F(telemetry_mode_base),
+  F(telemetry_mode_loc), F(telemetry_mode_env), F(rx_delay_base), F(advert_loc_policy), F(multi_acks),
+};
+// Offsets 78-140 as written today (the upstream tail plus scope and CAD).
+static const Field TAIL[] = {
+  F(path_hash_mode), {PAD, 1}, F(ble_pin), F(buzzer_quiet), F(gps_enabled), F(gps_interval),
+  F(autoadd_config), F(autoadd_max_hops), F(rx_boosted_gain), F(default_scope_name),
+  F(default_scope_key), F(cad_enabled),
+};
+#undef F
+
+uint8_t* fieldPtr(NodePrefs& p, double& lat, double& lon, uint16_t at) {
+  if (at == LAT) return (uint8_t*)&lat;
+  if (at == LON) return (uint8_t*)&lon;
+  return (uint8_t*)&p + at;
+}
 
 // Sequential reader with File::read semantics: copies what is left and returns the count.
 struct Cursor {
@@ -17,45 +47,17 @@ struct Cursor {
   }
 };
 
-struct Writer {
-  uint8_t* out;
-  size_t pos;
-  void put(const void* src, size_t n) {
-    memcpy(out + pos, src, n);
-    pos += n;
-  }
-  void zeros(size_t n) {
-    memset(out + pos, 0, n);
-    pos += n;
-  }
-};
-
 }  // namespace
 
 PrefsDecodeResult decodePrefs(const uint8_t* buf, size_t len, NodePrefs& p, double& lat, double& lon,
                               uint8_t rx_boost_default) {
   PrefsDecodeResult r = {false};
   Cursor c = {buf, buf ? len : 0, 0};
-  uint8_t pad[4];
+  uint8_t pad[8];
 
-  c.take(&p.airtime_factor, sizeof(p.airtime_factor));
-  c.take(p.node_name, sizeof(p.node_name));
-  c.take(pad, sizeof(pad));
-  c.take(&lat, sizeof(lat));
-  c.take(&lon, sizeof(lon));
-  c.take(&p.freq, sizeof(p.freq));
-  c.take(&p.sf, 1);
-  c.take(&p.cr, 1);
-  c.take(&p.client_repeat, 1);
-  c.take(&p.manual_add_contacts, 1);
-  c.take(&p.bw, sizeof(p.bw));
-  c.take(&p.tx_power_dbm, 1);
-  c.take(&p.telemetry_mode_base, 1);
-  c.take(&p.telemetry_mode_loc, 1);
-  c.take(&p.telemetry_mode_env, 1);
-  c.take(&p.rx_delay_base, sizeof(p.rx_delay_base));
-  c.take(&p.advert_loc_policy, 1);
-  c.take(&p.multi_acks, 1);
+  for (const Field& f : HEAD) {
+    c.take(f.at == PAD ? pad : fieldPtr(p, lat, lon, f.at), f.size);
+  }
 
   // From offset 78 the tail has three layouts, told apart by how many bytes are left.
   uint8_t tail[15];
@@ -94,38 +96,21 @@ PrefsDecodeResult decodePrefs(const uint8_t* buf, size_t len, NodePrefs& p, doub
   return r;
 }
 
+static size_t putFields(const Field* table, size_t count, NodePrefs& p, double& lat, double& lon, uint8_t* out) {
+  size_t pos = 0;
+  for (size_t i = 0; i < count; i++) {
+    const Field& f = table[i];
+    if (f.at == PAD) memset(out + pos, 0, f.size);
+    else memcpy(out + pos, fieldPtr(p, lat, lon, f.at), f.size);
+    pos += f.size;
+  }
+  return pos;
+}
+
 size_t encodePrefs(const NodePrefs& p, double lat, double lon, uint8_t* out, size_t cap) {
   if (out == nullptr || cap < PREFS_FILE_SIZE) return 0;
-  Writer w = {out, 0};
-  w.put(&p.airtime_factor, sizeof(p.airtime_factor));
-  w.put(p.node_name, sizeof(p.node_name));
-  w.zeros(4);
-  w.put(&lat, sizeof(lat));
-  w.put(&lon, sizeof(lon));
-  w.put(&p.freq, sizeof(p.freq));
-  w.put(&p.sf, 1);
-  w.put(&p.cr, 1);
-  w.put(&p.client_repeat, 1);
-  w.put(&p.manual_add_contacts, 1);
-  w.put(&p.bw, sizeof(p.bw));
-  w.put(&p.tx_power_dbm, 1);
-  w.put(&p.telemetry_mode_base, 1);
-  w.put(&p.telemetry_mode_loc, 1);
-  w.put(&p.telemetry_mode_env, 1);
-  w.put(&p.rx_delay_base, sizeof(p.rx_delay_base));
-  w.put(&p.advert_loc_policy, 1);
-  w.put(&p.multi_acks, 1);
-  w.put(&p.path_hash_mode, 1);
-  w.zeros(1);
-  w.put(&p.ble_pin, sizeof(p.ble_pin));
-  w.put(&p.buzzer_quiet, 1);
-  w.put(&p.gps_enabled, 1);
-  w.put(&p.gps_interval, sizeof(p.gps_interval));
-  w.put(&p.autoadd_config, 1);
-  w.put(&p.autoadd_max_hops, 1);
-  w.put(&p.rx_boosted_gain, 1);
-  w.put(p.default_scope_name, sizeof(p.default_scope_name));
-  w.put(p.default_scope_key, sizeof(p.default_scope_key));
-  w.put(&p.cad_enabled, 1);
-  return w.pos;
+  NodePrefs& q = const_cast<NodePrefs&>(p);   // fieldPtr is shared with decode; only read here
+  size_t pos = putFields(HEAD, sizeof(HEAD) / sizeof(HEAD[0]), q, lat, lon, out);
+  pos += putFields(TAIL, sizeof(TAIL) / sizeof(TAIL[0]), q, lat, lon, out + pos);
+  return pos;
 }

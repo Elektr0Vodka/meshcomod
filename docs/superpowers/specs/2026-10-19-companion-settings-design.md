@@ -116,14 +116,19 @@ Adding one setting cost 8 code files (CAD). The goal is one row instead.
 
 ### Shape
 
-New folder `examples/companion_radio/settings/`:
+New files directly in `examples/companion_radio/`. Every companion env compiles
+`examples/companion_radio/*.cpp`, which is not recursive, so a subfolder would mean
+editing every env block:
 
 - `SettingsTable.h/.cpp`: the rows. Pure data plus pure parse/format/validate
   functions, with no Arduino includes, so it builds in the native env.
-- `CompanionSettings.h/.cpp`: the module. It owns the `NodePrefs` instance (moved
-  out of `MyMesh::_prefs`) plus the lat/lon pair, and talks to the rest through two
-  ports.
+- `CompanionSettings.h/.cpp`: the module. It works over the `NodePrefs` instance in
+  `MyMesh::_prefs` (passed in at construction) plus the lat/lon pair, and talks to
+  the rest through two ports. The storage stays a plain member because a reference
+  member costs a load on each of the ~200 reads (measured: +3.8 KB on T-Echo Card).
+  The module is still the only way a value changes.
 - `SettingsPorts.h`: the two port interfaces.
+- `PrefsCodec.h/.cpp`: the `/new_prefs` byte layout, so it is host-testable.
 
 ### Interface (what callers see)
 

@@ -55,8 +55,8 @@ bool applierKind(ApplyKind a, SettingsApplier::Kind& k) {
 
 }  // namespace
 
-CompanionSettings::CompanionSettings(const SettingsBuild& build)
-    : _b(build), _store(nullptr), _applier(nullptr), _own_lat(0), _own_lon(0),
+CompanionSettings::CompanionSettings(const SettingsBuild& build, NodePrefs& storage)
+    : _b(build), _p(storage), _store(nullptr), _applier(nullptr), _own_lat(0), _own_lon(0),
       _lat(&_own_lat), _lon(&_own_lon) {
   memset(&_p, 0, sizeof(_p));
 }
@@ -83,7 +83,7 @@ void CompanionSettings::load() {
   // Only the ranges boot enforced before; stricter set-time rules wait for the next set.
   for (int i = 0; i < (int)SettingId::Count; i++) {
     const SettingInfo& s = settingInfo((SettingId)i);
-    if (!s.sanitize_on_load || !isNumeric(s.type)) continue;
+    if (!(s.flags & S_LOAD) || !isNumeric(s.type)) continue;
     double v = readField(_p, s);
     if (s.type == SettingType::Bool) {
       v = v != 0 ? 1 : 0;
@@ -219,7 +219,7 @@ SetResult CompanionSettings::Edit::commit(Origin origin) {
         double hi = settingMax(s, b);
         if (!isfinite(v)) return {SetResult::BadValue};
         if (v < s.min || v > hi) {
-          if (!s.clamp) return {SetResult::BadValue};
+          if (!(s.flags & S_CLAMP)) return {SetResult::BadValue};
           v = v < s.min ? s.min : hi;
           clamped = true;
         }
@@ -380,10 +380,12 @@ bool CompanionSettings::setByKey(const char* key, const char* value, Origin orig
     }
   }
 
+  const char* ok_fmt = settingOkText(s->id);
+  const char* err_fmt = settingErrText(s->id);
   switch (r.code) {
     case SetResult::Ok:
     case SetResult::OkReboot:
-      if (s->ok_fmt) snprintf(reply, reply_len, s->ok_fmt, (unsigned)readField(_p, *s));
+      if (ok_fmt) snprintf(reply, reply_len, ok_fmt, (unsigned)readField(_p, *s));
       else snprintf(reply, reply_len, "%s", r.code == SetResult::OkReboot ? "OK - reboot to apply" : "OK");
       break;
     case SetResult::Clamped: {
@@ -398,10 +400,10 @@ bool CompanionSettings::setByKey(const char* key, const char* value, Origin orig
     case SetResult::BadValue:
       if (s->type == SettingType::Bool) {
         snprintf(reply, reply_len, "Error, must be on or off");
-      } else if (s->err_fmt && strstr(s->err_fmt, "%d")) {
-        snprintf(reply, reply_len, s->err_fmt, (int)settingMax(*s, _b));
-      } else if (s->err_fmt) {
-        snprintf(reply, reply_len, "%s", s->err_fmt);
+      } else if (err_fmt && strstr(err_fmt, "%d")) {
+        snprintf(reply, reply_len, err_fmt, (int)settingMax(*s, _b));
+      } else if (err_fmt) {
+        snprintf(reply, reply_len, "%s", err_fmt);
       } else {
         char lo[24], hi[24];
         formatNumber(*s, s->min, lo, sizeof(lo));

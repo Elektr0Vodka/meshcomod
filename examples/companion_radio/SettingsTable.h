@@ -22,20 +22,20 @@ enum class SettingType : uint8_t { Bool, U8, I8, U32, Float, Double, Text, Pin, 
 // What a change needs besides being stored. Reboot: stored now, used after a restart.
 enum class ApplyKind : uint8_t { None, Radio, TxPower, RxBoost, Cad, Gps, Ui, Reboot };
 
+enum : uint8_t {
+  S_CLAMP = 1,   // out of range: clamp (result Clamped) instead of rejecting
+  S_CLI = 2,     // reachable by get/set <key>
+  S_LOAD = 4,    // range enforced at boot (only where boot enforced it before)
+};
+
 struct SettingInfo {
-  SettingId id;
   const char* key;       // CLI name
-  const char* label;     // short UI label
-  SettingType type;
-  int16_t offset;        // offsetof(NodePrefs, field); -1 for Lat/Lon (kept in sensors)
   float def, min, max;   // Text/Scope: min/max are lengths. Some come from SettingsBuild.
-  bool clamp;            // out of range: true clamps (result Clamped), false rejects
+  int16_t offset;        // offsetof(NodePrefs, field); -1 for Lat/Lon (kept in sensors)
+  SettingId id;
+  SettingType type;
   ApplyKind apply;
-  bool cli;              // reachable by get/set <key>
-  bool sanitize_on_load; // range enforced at boot (only where boot enforced it before)
-  const char* ok_fmt;    // nullptr: "OK"
-  const char* err_fmt;   // nullptr: "Error, must be %s to %s"
-  const char* get_fmt;   // nullptr: by type ("> %d", "> on|off", "> %s", floats via ftoa)
+  uint8_t flags;         // S_CLAMP | S_CLI | S_LOAD
 };
 
 // Values that depend on the build: radio defaults, the board's TX limit, and checks that
@@ -53,3 +53,5 @@ const SettingInfo& settingInfo(SettingId id);
 const SettingInfo* findSettingByKey(const char* key);   // nullptr when unknown or not CLI
 float settingDefault(const SettingInfo& s, const SettingsBuild& b);
 float settingMax(const SettingInfo& s, const SettingsBuild& b);
+const char* settingOkText(SettingId id);    // nullptr: "OK" ("OK - reboot to apply" when that applies)
+const char* settingErrText(SettingId id);   // nullptr: "Error, must be X to Y"

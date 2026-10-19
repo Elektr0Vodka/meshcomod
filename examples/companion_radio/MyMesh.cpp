@@ -2464,7 +2464,7 @@ static SettingsBuild makeSettingsBuild() {
 MyMesh::MyMesh(mesh::Radio &radio, mesh::RNG &rng, mesh::RTCClock &rtc, SimpleMeshTables &tables, DataStore& store, AbstractUITask* ui)
     : BaseChatMesh(radio, *new ArduinoMillis(), rng, rtc, *new StaticPoolPacketManager(16), tables),
       _serial(NULL), telemetry(MAX_PACKET_PAYLOAD - 4), _store(&store),
-      _settings(makeSettingsBuild()), _prefs(_settings.editable()), _prefs_store(store),
+      _settings(makeSettingsBuild(), _prefs), _prefs_store(store),
       _ui(ui), _listener(NULL) {
   _iter_started = false;
   _contact_send_index = 0;

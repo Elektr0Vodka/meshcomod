@@ -54,7 +54,8 @@ public:
     bool _bad;                            // a value that has no meaning for its setting
   };
 
-  explicit CompanionSettings(const SettingsBuild& build);
+  // storage: the NodePrefs instance the rest of the firmware reads (MyMesh keeps it).
+  CompanionSettings(const SettingsBuild& build, NodePrefs& storage);
 
   void begin(PrefsStore& store, SettingsApplier& applier, double* lat, double* lon);
 
@@ -84,7 +85,7 @@ private:
   void formatValue(const SettingInfo& s, char* out, size_t len) const;
 
   SettingsBuild _b;
-  NodePrefs _p;
+  NodePrefs& _p;
   PrefsStore* _store;
   SettingsApplier* _applier;
   double _own_lat, _own_lon;
