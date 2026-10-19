@@ -21,8 +21,8 @@ Commands:
   build-firmwares: Build all firmwares for all targets.
   build-matching-firmwares <build-match-spec>: Build all firmwares for build targets containing the string given for <build-match-spec>.
   build-companion-firmwares: Build all companion firmwares for all build targets (whole upstream board family).
-  build-meshcomod-companion-firmwares: Build only the meshcomod-shipped companion boards (MESHCOMOD_COMPANION_ENVS: the _usb_tcp boards plus ThinkNode M7).
-  get-meshcomod-companion-firmwares-to-build: Print the meshcomod-shipped companion envs, one per line (CI build matrix).
+  build-meshcomod-companion-firmwares: Build only the companion boards this fork releases (companion_boards.ini).
+  get-meshcomod-companion-firmwares-to-build: Print the released companion envs from companion_boards.ini, one per line (CI build matrix).
   build-repeater-firmwares: Build all TCP repeater firmwares (env names ending in _repeater_tcp).
   build-room-server-firmwares: Build all chat room server firmwares for all build targets.
   build-room-multitransport-firmwares: Build meshcomod room multitransport firmwares (env names ending in _room_server_multitransport).
@@ -315,83 +315,18 @@ build_companion_firmwares() {
 
 }
 
-# meshcomod ships only a handful of companion boards, all multi-transport
-# (USB+BLE+TCP) `_companion_radio_usb_tcp` envs. The upstream
-# build_companion_firmwares() above builds the ENTIRE MeshCore board family
-# (60+ envs, the wrong `_usb`/`_ble` single-transport variants) — far too slow
-# and not what we release. The release pipeline uses THIS instead.
-MESHCOMOD_COMPANION_ENVS=(
-  "heltec_v4_companion_radio_usb_tcp"            # Heltec WiFi LoRa 32 V4 (OLED)
-  "Heltec_v3_companion_radio_usb_tcp"            # Heltec WiFi LoRa 32 V3 (OLED)
-  "Heltec_Wireless_Paper_companion_radio_usb_tcp" # Heltec Wireless Paper (E213)
-  "Xiao_S3_WIO_companion_radio_usb_tcp"          # Seeed Xiao S3 WIO (SX1262)
-  "heltec_v4_r8_companion_radio_usb_tcp"         # Heltec V4 R8 (16 MB flash, 8 MB PSRAM), OLED
-  "heltec_v4_r8_tft_companion_radio_usb_tcp"     # Heltec V4 R8 TFT, ui-new button UI
-  "heltec_v4_tft_companion_radio_usb_tcp"        # Heltec V4 TFT without the touch UI
-  "Heltec_WSL3_companion_radio_usb_tcp"          # Heltec Wireless Stick Lite V3, headless
-  "Heltec_Wireless_Tracker_companion_radio_usb_tcp" # Heltec Wireless Tracker (ST7735 TFT, GPS)
-  "heltec_tracker_v2_companion_radio_usb_tcp"    # Heltec Wireless Tracker V2 (ST7735 TFT, GPS, FEM)
-  "Heltec_E213_companion_radio_usb_tcp"          # Heltec Vision Master E213 (e-ink)
-  "Xiao_S3_companion_radio_usb_tcp"              # Seeed Xiao S3 + Wio-SX1262 kit, optional SSD1306 OLED
-  "RAK_3112_companion_radio_usb_tcp"             # RAK3112 (WisBlock ESP32-S3), headless
-  "LilyGo_TETH_Elite_sx1262_companion_radio_usb_tcp" # LilyGo T-ETH Elite, headless, Wi-Fi only
-  "T_Beam_S3_Supreme_SX1262_companion_radio_usb_tcp" # LilyGo T-Beam S3 Supreme (SH1106 OLED, GPS)
-  "Heltec_E290_companion_radio_usb_tcp"           # Heltec Vision Master E290 (e-ink)
-  "Heltec_T190_companion_radio_usb_tcp"           # Heltec Vision Master T190 (ST7789 TFT)
-  "heltec_rc32_companion_radio_usb_tcp"           # Heltec RC32 (NV3001B TFT, rotary, GPS)
-  "LilyGo_TBeam_1W_companion_radio_usb_tcp"       # LilyGo T-Beam 1W (SH1106 OLED, GPS)
-  "meshnology_w12_companion_radio_usb_tcp"        # Meshnology W12 (LR2021, SSD1306 OLED, GPS)
-  "Station_G2_companion_radio_usb_tcp"            # Station G2 (SH1106 OLED)
-  "Station_G3_ESP32_companion_radio_usb_tcp"      # Station G3, ESP32-S3 (SH1106 OLED)
-  "ThinkNode_M9_companion_radio_usb_tcp"          # Elecrow ThinkNode M9 (LR1110, ST7789 TFT, GPS)
-  # Elecrow ThinkNode M7 (ESP32-S3 + LR1110). No _usb_tcp multi-transport variant
-  # exists for this board, so these are the stock single-transport companions.
-  # Hardware-validated by @ptr727 in #47; we hold none, so treat regressions here
-  # as reported-not-observed.
-  "ThinkNode_M7_companion_radio_ble"             # ThinkNode M7 — BLE companion
-  "ThinkNode_M7_companion_radio_ethernet"        # ThinkNode M7 — PoE/Ethernet companion
-  # Seeed Wio Tracker L1 / L1 Pro (nRF52840 + SX1262, SH1106 OLED). The nRF52840 has
-  # no Wi-Fi, so there is no TCP, SNMP or manifest OTA here: these are the stock
-  # single-transport companions (one of BLE or USB). build_firmware emits .uf2 + .zip.
-  "WioTrackerL1_companion_radio_ble"             # Wio Tracker L1 (Pro), BLE companion
-  "WioTrackerL1_companion_radio_usb"             # Wio Tracker L1 (Pro), USB companion
-  # LilyGo T-Echo (nRF52840 + SX1262, 200x200 e-ink, GPS). Same deal as the Wio
-  # Tracker L1: no Wi-Fi, so single-transport BLE or USB with .uf2 + .zip.
-  "LilyGo_T-Echo_companion_radio_ble"            # T-Echo, BLE companion
-  "LilyGo_T-Echo_companion_radio_usb"            # T-Echo, USB companion
-  # LilyGo T-Echo Card (nRF52840 + SX1262, small OLED, ui-tiny UI). Single-transport too.
-  "LilyGo_T-Echo_Card_companion_radio_ble"       # T-Echo Card, BLE companion
-  "LilyGo_T-Echo_Card_companion_radio_usb"       # T-Echo Card, USB companion
-  # More nRF52840 boards, stock single-transport BLE + USB companions (.uf2 + .zip).
-  "LilyGo_T-Echo-Lite_companion_radio_ble"          # LilyGo T-Echo Lite (e-ink, GPS), BLE
-  "LilyGo_T-Echo-Lite_companion_radio_usb"          # LilyGo T-Echo Lite (e-ink, GPS), USB
-  "LilyGo_T-Echo-Lite_non_shell_companion_radio_ble" # LilyGo T-Echo Lite, bare board without the shell, BLE
-  "LilyGo_T-Echo-Lite_non_shell_companion_radio_usb" # LilyGo T-Echo Lite, bare board without the shell, USB
-  "RAK_4631_companion_radio_ble"                    # RAK WisBlock RAK4631 (optional SSD1306 OLED), BLE
-  "RAK_4631_companion_radio_usb"                    # RAK WisBlock RAK4631 (optional SSD1306 OLED), USB
-  "RAK_3401_companion_radio_ble"                    # RAK WisBlock RAK3401 (SSD1306 OLED), BLE
-  "RAK_3401_companion_radio_usb"                    # RAK WisBlock RAK3401 (SSD1306 OLED), USB
-  "t1000e_companion_radio_ble"                      # Seeed SenseCAP T1000-E (no display, GPS, ui-orig), BLE
-  "t1000e_companion_radio_usb"                      # Seeed SenseCAP T1000-E (no display, GPS, ui-orig), USB
-  "Heltec_t114_companion_radio_ble"                 # Heltec Mesh Node T114 (ST7789 TFT, GPS), BLE
-  "Heltec_t114_companion_radio_usb"                 # Heltec Mesh Node T114 (ST7789 TFT, GPS), USB
-  "Heltec_t1_companion_radio_ble"                   # Heltec T1 (ST7735 TFT, GPS), BLE
-  "Heltec_t1_companion_radio_usb"                   # Heltec T1 (ST7735 TFT, GPS), USB
-  "Heltec_t096_companion_radio_ble"                 # Heltec T096 (ST7735 TFT, GPS), BLE
-  "Heltec_t096_companion_radio_usb"                 # Heltec T096 (ST7735 TFT, GPS), USB
-  "Mesh_pocket_companion_radio_ble"                 # Heltec MeshPocket (e-ink), BLE
-  "Mesh_pocket_companion_radio_usb"                 # Heltec MeshPocket (e-ink), USB
-  "ThinkNode_M1_companion_radio_ble"                # Elecrow ThinkNode M1 (e-ink, GPS), BLE
-  "ThinkNode_M1_companion_radio_usb"                # Elecrow ThinkNode M1 (e-ink, GPS), USB
-  "ThinkNode_M8_companion_radio_ble"                # Elecrow ThinkNode M8 (e-ink, GPS), BLE
-  "ThinkNode_M8_companion_radio_usb"                # Elecrow ThinkNode M8 (e-ink, GPS), USB
-  "Nano_G2_Ultra_companion_radio_ble"               # B&Q Nano G2 Ultra (SH1106 OLED), BLE
-  "Nano_G2_Ultra_companion_radio_usb"               # B&Q Nano G2 Ultra (SH1106 OLED), USB
-  "ProMicro_companion_radio_ble"                    # nRF52840 Pro Micro DIY (optional SSD1306 OLED, GPS), BLE
-  "ProMicro_companion_radio_usb"                    # nRF52840 Pro Micro DIY (optional SSD1306 OLED, GPS), USB
-  "KeepteenLT1_companion_radio_ble"                 # Keepteen LT1 (SSD1306 OLED, GPS), BLE
-  "KeepteenLT1_companion_radio_usb"                 # Keepteen LT1 (SSD1306 OLED, GPS), USB
-)
+# The companion boards this fork releases live in companion_boards.ini (one section
+# per board, which also feeds the PR build matrix and the README device table). The
+# upstream build_companion_firmwares() above builds the ENTIRE MeshCore board family
+# and is not what we release; the release pipeline uses this list instead.
+MESHCOMOD_COMPANION_ENVS=()
+for env in $(python3 scripts/companion_boards.py envs | tr -d '\r'); do
+  MESHCOMOD_COMPANION_ENVS+=("$env")
+done
+if [ ${#MESHCOMOD_COMPANION_ENVS[@]} -eq 0 ]; then
+  echo "build.sh: no companion envs from scripts/companion_boards.py (is python3 installed?)" >&2
+  exit 1
+fi
 # True if $1 is one of the boards we publish, so build_firmware knows to emit a merged image
 # regardless of how the env happens to be named.
 meshcomod_release_env() {

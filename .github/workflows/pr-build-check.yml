@@ -9,6 +9,7 @@ on:
       - 'variants/**'
       - 'platformio.ini'
       - 'build.sh'
+      - 'companion_boards.ini'
       - 'scripts/**'
       - '.github/workflows/pr-build-check.yml'
   push:
@@ -19,24 +20,32 @@ on:
       - 'variants/**'
       - 'platformio.ini'
       - 'build.sh'
+      - 'companion_boards.ini'
       - 'scripts/**'
       - '.github/workflows/pr-build-check.yml'
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      envs: ${{ steps.envs.outputs.envs }}
+    steps:
+      - name: Clone Repo
+        uses: actions/checkout@v4
+
+      # The list lives in companion_boards.ini: each board's pr_check envs plus
+      # [ci] pr_check_extra (the touch build and a classic ESP32).
+      - name: List PR check envs
+        id: envs
+        run: echo "envs=$(python3 scripts/companion_boards.py pr-envs --json)" >> "$GITHUB_OUTPUT"
+
   build:
+    needs: prepare
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        environment:
-          # ESP32-S3 (most common platform)
-          - Heltec_v3_companion_radio_usb_tcp
-          - heltec_v4_companion_radio_usb_tcp
-          - heltec_v4_tft_companion_radio_usb_tcp_touch
-          # nRF52840, catches fork companion code that only builds on ESP32
-          - WioTrackerL1_companion_radio_ble
-          # Classic ESP32 (no S3-only registers or USB-CDC), catches S3-only companion code
-          - Heltec_v2_companion_radio_ble
+        environment: ${{ fromJson(needs.prepare.outputs.envs) }}
 
     steps:
       - name: Clone Repo

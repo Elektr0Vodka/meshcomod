@@ -32,10 +32,10 @@ These apply to every change in this repo, by humans and agents alike.
 
 ## Releases in this fork
 
-Releases go out through CI, not through `prebuilt/`. Push a track tag and the workflow builds every env in `MESHCOMOD_COMPANION_ENVS` on its own runner and publishes a GitHub Release with everything in `out/` attached (`.bin` and merged `.bin` for ESP32, `.uf2` and DFU `.zip` for nRF52). Details: [`docs/CI_RELEASES.md`](docs/CI_RELEASES.md).
+Releases go out through CI, not through `prebuilt/`. Push a track tag and the workflow builds every env listed in [`companion_boards.ini`](companion_boards.ini) on its own runner and publishes a GitHub Release with everything in `out/` attached (`.bin` and merged `.bin` for ESP32, `.uf2` and DFU `.zip` for nRF52). Details: [`docs/CI_RELEASES.md`](docs/CI_RELEASES.md).
 
 - Test builds: a tag with a suffix (`companion-v1.18.0.2-rc1`) or a manual run with `prerelease` ticked. Pre-releases are never marked latest and the OTA server does not serve them.
-- To add a board, add its env to `MESHCOMOD_COMPANION_ENVS` in `build.sh`, build it locally with `build.sh build-firmware <env>`, and update the README device table, `docs/CI_RELEASES.md` and `changelog_ev.md` in the same PR.
+- To add a board, add a section to `companion_boards.ini`, build it locally with `build.sh build-firmware <env>`, run `python3 scripts/companion_boards.py readme --write` to regenerate the README device table, and add a `changelog_ev.md` entry in the same PR. Boards with SNMP also go in the `docs/companion_snmp.md` list. CI fails when the README table does not match the ini.
 - Changes reach `main` only by PR on `origin` (Elektr0Vodka/meshcomod). Never push to `upstream` (ALLFATHER-BV/meshcomod).
 - Every PR adds an entry under **Unreleased** in [`changelog_ev.md`](changelog_ev.md), tagged with its PR number.
 

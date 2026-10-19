@@ -54,6 +54,8 @@ Otherwise this is the same codebase as MeshCore; upstream meshcomod syncs from M
 
 Boards marked **experimental** go one step further out: their env is the board's stock companion build moved onto the meshcomod multi-transport stack, and nobody working on the fork owns one. Beyond the general fork caveats, nothing board specific has been checked on them: display and button handling, battery reading and power off, Wi-Fi range, and free heap with Wi-Fi, BLE and SNMP all running. Flash one only if you can recover the board over USB, and please report what works and what does not.
 
+<!-- companion-boards:start (generated from companion_boards.ini, do not edit by hand) -->
+
 | Device | MCU | Display | Build env | Fork build |
 |---|---|---|---|---|
 | **Heltec WiFi LoRa 32 V4** | ESP32-S3 | 128×64 OLED | `heltec_v4_companion_radio_usb_tcp` | Hardware tested (v1.17.0.4-DMC-EV) |
@@ -97,6 +99,8 @@ Boards marked **experimental** go one step further out: their env is the board's
 | **B&Q Nano G2 Ultra** | nRF52840 | 128×64 OLED | `Nano_G2_Ultra_companion_radio_ble`, `Nano_G2_Ultra_companion_radio_usb` | Build only, new in fork |
 | **nRF52840 Pro Micro** (DIY) | nRF52840 | optional 128×64 OLED, GPS | `ProMicro_companion_radio_ble`, `ProMicro_companion_radio_usb` | Build only, new in fork |
 | **Keepteen LT1** | nRF52840 | 128×64 OLED, GPS | `KeepteenLT1_companion_radio_ble`, `KeepteenLT1_companion_radio_usb` | Build only, new in fork |
+
+<!-- companion-boards:end -->
 
 The SNMP, receive filter and manifest OTA features are not hardware tested on any board yet, including V4 and V3.
 
