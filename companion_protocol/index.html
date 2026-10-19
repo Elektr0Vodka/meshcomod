@@ -992,6 +992,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#10-full-capture-meshcomod" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Full Capture (meshcomod)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2117,6 +2128,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#10-full-capture-meshcomod" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Full Capture (meshcomod)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2889,6 +2911,26 @@ Bytes 5-8:   airtime_factor * 1000, uint32 little-endian
 Byte 9:      cad_enabled (0 = off, 1 = on)   [appended, see CAD note]
 </code></pre>
 <p><strong>CAD note</strong>: The CAD byte is backward compatible in both directions. In the set command it is optional: an app that sends only the 9-byte form (bytes 0 to 8) leaves the CAD setting unchanged. In the response it is appended: an app written before CAD existed reads only bytes 0 to 8 and ignores the trailing byte. When a set includes the CAD byte the firmware applies the change immediately, no reboot needed, and persists it. On the companion, CAD defaults to on. Enabling CAD makes the radio perform a hardware Channel Activity Detection scan before each transmit and defer if the channel is busy. See <a href="../companion_cad_toggle/">companion_cad_toggle.md</a> for the on-device controls and per-board notes.</p>
+<h3 id="10-full-capture-meshcomod">10. Full Capture (meshcomod)</h3>
+<p><strong>Purpose</strong>: Let an observer app (for example RTFM-EV) also receive the frames this companion normally drops: valid frames too long for the <code>0x88</code> RX log push (174 to 255 bytes), frames received with a CRC or header error, and a count of frames lost to a full receive queue. Off by default. Nothing extra is transmitted on RF.</p>
+<p><strong>Command Format</strong> (<code>CMD_SET_FULL_CAPTURE</code>):</p>
+<pre><code>Byte 0: 0xE0
+Byte 1: flags   0x01 over-long frames, 0x02 damaged frames, 0x04 drop notices
+</code></pre>
+<p><strong>Response</strong>: <code>[0x00][supported flags]</code> (<code>RESP_CODE_OK</code> plus one byte). Unknown flag bits get <code>[0x01][0x06]</code> (<code>ERR_CODE_ILLEGAL_ARG</code>). Stock firmware answers any <code>0xE0</code> with an error, which tells the app Full capture is not available. Drop notices (<code>0x04</code>) need the ESP32 receive queue; other boards leave that bit out of the supported flags and ignore it.</p>
+<p>The setting lives in RAM only. It is cleared on reboot and as soon as no app is connected, so an app sends it again on every connect. Sending <code>0x00</code> turns everything off.</p>
+<p><strong>Push Format</strong> (<code>PUSH_CODE_RX_FULL</code>, 0xC0):</p>
+<pre><code>Byte 0:  0xC0
+Byte 1:  tag (one per captured frame, wraps at 255)
+Byte 2:  index &lt;&lt; 4 | count   (count 1 or 2, index 0 or 1)
+Byte 3:  status   0 valid but over-long, 1 CRC error, 2 header damaged, 3 other read error, 4 drop notice
+Byte 4:  SNR * 4, int8
+Byte 5:  RSSI, int8
+Byte 6:  total_len (frame length; for a drop notice the frames lost since the last notice, capped at 255)
+Bytes 7+: chunk of the frame, at most 169 bytes
+</code></pre>
+<p>A frame longer than 169 bytes comes in two pushes with the same tag; join the chunks by index (they can arrive in either order over some transports) and check the result against <code>total_len</code>. A drop notice has no chunk and <code>count</code> 1. Every push is at most 176 bytes, so it fits BLE and every other transport. A valid frame of up to 173 bytes still comes only as <code>0x88</code>, never also as <code>0xC0</code>.</p>
+<p>Damaged frames (status 1 to 3) are raw bytes as the radio read them. Do not parse or forward them as packets.</p>
 <hr />
 <h2 id="channel-management">Channel Management</h2>
 <h3 id="channel-types">Channel Types</h3>
@@ -3186,6 +3228,11 @@ Bytes 11+: Message Text (UTF-8)
 <td>0x88</td>
 <td>PACKET_LOG_DATA</td>
 <td>RF log data (can be ignored)</td>
+</tr>
+<tr>
+<td>0xC0</td>
+<td>PACKET_RX_FULL</td>
+<td>Full capture frame or notice (<a href="#10-full-capture-meshcomod">10</a>, opt-in)</td>
 </tr>
 </tbody>
 </table>
