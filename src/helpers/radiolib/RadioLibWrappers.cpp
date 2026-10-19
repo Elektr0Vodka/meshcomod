@@ -62,6 +62,35 @@ static inline void rlwLock() {}
 static inline void rlwUnlock() {}
 #endif
 
+// ---- Frames received with an error, kept for Full capture --------------------
+// RadioLib fills the buffer before it reports a CRC or header error, so the
+// bytes are still here. Two slots, the oldest overwritten; written by the read
+// paths below and read by recvBad(), all under the radio mutex (single thread
+// on boards without the drain task). About 530 bytes of RAM.
+#define BADQ_SLOTS 2
+struct BadQSlot { uint8_t buf[256]; uint16_t len; int16_t err; float snr; float rssi; };
+static BadQSlot badq[BADQ_SLOTS];
+static uint8_t badq_head = 0;
+static volatile uint8_t badq_count = 0;
+
+static void badqPush(const uint8_t* buf, int len, int16_t err, float snr, float rssi) {
+  if (len <= 0) return;
+  if (len > (int)sizeof(badq[0].buf)) len = (int)sizeof(badq[0].buf);
+  uint8_t idx;
+  if (badq_count == BADQ_SLOTS) {
+    idx = badq_head;   // overwrite the oldest; the next one becomes the oldest
+    badq_head = (uint8_t)((badq_head + 1) % BADQ_SLOTS);
+  } else {
+    idx = (uint8_t)((badq_head + badq_count) % BADQ_SLOTS);
+    badq_count++;
+  }
+  memcpy(badq[idx].buf, buf, len);
+  badq[idx].len = (uint16_t)len;
+  badq[idx].err = err;
+  badq[idx].snr = snr;
+  badq[idx].rssi = rssi;
+}
+
 // this function is called when a complete packet
 // is transmitted by the module
 static
@@ -216,6 +245,7 @@ void RadioLibWrapper::rxqDrainOne() {
       if (err != RADIOLIB_ERR_NONE) {
         MESH_DEBUG_PRINTLN("RadioLibWrapper: error: readData(%d)", err);
         n_recv_errors++;
+        badqPush(s->buf, len, (int16_t)err, _radio->getSNR(), _radio->getRSSI());
       } else {
         // Capture this packet's link stats NOW — after the next drain the radio
         // would report the newer packet's values (mis-attributed SNR/RSSI).
@@ -284,6 +314,7 @@ int RadioLibWrapper::recvRaw(uint8_t* bytes, int sz) {
       int err = _radio->readData(bytes, len);
       if (err != RADIOLIB_ERR_NONE) {
         MESH_DEBUG_PRINTLN("RadioLibWrapper: error: readData(%d)", err);
+        badqPush(bytes, len, (int16_t)err, _radio->getSNR(), _radio->getRSSI());
         len = 0;
         n_recv_errors++;
       } else {
@@ -368,6 +399,25 @@ void RadioLibWrapper::radioAcquire() { rlwLock(); }
 void RadioLibWrapper::radioRelease() { rlwUnlock(); }
 
 uint32_t RadioLibWrapper::getRxEvents() const { return rx_evt_count; }
+
+int RadioLibWrapper::recvBad(uint8_t* bytes, int sz, int16_t* err, float* snr, float* rssi) {
+  if (badq_count == 0) return 0;   // the common case, without taking the mutex
+  int len = 0;
+  rlwLock();
+  if (badq_count > 0) {
+    BadQSlot* s = &badq[badq_head];
+    len = s->len;
+    if (len > sz) len = sz;
+    memcpy(bytes, s->buf, len);
+    *err = s->err;
+    *snr = s->snr;
+    *rssi = s->rssi;
+    badq_head = (uint8_t)((badq_head + 1) % BADQ_SLOTS);
+    badq_count--;
+  }
+  rlwUnlock();
+  return len;
+}
 
 uint32_t RadioLibWrapper::getRxQueueDrops() const {
 #if defined(ESP32)

@@ -1479,6 +1479,7 @@ void MyMesh::logRxRaw(float snr, float rssi, const uint8_t raw[], int len) {
       _serial->writeFrameToAll(out_frame, i);
     }
   }
+  fcLogRxLong(snr, rssi, raw, len);   // 174-255 bytes: Full capture, never also 0x88
 }
 
 void MyMesh::uiExportBackup(Print& out, double node_lat, double node_lon) {
@@ -2798,6 +2799,8 @@ void MyMesh::handleCmdFrame(size_t len) {
     memcpy(&out_frame[i], _prefs.node_name, tlen);
     i += tlen;
     _serial->writeFrame(out_frame, i);
+  } else if (cmd_frame[0] == FC_CMD && len == 2) { // Full capture (meshcomod)
+    fcCommand(cmd_frame[1]);
   } else if (cmd_frame[0] == CMD_RUN_CLI_COMMAND && len >= 3) { // V14+
     int i = 1;
     char *text = (char *)&cmd_frame[i];
@@ -4740,6 +4743,7 @@ void MyMesh::checkSerialInterface() {
 
 void MyMesh::loop() {
   BaseChatMesh::loop();
+  fcLoop();
 
   if (_cli_rescue) {
     checkCLIRescueCmd();

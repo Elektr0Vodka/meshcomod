@@ -220,6 +220,12 @@ void Dispatcher::checkRecv() {
       }
     } else {
       pkt = NULL;
+      // Full capture: a frame the radio received with an error never reaches
+      // tryParsePacket(), only the hook.
+      int16_t bad_err;
+      float bad_snr, bad_rssi;
+      int bad_len = _radio->recvBad(raw, MAX_TRANS_UNIT, &bad_err, &bad_snr, &bad_rssi);
+      if (bad_len > 0) logRxBad(bad_snr, bad_rssi, bad_err, raw, bad_len);
     }
   }
   if (pkt) {

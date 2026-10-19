@@ -479,6 +479,36 @@ Byte 9:      cad_enabled (0 = off, 1 = on)   [appended, see CAD note]
 
 **CAD note**: The CAD byte is backward compatible in both directions. In the set command it is optional: an app that sends only the 9-byte form (bytes 0 to 8) leaves the CAD setting unchanged. In the response it is appended: an app written before CAD existed reads only bytes 0 to 8 and ignores the trailing byte. When a set includes the CAD byte the firmware applies the change immediately, no reboot needed, and persists it. On the companion, CAD defaults to on. Enabling CAD makes the radio perform a hardware Channel Activity Detection scan before each transmit and defer if the channel is busy. See [companion_cad_toggle.md](companion_cad_toggle.md) for the on-device controls and per-board notes.
 
+### 10. Full Capture (meshcomod)
+
+**Purpose**: Let an observer app (for example RTFM-EV) also receive the frames this companion normally drops: valid frames too long for the `0x88` RX log push (174 to 255 bytes), frames received with a CRC or header error, and a count of frames lost to a full receive queue. Off by default. Nothing extra is transmitted on RF.
+
+**Command Format** (`CMD_SET_FULL_CAPTURE`):
+```
+Byte 0: 0xE0
+Byte 1: flags   0x01 over-long frames, 0x02 damaged frames, 0x04 drop notices
+```
+
+**Response**: `[0x00][supported flags]` (`RESP_CODE_OK` plus one byte). Unknown flag bits get `[0x01][0x06]` (`ERR_CODE_ILLEGAL_ARG`). Stock firmware answers any `0xE0` with an error, which tells the app Full capture is not available. Drop notices (`0x04`) need the ESP32 receive queue; other boards leave that bit out of the supported flags and ignore it.
+
+The setting lives in RAM only. It is cleared on reboot and as soon as no app is connected, so an app sends it again on every connect. Sending `0x00` turns everything off.
+
+**Push Format** (`PUSH_CODE_RX_FULL`, 0xC0):
+```
+Byte 0:  0xC0
+Byte 1:  tag (one per captured frame, wraps at 255)
+Byte 2:  index << 4 | count   (count 1 or 2, index 0 or 1)
+Byte 3:  status   0 valid but over-long, 1 CRC error, 2 header damaged, 3 other read error, 4 drop notice
+Byte 4:  SNR * 4, int8
+Byte 5:  RSSI, int8
+Byte 6:  total_len (frame length; for a drop notice the frames lost since the last notice, capped at 255)
+Bytes 7+: chunk of the frame, at most 169 bytes
+```
+
+A frame longer than 169 bytes comes in two pushes with the same tag; join the chunks by index (they can arrive in either order over some transports) and check the result against `total_len`. A drop notice has no chunk and `count` 1. Every push is at most 176 bytes, so it fits BLE and every other transport. A valid frame of up to 173 bytes still comes only as `0x88`, never also as `0xC0`.
+
+Damaged frames (status 1 to 3) are raw bytes as the radio read them. Do not parse or forward them as packets.
+
 ---
 
 ## Channel Management
@@ -695,6 +725,7 @@ Byte values are authoritative; names are aliases. When reading firmware source, 
 | 0x82  | PACKET_ACK                 | Acknowledgment                |
 | 0x83  | PACKET_MESSAGES_WAITING    | Messages waiting notification |
 | 0x88  | PACKET_LOG_DATA            | RF log data (can be ignored)  |
+| 0xC0  | PACKET_RX_FULL             | Full capture frame or notice ([10](#10-full-capture-meshcomod), opt-in) |
 
 ### Parsing Responses
 

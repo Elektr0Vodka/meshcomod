@@ -78,6 +78,20 @@ public:
 
   virtual float getLastRSSI() const { return 0; }
   virtual float getLastSNR() const { return 0; }
+
+  /**
+   * rief  pops one frame the radio received with an error (CRC, damaged header), kept for
+   *         Full capture. Never a valid packet: those come from recvRaw().
+   * 
+eturns 0 when none is kept, otherwise its length; err gets the radio's error code.
+  */
+  virtual int recvBad(uint8_t* bytes, int sz, int16_t* err, float* snr, float* rssi) { return 0; }
+
+  /**
+   * 
+eturns frames lost because the receive queue was full (0 when not tracked).
+  */
+  virtual uint32_t getRxQueueDrops() const { return 0; }
 };
 
 /**
@@ -166,6 +180,7 @@ protected:
   virtual DispatcherAction onRecvPacket(Packet* pkt) = 0;
 
   virtual void logRxRaw(float snr, float rssi, const uint8_t raw[], int len) { }   // custom hook
+  virtual void logRxBad(float snr, float rssi, int16_t err, const uint8_t raw[], int len) { }   // Full capture hook: a damaged frame
 
   virtual void logRx(Packet* packet, int len, float score) { }   // hooks for custom logging
   virtual void logTx(Packet* packet, int len) { }

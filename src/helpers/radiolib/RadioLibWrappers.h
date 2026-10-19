@@ -109,7 +109,8 @@ public:
   // late reads (the missed-messages class); transiently high by the 1-2 packets
   // currently queued/unread.
   uint32_t getRxEvents() const;
-  uint32_t getRxQueueDrops() const;   // packets dropped because the ring was full
+  uint32_t getRxQueueDrops() const override;   // packets dropped because the ring was full
+  int recvBad(uint8_t* bytes, int sz, int16_t* err, float* snr, float* rssi) override;
 
   virtual float getLastRSSI() const override;
   virtual float getLastSNR() const override;
