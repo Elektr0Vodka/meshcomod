@@ -161,6 +161,12 @@ public:
   void pollHttpOtaReboot();
   bool checkManifestOta(const char* current_ver, char* file_url, size_t file_url_sz, char reply[]) override;
 
+  bool getDeviceMac(uint8_t kind, uint8_t mac[6]) override;
+  bool canRebootToBootloader() const override;
+  void rebootToBootloader() override;
+  bool getMemStats(MemStats& s) override;
+  bool getHttpOtaProgress(uint8_t& pct, const char*& line) override;
+
   void setInhibitSleep(bool inhibit) {
     inhibit_sleep = inhibit;
   }
