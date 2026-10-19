@@ -8,6 +8,14 @@
 #include <helpers/HttpOtaWifiSession.h>
 #include <helpers/RepeaterTcpOtaEmit.h>
 #include <helpers/OtaManifest.h>
+#include <esp_system.h>
+#include <esp_heap_caps.h>
+#if __has_include(<esp_mac.h>)
+#include <esp_mac.h>             // esp_read_mac (IDF 5; esp_system.h has it on IDF 4)
+#endif
+#if __has_include(<soc/rtc_cntl_reg.h>)
+#include <soc/rtc_cntl_reg.h>    // RTC_CNTL_OPTION1_REG / FORCE_DOWNLOAD_BOOT
+#endif
 
 static void (*s_http_ota_minimal_prepare)(uint8_t) = nullptr;
 static void (*s_http_ota_minimal_restore)() = nullptr;
@@ -28,6 +36,53 @@ void ESP32Board::restoreHttpOtaMinimalTransport() {
 volatile int g_meshcore_http_ota_display_active = 0;
 volatile uint8_t g_meshcore_http_ota_display_pct = 0xFF;
 char g_meshcore_http_ota_display_line[28] = {0};
+
+bool ESP32Board::getHttpOtaProgress(uint8_t& pct, const char*& line) {
+  if (!g_meshcore_http_ota_display_active) return false;
+  pct = g_meshcore_http_ota_display_pct;
+  line = g_meshcore_http_ota_display_line;
+  return true;
+}
+
+// The address is read from eFuse, so it is valid whether or not that radio is on. The S2 has
+// no Bluetooth, so its BLE read fails.
+bool ESP32Board::getDeviceMac(uint8_t kind, uint8_t mac[6]) {
+  esp_mac_type_t type = kind == DEVICE_MAC_BLE ? ESP_MAC_BT : ESP_MAC_WIFI_STA;
+  return esp_read_mac(mac, type) == ESP_OK;
+}
+
+// Download mode on the next reset via the RTC force-download bit, which only the S2, S3 and C3
+// have (not the classic ESP32 or the C6).
+#if defined(RTC_CNTL_OPTION1_REG) && defined(RTC_CNTL_FORCE_DOWNLOAD_BOOT)
+bool ESP32Board::canRebootToBootloader() const { return true; }
+
+void ESP32Board::rebootToBootloader() {
+#ifdef PIN_TFT_LEDA_CTL
+  if (PIN_TFT_LEDA_CTL >= 0) {   // blank the backlight: a dark screen signals download mode
+    pinMode(PIN_TFT_LEDA_CTL, OUTPUT);
+    digitalWrite(PIN_TFT_LEDA_CTL, LOW);
+  }
+#endif
+  // Read-modify-write ONLY the force-download bit. A full REG_WRITE zeroes the rest of
+  // RTC_CNTL_OPTION1 and wedges the RTC so esp_restart() hangs instead of resetting.
+  // The bit lives in the RTC domain and survives esp_restart().
+  uint32_t opt1 = REG_READ(RTC_CNTL_OPTION1_REG);
+  REG_WRITE(RTC_CNTL_OPTION1_REG, opt1 | RTC_CNTL_FORCE_DOWNLOAD_BOOT);
+  reboot();
+}
+#else
+bool ESP32Board::canRebootToBootloader() const { return false; }
+void ESP32Board::rebootToBootloader() { }
+#endif
+
+bool ESP32Board::getMemStats(MemStats& s) {
+  s.free_heap = ESP.getFreeHeap();
+  s.max_alloc_heap = ESP.getMaxAllocHeap();
+  s.min_free_heap = ESP.getMinFreeHeap();
+  s.free_internal = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+  s.free_psram = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);   // 0 without PSRAM
+  return true;
+}
 
 #if (defined(ADMIN_PASSWORD) || defined(MULTI_TRANSPORT_COMPANION)) && !defined(DISABLE_WIFI_OTA)
 #include <WiFi.h>

@@ -9,21 +9,7 @@
 #include <string.h>
 #include <SHA256.h>   // derive a region's flood-scope key from its #hashtag name
 #include <time.h>     // gmtime_r for the "clock" CLI command
-#ifdef ESP32
-#include <esp_system.h>          // esp_restart for the "bootloader" CLI command
-#if __has_include(<soc/rtc_cntl_reg.h>)
-#include <soc/rtc_cntl_reg.h>    // RTC_CNTL_OPTION1_REG / FORCE_DOWNLOAD_BOOT
-#endif
-// The force-download bit exists on the S2/S3 and C3, not on the classic ESP32 or the C6.
-#if defined(RTC_CNTL_OPTION1_REG) && defined(RTC_CNTL_FORCE_DOWNLOAD_BOOT)
-#define MESHCOMOD_HAS_FORCE_DOWNLOAD 1
-#endif
-#if __has_include(<esp_mac.h>)
-#include <esp_mac.h>             // esp_read_mac for the "mac" / "get mac" CLI commands
-#endif
-#endif
 #include <helpers/AdvertDataHelpers.h>
-#include <helpers/HttpOtaDisplayState.h>
 #include <helpers/RepeaterTcpOtaEmit.h>
 #include "WiFiConfig.h"
 #include "CompanionSNMP.h"
@@ -239,24 +225,18 @@ static const char* kMeshcomodHelpMsg =
   "ble status\n"
   "mac";
 
-// Factory MAC of one ESP32 interface as "AA:BB:CC:DD:EE:FF", or "n/a" when the chip has no
-// such interface (ESP32-S2 has no Bluetooth) or this is not an ESP32. The address is read from
-// eFuse, so it is valid whether or not that radio is currently on.
-#ifdef ESP32
-static void formatDeviceMac(esp_mac_type_t type, char* out, size_t len) {
+// Factory MAC of one interface as "AA:BB:CC:DD:EE:FF", or "n/a" when the board has no such
+// interface (no Wi-Fi on the nRF52, no Bluetooth on the ESP32-S2).
+static void formatDeviceMac(uint8_t kind, char* out, size_t len) {
   uint8_t m[6];
-  if (esp_read_mac(m, type) == ESP_OK) {
+  if (board.getDeviceMac(kind, m)) {
     snprintf(out, len, "%02X:%02X:%02X:%02X:%02X:%02X", m[0], m[1], m[2], m[3], m[4], m[5]);
   } else {
     StrHelper::strncpy(out, "n/a", len);
   }
 }
-static void getWifiMac(char* out, size_t len) { formatDeviceMac(ESP_MAC_WIFI_STA, out, len); }
-static void getBleMac(char* out, size_t len)  { formatDeviceMac(ESP_MAC_BT, out, len); }
-#else
-static void getWifiMac(char* out, size_t len) { StrHelper::strncpy(out, "n/a", len); }
-static void getBleMac(char* out, size_t len)  { StrHelper::strncpy(out, "n/a", len); }
-#endif
+static void getWifiMac(char* out, size_t len) { formatDeviceMac(mesh::MainBoard::DEVICE_MAC_WIFI, out, len); }
+static void getBleMac(char* out, size_t len)  { formatDeviceMac(mesh::MainBoard::DEVICE_MAC_BLE, out, len); }
 
 #define MESHCOMOD_CMD_CACHE_SIZE 6
 struct MeshcomodCmdCacheEntry {
@@ -623,30 +603,15 @@ bool MyMesh::handleMeshcomodCommand(const char* text, int text_len) {
     return true;   // not reached
   }
   if (isCmd(p, "bootloader") || isCmd(p, "dfu")) {
-#if defined(ESP32) && defined(MESHCOMOD_HAS_FORCE_DOWNLOAD)
-    // Force the ROM into serial/USB download mode on the next reset, so the
-    // board can be flashed without the (flaky) trackball+reset combo. The
-    // FORCE_DOWNLOAD_BOOT bit lives in the RTC domain and survives the restart.
-    pushMeshcomodReply("rebooting into download mode (screen goes dark)...");
-    delay(200);
-#ifdef PIN_TFT_LEDA_CTL
-    if (PIN_TFT_LEDA_CTL >= 0) {        // blank the backlight = clear "in download mode" signal
-      pinMode(PIN_TFT_LEDA_CTL, OUTPUT);
-      digitalWrite(PIN_TFT_LEDA_CTL, LOW);
+    // Reboot into the ROM's serial/USB download mode, so the board can be flashed without
+    // the (flaky) button+reset combo. Which chips can do this is the board's business.
+    if (board.canRebootToBootloader()) {
+      pushMeshcomodReply("rebooting into download mode (screen goes dark)...");
+      delay(200);
+      board.rebootToBootloader();
+    } else {
+      pushMeshcomodReply("bootloader: not supported on this chip");
     }
-#endif
-    // Read-modify-write ONLY the force-download bit. A full REG_WRITE zeroes the
-    // rest of RTC_CNTL_OPTION1 and wedges the RTC so esp_restart() hangs instead
-    // of resetting (that was the earlier "freeze"). board.reboot() == esp_restart,
-    // the proven reset path on this board; the RTC bit survives it.
-    uint32_t opt1 = REG_READ(RTC_CNTL_OPTION1_REG);
-    REG_WRITE(RTC_CNTL_OPTION1_REG, opt1 | RTC_CNTL_FORCE_DOWNLOAD_BOOT);
-    board.reboot();
-#elif defined(ESP32)
-    pushMeshcomodReply("bootloader: not supported on this chip");
-#else
-    pushMeshcomodReply("bootloader: ESP32-only");
-#endif
     return true;   // not reached when download mode is supported
   }
   if (isCmd(p, "get")) {
@@ -840,17 +805,16 @@ bool MyMesh::handleMeshcomodCommand(const char* text, int text_len) {
     }
     if (strncasecmp(p, "status", 6) == 0 && (p[6] == '\0' || p[6] == ' ' || p[6] == '\t')) {
       char line[96];
-#ifdef ESP32   // the progress globals live in ESP32Board.cpp; no HTTP OTA elsewhere
-      if (g_meshcore_http_ota_display_active) {
-        if (g_meshcore_http_ota_display_pct == 0xFF) {
-          snprintf(line, sizeof(line), "ota: active\n%s", g_meshcore_http_ota_display_line[0] ? g_meshcore_http_ota_display_line : "working");
+      uint8_t pct;
+      const char* status = "";
+      if (board.getHttpOtaProgress(pct, status)) {
+        const char* what = status[0] ? status : "working";
+        if (pct == 0xFF) {
+          snprintf(line, sizeof(line), "ota: active\n%s", what);
         } else {
-          snprintf(line, sizeof(line), "ota: %u%%\n%s", (unsigned)g_meshcore_http_ota_display_pct,
-                   g_meshcore_http_ota_display_line[0] ? g_meshcore_http_ota_display_line : "working");
+          snprintf(line, sizeof(line), "ota: %u%%\n%s", (unsigned)pct, what);
         }
-      } else
-#endif
-      {
+      } else {
         snprintf(line, sizeof(line), "ota: idle");
       }
       pushMeshcomodReply(line);

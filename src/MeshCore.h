@@ -84,6 +84,29 @@ public:
     return false;
   }
 
+  // Chip capabilities the companion CLI and SNMP agent report. Defaults say "not
+  // available", so app code needs no chip #if: each platform's board answers for itself.
+  enum { DEVICE_MAC_WIFI = 0, DEVICE_MAC_BLE = 1 };
+  /** Factory MAC of the Wi-Fi station or BLE interface into mac[6], most significant byte
+   *  first. Returns false when the chip has no such interface. */
+  virtual bool getDeviceMac(uint8_t kind, uint8_t mac[6]) { (void)kind; (void)mac; return false; }
+  /** True when rebootToBootloader() can enter the ROM serial/USB download mode. */
+  virtual bool canRebootToBootloader() const { return false; }
+  /** Reboot into download mode. Does not return when supported; does nothing otherwise. */
+  virtual void rebootToBootloader() { }
+  struct MemStats {
+    uint32_t free_heap;       // bytes free now
+    uint32_t max_alloc_heap;  // largest block that can be allocated
+    uint32_t min_free_heap;   // lowest free heap since boot
+    uint32_t free_internal;   // free internal RAM
+    uint32_t free_psram;      // free PSRAM, 0 without PSRAM
+  };
+  /** Heap figures in bytes. Returns false, with s zeroed, when the board does not report them. */
+  virtual bool getMemStats(MemStats& s) { s = MemStats(); return false; }
+  /** A running HTTP OTA download: pct is 0-100 or 0xFF when the size is unknown, line a short
+   *  status text (may be empty). Returns false when no download is running. */
+  virtual bool getHttpOtaProgress(uint8_t& pct, const char*& line) { (void)pct; (void)line; return false; }
+
   virtual bool setLoRaFemLnaEnabled(bool enable) { return false; }
   virtual bool canControlLoRaFemLna() const { return false; }
   virtual bool isLoRaFemLnaEnabled() const { return false; }

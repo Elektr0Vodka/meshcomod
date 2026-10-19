@@ -390,6 +390,22 @@ void NRF52Board::powerOff() {
   }
 }
 
+// The BLE address the SoftDevice uses by default: the static random address in FICR, with
+// the two top bits set. Read from FICR so it works before (or without) Bluefruit.begin().
+// No Wi-Fi on the nRF52.
+bool NRF52Board::getDeviceMac(uint8_t kind, uint8_t mac[6]) {
+  if (kind != DEVICE_MAC_BLE) return false;
+  uint32_t lo = NRF_FICR->DEVICEADDR[0];
+  uint32_t hi = NRF_FICR->DEVICEADDR[1];
+  mac[0] = ((hi >> 8) & 0xFF) | 0xC0;
+  mac[1] = hi & 0xFF;
+  mac[2] = (lo >> 24) & 0xFF;
+  mac[3] = (lo >> 16) & 0xFF;
+  mac[4] = (lo >> 8) & 0xFF;
+  mac[5] = lo & 0xFF;
+  return true;
+}
+
 bool NRF52Board::getBootloaderVersion(char* out, size_t max_len) {
     static const char BOOTLOADER_MARKER[] = "UF2 Bootloader ";
     const uint8_t* flash = (const uint8_t*)0x000FB000; // earliest known info.txt location is 0xFB90B, latest is 0xFCC4B

@@ -10,7 +10,6 @@
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include <SNMP_Agent.h>
-#include <esp_heap_caps.h>
 #include <math.h>
 #include <string.h>
 #include <string>
@@ -80,6 +79,12 @@ static void copyCounters() {
 // the observer's meaning, type and unit; an OID the companion has no data for is not
 // registered, so it reads noSuchObject instead of a 0 that looks real. Companion-only values
 // use .9 and up, which the observer keeps free.
+static mesh::MainBoard::MemStats memStats() {
+  mesh::MainBoard::MemStats s;
+  board.getMemStats(s);
+  return s;
+}
+
 static void registerHandlers(SNMPAgent* a) {
   // System (.1.x.0)
   a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".1.1.0", []() -> int { return (int)(millis() / 1000); });
@@ -116,12 +121,12 @@ static void registerHandlers(SNMPAgent* a) {
   // MQTT (.3.x.0): no bridge on the companion, so only the NTP flag, which it does have.
   a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".3.4.0", []() -> int { return s_ntp_synced ? 1 : 0; });
 
-  // Memory (.4.x.0). heap_caps reports 0 for PSRAM on boards without it.
-  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".4.1.0", []() -> int { return (int)ESP.getFreeHeap(); });
-  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".4.2.0", []() -> int { return (int)ESP.getMaxAllocHeap(); });
-  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".4.3.0", []() -> int { return (int)heap_caps_get_free_size(MALLOC_CAP_INTERNAL); });
-  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".4.4.0", []() -> int { return (int)heap_caps_get_free_size(MALLOC_CAP_SPIRAM); });
-  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".4.5.0", []() -> int { return (int)ESP.getMinFreeHeap(); });
+  // Memory (.4.x.0), from the board. PSRAM reads 0 on boards without it.
+  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".4.1.0", []() -> int { return (int)memStats().free_heap; });
+  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".4.2.0", []() -> int { return (int)memStats().max_alloc_heap; });
+  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".4.3.0", []() -> int { return (int)memStats().free_internal; });
+  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".4.4.0", []() -> int { return (int)memStats().free_psram; });
+  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".4.5.0", []() -> int { return (int)memStats().min_free_heap; });
 
   // Network (.5.x.0)
   a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".5.1.0", []() -> int {
@@ -171,7 +176,7 @@ static void startAgent() {
     s_agent->restartUDP();    // the old socket died with the link
   }
   s_running = true;
-  Serial.printf("[snmp] agent up on udp/161 (free=%u)\n", (unsigned)ESP.getFreeHeap());
+  Serial.printf("[snmp] agent up on udp/161 (free=%u)\n", (unsigned)memStats().free_heap);
 }
 
 static void stopAgent() {
