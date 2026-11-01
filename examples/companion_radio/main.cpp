@@ -560,6 +560,17 @@ void setup() {
 #endif
 
   sensors.begin();
+#if !defined(HAS_TOUCH_UI) && !defined(PERSISTANT_GPS)
+  // sensors.begin() always leaves GPS off after its boot-time detection probe
+  // (see EnvironmentSensorManager::begin()) - restore the user's own saved
+  // preference here instead of leaving it a dead flag that never takes
+  // effect until manually re-set every single reboot.
+  // Touch builds restore it in UITask::begin() and PERSISTANT_GPS boards never
+  // stop it, so a second start here would only take a second power claim.
+  if (the_mesh.getNodePrefs()->gps_enabled) {
+    sensors.setSettingValue("gps", "1");
+  }
+#endif
 
 #ifdef DISPLAY_CLASS
   ui_task.begin(disp, &sensors, the_mesh.getNodePrefs());  // still want to pass this in as dependency, as prefs might be moved
