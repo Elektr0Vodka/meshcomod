@@ -113,6 +113,7 @@ public:
   uint32_t calcDirectTimeoutMillisFor(uint32_t, uint8_t) const override { return 1000; }
   void onSendTimeout() override {}
 
+  using BaseChatMesh::ensureContacts;
   using BaseChatMesh::resetContacts;
   using BaseChatMesh::searchPeersByHash;
   using BaseChatMesh::getPeerSharedSecret;
@@ -150,6 +151,10 @@ TEST(EmptyContactSlots, ZeroPubKeyProducesAllZeroSharedSecretForAnyPrivateKey) {
 TEST(EmptyContactSlots, NullKeyPeerPacketIsRejectedWhenAnonSlotsAreEmpty) {
   MeshFixture fx;
   fx.chat.self_id.pub_key[0] = 0x42;
+
+  // The table is allocated lazily, so a booted node has run this and holds the empty slots.
+  // Without it num_contacts stays 0 and this test passes whether or not the slots are skipped.
+  ASSERT_TRUE(fx.chat.ensureContacts());
 
   // Craft a PAYLOAD_TYPE_TXT_MSG addressed to self_id (dest_hash=0x42) with src_hash=0x00,
   // encrypted and MAC'd under the all-zero 32-byte key that an empty ContactInfo slot derives.
