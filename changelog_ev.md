@@ -113,3 +113,4 @@ Prebuilt drop: [`prebuilt/releases/companion/v1.17.0.4-DMC-EV/`](prebuilt/releas
 | Date | Upstream | PR |
 |------|----------|----|
 | 2026-10-15 | ALLFATHER-BV/meshcomod at MeshCore v1.18.0 (companion `v1.18.0.1`) | #2 |
+| 2026-11-01 | ALLFATHER-BV/meshcomod at `949627fe`, still MeshCore v1.18.0 (sync cursor reuse) | #31 |
