@@ -193,6 +193,28 @@ TEST(CompanionFilter, DropsTextOlderThanTheAgeLimit) {
   EXPECT_EQ(1u, f.counters().age);
 }
 
+TEST(CompanionFilter, DropsTextStampedTooFarInTheFuture) {
+  CompanionFilter f;
+  f.prefs().enabled = true;
+  f.prefs().age_mins = 30;
+  uint8_t buf[64];
+
+  // Two days ahead: inside the malformed scan's week, so only the age limit sees it.
+  EXPECT_EQ(CFilterVerdict::DROP, f.checkGroupText(buf, plaintext(buf, NOW + 2 * 86400, "A: b"), NOW, 1000, 0));
+  EXPECT_EQ(CFilterVerdict::DROP, f.checkGroupText(buf, plaintext(buf, NOW + 31 * 60, "A: c"), NOW, 1000, 0));
+  EXPECT_EQ(CFilterVerdict::PASS, f.checkGroupText(buf, plaintext(buf, NOW + 29 * 60, "A: d"), NOW, 1000, 0));
+  EXPECT_EQ(2u, f.counters().age);
+}
+
+TEST(MessageAge, TooOldIsSymmetricAndOffWithoutAClock) {
+  EXPECT_TRUE(MessageAge::tooOld(NOW + 3601, NOW, 60));
+  EXPECT_TRUE(MessageAge::tooOld(NOW - 3601, NOW, 60));
+  EXPECT_FALSE(MessageAge::tooOld(NOW + 3600, NOW, 60));
+  EXPECT_FALSE(MessageAge::tooOld(NOW - 3600, NOW, 60));
+  EXPECT_FALSE(MessageAge::tooOld(NOW + 86400, NOW, 0));
+  EXPECT_FALSE(MessageAge::tooOld(NOW + 86400, 1000, 60));
+}
+
 TEST(CompanionFilter, HidesBySenderAndTextRules) {
   CompanionFilter f;
   f.prefs().enabled = true;
