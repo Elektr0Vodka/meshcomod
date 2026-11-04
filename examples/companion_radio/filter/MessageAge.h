@@ -33,11 +33,14 @@ namespace MessageAge {
     return ts < now - SANITY_WINDOW_SECS || ts > now + SANITY_WINDOW_SECS;
   }
 
-  // `filter age`: stamped more than `max_mins` before `now`. Off at 0 and while
-  // the clock is unset. A future stamp is never old; the sanity window covers it.
+  // `filter age`: stamped more than `max_mins` away from `now`, before or after.
+  // A sender clock running fast is as far off as one running behind, and the
+  // malformed scan only catches it beyond a week. Off at 0 and while the clock
+  // is unset.
   inline bool tooOld(uint32_t ts, uint32_t now, uint16_t max_mins) {
     if (max_mins == 0 || !clockSet(now)) return false;
-    return ts < now && now - ts > (uint32_t)max_mins * 60UL;
+    uint32_t diff = ts < now ? now - ts : ts - now;
+    return diff > (uint32_t)max_mins * 60UL;
   }
 
   // CLI argument of `filter age`: minutes (0 also means off) or "off".
