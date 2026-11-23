@@ -1,0 +1,2617 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Elektr0Vodka fork of meshcomod, the multi-transport MeshCore companion firmware">
+      
+      
+      
+        <link rel="canonical" href="https://elektr0vodka.github.io/meshcomod/superpowers/dmc-observer-investigation/">
+      
+      
+        <link rel="prev" href="../../touch-txt-trace-repro/">
+      
+      
+        <link rel="next" href="../plans/2026-11-23-companion-mqtt-observer/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>Investigation: adding the DMC observer companion to meshcomod - meshcomod Docs (Elektr0Vodka fork)</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../_stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#investigation-adding-the-dmc-observer-companion-to-meshcomod" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="meshcomod Docs (Elektr0Vodka fork)" class="md-header__button md-logo" aria-label="meshcomod Docs (Elektr0Vodka fork)" data-md-component="logo">
+      
+  <img src="../../_assets/meshcore.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            meshcomod Docs (Elektr0Vodka fork)
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Investigation: adding the DMC observer companion to meshcomod
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark theme"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark theme" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light theme"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light theme" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/Elektr0Vodka/meshcomod/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Elektr0Vodka/meshcomod
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="meshcomod Docs (Elektr0Vodka fork)" class="md-nav__button md-logo" aria-label="meshcomod Docs (Elektr0Vodka fork)" data-md-component="logo">
+      
+  <img src="../../_assets/meshcore.svg" alt="logo">
+
+    </a>
+    meshcomod Docs (Elektr0Vodka fork)
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/Elektr0Vodka/meshcomod/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Elektr0Vodka/meshcomod
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CI_RELEASES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI releases (GitHub Actions + GitHub Releases)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../COMPANION_OTA_MEMORY_ROOT_CAUSE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion OTA HTTPS Memory Root Cause
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../DEVICE_WEBSOCKET_WIFI/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Device WebSocket over Wi‑Fi (plain WS)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../HARDWARE_TOUCH_PARITY_CHECKLIST/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Heltec V4 touch UI — hardware parity acceptance checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../LOCAL_BUILD_M7/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Elecrow ThinkNode M7
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../RELEASE_PROCEDURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release procedure (companion firmware)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../REPEATER_MESHCOMOD_CLIENT_INTEGRATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Meshcomod / custom client ↔ Wi‑Fi repeater (TCP &amp; WebSocket)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../REPEATER_RELEASE_PROCEDURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TCP repeater release procedure (prebuilt / flasher)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../REPEATER_TCP_COMPANION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Repeater TCP companion protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../V3_BOOT_DEBUG/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Heltec V3 boot-loop debug build
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../WEBCLIENT_TOUCH_PARITY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Web client ↔ Heltec V4 touch UI — functionality parity matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli_commands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../companion_cad_toggle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion CAD toggle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../companion_cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../companion_manifest_ota/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion manifest OTA (ota check / ota update)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../companion_mqtt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion MQTT observer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../companion_protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion Protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../companion_receive_filter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion receive filter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../companion_snmp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion SNMP agent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dmc_observer_vendor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vendored Dutch-MeshCore observer code
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local Documentation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Frequently Asked Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../kiss_modem_protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MeshCore KISS Modem Protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../mbedtls-tls-footprint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shrinking the per-connection TLS footprint on non-PSRAM observers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../nrf52_power_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    nRF52 Power Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../number_allocations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Number Allocations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packet_format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Packet Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../payloads/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payload Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../qr_codes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    QR Codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../radio_presets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Radio Presets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stats_binary_frames/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stats Binary Frame Structures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../terminal_chat_cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Terminal Chat CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../touch-txt-trace-repro/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Touch TXT send forensics — repro and decision tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_35" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_35" id="__nav_35_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Superpowers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_35_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_35">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Superpowers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Investigation: adding the DMC observer companion to meshcomod
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Investigation: adding the DMC observer companion to meshcomod
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-what-the-dmc-observer-companion-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. What "the dmc-observer companion" is
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. What &#34;the dmc-observer companion&#34; is">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#envs-and-boards-all-esp32-s3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Envs and boards (all ESP32-S3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-it-adds-over-stock-meshcore-companion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What it adds over stock MeshCore companion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#base-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Base version
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration-and-release-at-dmc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration and release at DMC
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-how-it-differs-from-this-forks-companion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. How it differs from this fork's companion
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-size-of-the-observer-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Size of the observer stack
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-conflicts-with-our-transport-and-prefs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Conflicts with our transport and prefs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Options
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-do-nothing-here-point-to-dmcs-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A. Do nothing here, point to DMC's build
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#b-vendor-dmcs-whole-companion-as-a-second-example-examplescompanion_observer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        B. Vendor DMC's whole companion as a second example (examples/companion_observer)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#c-port-the-observer-into-our-companion-behind-a-build-flag-recommended" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C. Port the observer into our companion behind a build flag (recommended)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#d-upstream-contribution-instead" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        D. Upstream contribution instead
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-decisions-user-2026-11-23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Decisions (user, 2026-11-23)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-how-dmc-fits-the-heltec-v3-and-the-other-no-psram-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. How DMC fits the Heltec V3 (and the other no-PSRAM limits)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. How DMC fits the Heltec V3 (and the other no-PSRAM limits)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-reduced-tls-mbedtls-archives-the-big-one" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 Reduced-TLS mbedTLS archives (the big one)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-static-caps-on-the-v3-companion-observer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Static caps on the V3 companion observer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-other-memory-measures-in-the-observer-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 Other memory measures in the observer stack
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-what-this-means-with-ble-kept" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.4 What this means with BLE kept
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-recommendation-updated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Recommendation (updated)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Recommendation (updated)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#risks-to-note-in-the-docs-and-on-the-release" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Risks to note in the docs and on the release
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-open-questions-and-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Open questions and decisions
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_35_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_35_2" id="__nav_35_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plans
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_35_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_35_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Plans
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plans/2026-11-23-companion-mqtt-observer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion MQTT Observer Implementation Plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_35_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_35_3" id="__nav_35_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Specs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_35_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_35_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Specs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../specs/2026-09-09-companion-cad-toggle-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion CAD runtime toggle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-what-the-dmc-observer-companion-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. What "the dmc-observer companion" is
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. What &#34;the dmc-observer companion&#34; is">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#envs-and-boards-all-esp32-s3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Envs and boards (all ESP32-S3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-it-adds-over-stock-meshcore-companion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What it adds over stock MeshCore companion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#base-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Base version
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration-and-release-at-dmc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration and release at DMC
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-how-it-differs-from-this-forks-companion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. How it differs from this fork's companion
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-size-of-the-observer-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Size of the observer stack
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-conflicts-with-our-transport-and-prefs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Conflicts with our transport and prefs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Options
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-do-nothing-here-point-to-dmcs-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A. Do nothing here, point to DMC's build
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#b-vendor-dmcs-whole-companion-as-a-second-example-examplescompanion_observer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        B. Vendor DMC's whole companion as a second example (examples/companion_observer)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#c-port-the-observer-into-our-companion-behind-a-build-flag-recommended" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C. Port the observer into our companion behind a build flag (recommended)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#d-upstream-contribution-instead" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        D. Upstream contribution instead
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-decisions-user-2026-11-23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Decisions (user, 2026-11-23)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-how-dmc-fits-the-heltec-v3-and-the-other-no-psram-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. How DMC fits the Heltec V3 (and the other no-PSRAM limits)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. How DMC fits the Heltec V3 (and the other no-PSRAM limits)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-reduced-tls-mbedtls-archives-the-big-one" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 Reduced-TLS mbedTLS archives (the big one)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-static-caps-on-the-v3-companion-observer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Static caps on the V3 companion observer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-other-memory-measures-in-the-observer-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 Other memory measures in the observer stack
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-what-this-means-with-ble-kept" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.4 What this means with BLE kept
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-recommendation-updated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Recommendation (updated)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Recommendation (updated)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#risks-to-note-in-the-docs-and-on-the-release" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Risks to note in the docs and on the release
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-open-questions-and-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Open questions and decisions
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/Elektr0Vodka/meshcomod/edit/main/docs/superpowers/dmc-observer-investigation.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="investigation-adding-the-dmc-observer-companion-to-meshcomod">Investigation: adding the DMC observer companion to meshcomod</h1>
+<p>Date: 2026-11-23. Read-only investigation, nothing changed in code.</p>
+<p>Sources read:</p>
+<ul>
+<li><code>Dutch-MeshCore/MeshCore</code>, branch <code>dmc-observer-dev</code> at <code>24c6636a</code> (2026-11-23,
+  PR #40 "companion observer"), plus <code>dmc-dev</code> at <code>b9a2dff3</code> for the DMC docs
+  (<code>dmc-docs/releases.en.md</code>, PR #43). Cloned into a scratch directory.</li>
+<li>This repo at <code>main</code> (<code>a509c903</code>).</li>
+<li>The in-flight MeshCore <code>dev</code> sync (<code>Chore/meshcore-dev-sync-2026-11</code>) only from the
+  brief: it has no commits past <code>main</code> yet, so nothing on it was read.</li>
+</ul>
+<p>Not used: <code>G:/Github/repositories/Elektr0Vodka/MeshCore-MQTT</code>. It is a checkout of
+<code>Dutch-MeshCore/DutchMeshCore.nl-MQTT</code> (an older agessaman MQTT-bridge fork, branch
+<code>mqtt-bridge-implementation-flex-dmc</code>, 256 commits behind its remote). It is not the
+observer source.</p>
+<p>The branch <code>enhancement/dmc-observer-dev-snmp-tier1</code> named in the brief no longer
+exists; SNMP is on <code>dmc-observer-dev</code> itself (<code>src/helpers/SNMPAgent.cpp</code>,
+<code>MQTT_SNMP.md</code>).</p>
+<hr />
+<h2 id="1-what-the-dmc-observer-companion-is">1. What "the dmc-observer companion" is</h2>
+<p>DMC (<code>dmc-observer-dev</code>) ships two observer firmwares. Only the second is a companion.</p>
+<ol>
+<li><strong>Repeater observer</strong> (<code>*_repeater_observer_mqtt</code>, <code>*_observer_mqtt</code>,
+   <code>*_room_server_observer_mqtt</code>): <code>simple_repeater</code> / <code>simple_room_server</code> plus an
+   on-device MQTT uplink, OTA, web config portal, SNMP, fault alerts, self-heal,
+   neighbour publishing. Not a companion, out of scope here.</li>
+<li><strong>Companion Observer</strong> (version string <code>vX.Y.Z[-dev]-dutchmeshcore.nl-comp-obs-&lt;hash&gt;</code>):
+   the stock <code>examples/companion_radio</code> with an MQTT observer compiled in behind
+   <code>-D WITH_MQTT_BRIDGE=1</code>. The MeshCore app connects over Wi-Fi TCP port 5000 while
+   every heard packet goes to the configured MQTT brokers. Status JSON carries
+   <code>"role": "companion"</code>.</li>
+</ol>
+<p>Origin: merged on 2026-11-23 from agessaman's <code>feat/companion-observer</code>
+(commit <code>4f99b2e7</code>), with a DMC CI commit (<code>e9694745</code>) and the <code>-comp-obs</code> tag
+(<code>e588d0c2</code>). DMC docs state it is <strong>not yet tested on hardware</strong>.</p>
+<h3 id="envs-and-boards-all-esp32-s3">Envs and boards (all ESP32-S3)</h3>
+<table>
+<thead>
+<tr>
+<th>Board</th>
+<th>Env</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Heltec V4</td>
+<td><code>heltec_v4_companion_observer_wifi</code></td>
+<td>PSRAM, 350 contacts, 5 active slots</td>
+</tr>
+<tr>
+<td>Heltec V4 expansion kit</td>
+<td><code>heltec_v4_expansionkit_companion_observer_wifi</code></td>
+<td>V4 plus second I2C bus</td>
+</tr>
+<tr>
+<td>Heltec V3</td>
+<td><code>Heltec_v3_companion_observer_wifi</code></td>
+<td>no PSRAM: 150 contacts, 32-msg offline queue, 2 TLS slots</td>
+</tr>
+<tr>
+<td>Xiao S3 WIO</td>
+<td><code>Xiao_S3_WIO_companion_observer_wifi</code></td>
+<td>PSRAM</td>
+</tr>
+<tr>
+<td>Waveshare S3 LR1121</td>
+<td><code>Waveshare_S3_LR1121_companion_observer_wifi</code></td>
+<td>PSRAM</td>
+</tr>
+</tbody>
+</table>
+<p>Build flags (V4): <code>ENABLE_WIFI_INTERFACE</code>, <code>ENABLE_ESP_MDNS</code>, <code>WITH_MQTT_BRIDGE=1</code>,
+<code>MQTT_MAX_PACKET_SIZE=1024</code>, <code>CONFIG_MBEDTLS_CERTIFICATE_BUNDLE=y</code>, <code>ESP32_CPU_FREQ=160</code>,
+<code>MQTT_WIFI_TX_POWER=WIFI_POWER_11dBm</code>, plus a pre-script <code>scripts/generate_cert_bundle.py</code>
+that embeds <code>src/certs/x509_crt_bundle.bin</code>. Extra libs: <code>elims/PsychicMqttClient@^0.2.4</code>
+(also vendored under <code>lib/PsychicMqttClient</code>), <code>ArduinoJson 7.4.3</code>, <code>NTPClient</code>,
+<code>Timezone</code>, <code>Time</code>, and DMC's <code>esp32_ota</code> set (<code>ESPAsyncWebServer 3.11.2</code>, <code>AsyncTCP 3.5.0</code>).
+No <code>BLE_PIN_CODE</code>: the observer companion is <strong>Wi-Fi only, no BLE</strong>.</p>
+<h3 id="what-it-adds-over-stock-meshcore-companion">What it adds over stock MeshCore companion</h3>
+<ul>
+<li>MQTT uplink to up to 6 broker slots, each a preset (about 45 presets: letsmesh
+  analyzers, <code>dutchmeshcore-1/2</code>, meshmapper, MeshRank, regional brokers) or <code>custom</code>.
+  Nearly all presets are TLS (<code>wss://</code> with JWT signed by the node key, or <code>mqtts://</code>).
+  Per-slot IATA region, packet-type filter, extension topics.</li>
+<li>Publishes <code>packets</code> (RX and TX, parsed JSON), <code>raw</code> (radio bytes with SNR/RSSI) and
+  <code>status</code>, via <code>logRx</code> / <code>logTx</code> / <code>logRxRaw</code> hooks in <code>MyMesh</code>.</li>
+<li>Observer CLI (<code>get/set mqttN.*</code>, <code>mqtt.iata</code>, <code>wifi.ssid/pwd</code>, <code>wifi.txpower</code>,
+  <code>wifi.ipv6</code>, <code>timezone</code>, <code>get mqtt.status</code>, <code>mqttN.diag</code>, NTP diag), reachable from
+  USB serial (115200), the app's CLI and remote admin.</li>
+<li>Wi-Fi is owned by DMC's <code>NetworkLink</code> (credentials in <code>/mqtt.json</code>, joined by the MQTT
+  task); the app TCP server is opened from <code>loop()</code> once the link has an address.</li>
+<li><code>/mqtt.json</code> and the identity are shared with the repeater observer, so a node can be
+  reflashed between the two roles and keep brokers, IATA, Wi-Fi, timezone and key.
+  Node name, radio and <code>repeat.disable</code> carry over through upstream's <code>/prefs.json</code>.</li>
+<li>On PSRAM boards the whole <code>MyMesh</code> object is placed in PSRAM
+  (<code>COMPANION_MESH_IN_PSRAM</code>) to leave internal DRAM for Wi-Fi and TLS.</li>
+<li>Crash report capture at boot, <code>NodeDiagCLI</code> (memory / radio diag), OLED line
+  <code>MQTT n/m up</code>, live mDNS name refresh.</li>
+<li>DMC's companion receive filter (<code>filter ...</code>) is included.</li>
+</ul>
+<p>Explicitly <strong>not</strong> in the Companion Observer: pull OTA, SNMP, web portal, fault alerts,
+MQTT self-heal, neighbour publishing. Update over USB.</p>
+<h3 id="base-version">Base version</h3>
+<p><code>dmc-observer-dev</code> = <code>dmc-dev</code> (MeshCore <code>dev</code> at <code>33cd5dbd</code>, synced 2026-11-15, reports
+<code>v1.18.0</code>) + agessaman <code>observer-firmware-dev</code> (catch-up 2026-11-22) + agessaman
+<code>feat/companion-observer</code>. So it sits on roughly the same upstream <code>dev</code> that the
+in-flight <code>Chore/meshcore-dev-sync-2026-11</code> brings into this fork. DMC already has
+<code>NmeaGpsDriver</code> in its tree.</p>
+<p>DMC's companion is upstream's companion: settings in <strong><code>/prefs.json</code></strong> (upstream JSON
+prefs, <code>FIRMWARE_VER_CODE 14</code>). It also carries code ported from this fork:
+<code>CompanionSNMP.cpp</code> ("Ported from meshcomod"), <code>CompanionOta.cpp</code>, <code>CompanionNet.cpp</code>,
+and <code>MeshcomodImport.cpp</code> / <code>MeshcomodPrefs.h</code>, which read this fork's 141-byte binary
+<code>/new_prefs</code> on the first boot after a meshcomod-to-DMC flash.</p>
+<h3 id="configuration-and-release-at-dmc">Configuration and release at DMC</h3>
+<ul>
+<li>Setup: <code>set wifi.ssid</code>, <code>set wifi.pwd</code>, <code>set mqtt.iata &lt;code&gt;</code>, <code>set mqtt1.preset &lt;name&gt;</code>,
+  reboot.</li>
+<li>Release: the "DMC Firmware Release" workflow button, firmware <code>companion-observer</code>,
+  branch <code>dmc-observer-dev</code>, envs <code>*_companion_observer_wifi</code>. Channel <code>dev</code> rebuilds the
+  rolling pre-release <code>dmc-companion-observer-dev</code>; channel <code>release</code> creates a draft
+  <code>dmc-companion-observer-vX.Y.Z</code>. A dispatch-only fallback workflow
+  <code>build-companion-observer-firmwares.yml</code> exists. The rolling build feeds the Toolbox
+  flasher only, never the OTA server. The Toolbox flasher already lists the meshcomod
+  companion too.</li>
+</ul>
+<hr />
+<h2 id="2-how-it-differs-from-this-forks-companion">2. How it differs from this fork's companion</h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>meshcomod companion (<code>main</code>)</th>
+<th>DMC Companion Observer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>App transports</td>
+<td>USB + TCP 5000 + WebSocket 8765 + BLE at once (<code>MULTI_TRANSPORT_COMPANION</code>)</td>
+<td>Wi-Fi TCP 5000 only; USB is a CLI console</td>
+</tr>
+<tr>
+<td>Wi-Fi owner</td>
+<td><code>main.cpp</code> state machine, creds in NVS (<code>WifiRuntimeStore</code>), BLE coexistence, <code>wifi.enabled</code>, <code>wifi.apply</code>, touch UI</td>
+<td><code>NetworkLink</code> singleton, creds in <code>/mqtt.json</code></td>
+</tr>
+<tr>
+<td>Prefs</td>
+<td>binary <code>NodePrefs</code> in <code>/new_prefs</code> (141 bytes, CAD byte)</td>
+<td>upstream <code>/prefs.json</code> (ConfigSerializer)</td>
+</tr>
+<tr>
+<td>SNMP</td>
+<td><code>CompanionSNMP.cpp</code>, OIDs .1 to .5, .9, .10; <code>.3.4.0</code> only in the MQTT group</td>
+<td>none</td>
+</tr>
+<tr>
+<td>OTA</td>
+<td>manifest OTA (<code>ota check/update/url</code>)</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Clock</td>
+<td>SNTP kicked from <code>main.cpp</code> when Wi-Fi associates</td>
+<td>MQTTBridge's own NTP + <code>Timezone</code></td>
+</tr>
+<tr>
+<td>Capture</td>
+<td><code>FullCapture</code>, <code>logRxRaw</code>, <code>logRxBad</code></td>
+<td><code>logRx</code>, <code>logTx</code>, <code>logRxRaw</code> to MQTT</td>
+</tr>
+<tr>
+<td>Boards</td>
+<td>about 59 envs, ESP32 + nRF52 + RP2040</td>
+<td>5 ESP32-S3 envs</td>
+</tr>
+</tbody>
+</table>
+<p>Overlap of boards: Heltec V4, Heltec V3 and Xiao S3 WIO are in both lists. Heltec V4 R8,
+V4 TFT and Xiao S3 are ours only. Waveshare S3 LR1121 and the V4 expansion kit are DMC
+only.</p>
+<hr />
+<h2 id="3-size-of-the-observer-stack">3. Size of the observer stack</h2>
+<p>Include closure from <code>CompanionObserver</code>, <code>MQTTBridge</code>, <code>ObserverConfig</code>, <code>ObserverCLI</code>,
+<code>NetworkLink</code>, <code>JWTHelper</code>, <code>MQTTMessageBuilder</code>, <code>MQTTPayloadBuilder</code>, <code>CrashReport</code>,
+<code>NodeDiagCLI</code>: <strong>75 files, about 22,100 lines that do not exist in this fork</strong> (largest:
+<code>MQTTBridge.cpp</code> 6,087, <code>ObserverCLI.cpp</code> 1,628, <code>NetworkLink.cpp</code> 1,200,
+<code>ObserverConfig.cpp</code> 818, MQTTPrefs codec/serializer/storage about 1,800). Some of that
+closure is repeater baggage that can be trimmed (<code>AlertReporter</code>, <code>SNMPAgent</code>,
+<code>CommonGpsPrefs</code>, <code>GpsGuard</code>).</p>
+<p>Files that exist in both trees but differ: <code>CommonCLI.h</code> (+212/-15 at DMC: it embeds the
+repeater <code>NodePrefs</code> ConfigSerializer class and includes <code>MQTTPrefsStorage.h</code> and
+<code>ObserverConfig.h</code>), <code>CommonCLI.cpp</code> (+431/-127), <code>Dispatcher.h</code> (+32/-21, likely the
+upstream <code>dev</code> delta), <code>IdentityStore.h</code> (-4). <code>ObserverCLI.cpp</code> includes <code>CommonCLI.h</code>
+only for <code>StrHelper</code>, so that include can be pointed at <code>TxtDataHelpers.h</code> instead of
+taking DMC's <code>CommonCLI</code>.</p>
+<p>The companion-side glue itself is small: about 200 lines across <code>MyMesh.cpp/.h</code>,
+<code>main.cpp</code> and one UI line, plus the 260-line <code>CompanionObserver</code> wrapper.</p>
+<hr />
+<h2 id="4-conflicts-with-our-transport-and-prefs">4. Conflicts with our transport and prefs</h2>
+<ol>
+<li><strong>Wi-Fi ownership (biggest).</strong> Our <code>main.cpp</code> owns Wi-Fi (NVS creds, <code>WiFi.begin</code>,
+   BLE coexistence modem sleep, <code>wifi.enabled</code> off/on, touch settings). DMC's
+   <code>NetworkLink</code> wants to own it too, from <code>/mqtt.json</code>. Good news: <code>NetworkLink</code> is an
+   abstract interface with a build-selected singleton (<code>activeNetworkLink()</code>), and
+   compatibility Wi-Fi builds call <code>begin()</code> / <code>maintain()</code> from the MQTT task. A
+   passive <code>ExternalWiFiNetworkLink</code> (begin is a no-op, status read from <code>WiFi</code>) lets
+   our Wi-Fi manager stay in charge with no change to <code>main.cpp</code> Wi-Fi logic.
+   Cost of that choice: Wi-Fi creds no longer round-trip through <code>/mqtt.json</code> when a node
+   is reflashed to a DMC repeater observer. Mirroring our creds into <code>/mqtt.json</code> on
+   <code>wifi.apply</code> would keep that.</li>
+<li><strong>Internal RAM.</strong> <code>docs/COMPANION_OTA_MEMORY_ROOT_CAUSE.md</code> shows one HTTPS session
+   already failed with <code>SSL - Memory allocation failed</code> while BLE was up. MQTT keeps 1 to
+   6 TLS sessions open permanently (about 40 KB internal heap each, per DMC). DMC drops
+   BLE entirely and moves <code>MyMesh</code> to PSRAM. For us that means: PSRAM boards first, adopt
+   <code>COMPANION_MESH_IN_PSRAM</code>, cap active slots (2 by default), and probably refuse MQTT
+   while BLE is enabled on boards without PSRAM. Needs a heap reading on hardware.</li>
+<li><strong>Prefs.</strong> No <code>NodePrefs</code> layout change is needed: MQTT settings live in their own
+   <code>/mqtt.json</code> (DMC codec, kept byte-compatible by vendoring it unchanged), and the
+   bridge only asks the host for node name, radio params, forwarding state and role
+   through <code>MQTTBridgeHost</code>. The repeater-to-companion <code>/prefs.json</code> carry-over (node
+   name, radio, repeat) does not apply, because we keep binary <code>/new_prefs</code>. Our
+   <code>DataStore</code> root prefix (<code>_rp()</code>, SD under Launcher) must be honoured when passing
+   the filesystem.</li>
+<li><strong>CLI.</strong> Name collisions: <code>get/set wifi.*</code> (ours: ssid, pwd, clear, apply, enabled,
+   status, ip, mac, radio), <code>ota</code> (ours has manifest OTA, the observer refuses <code>ota</code>),
+   <code>timezone</code>, NodeDiagCLI's <code>memory</code> / <code>stats-*</code>. Route <code>mqtt*</code>, <code>timezone</code> and NTP
+   diag to the observer, keep <code>wifi.*</code>, <code>ota</code>, <code>snmp</code> on ours. <code>cli_command</code> has to grow
+   from 80 to 161 bytes for broker hostnames and tokens.</li>
+<li><strong>Packet hooks.</strong> We already override <code>logRxRaw</code> (UI echo tracking, full capture) and
+   <code>logRxBad</code>; adding <code>logRx</code> / <code>logTx</code> overrides is additive.</li>
+<li><strong>Clock.</strong> Both our SNTP kick and MQTTBridge's NTP would set the clock. Keep one;
+   <code>.3.4.0</code> should keep meaning "clock set by NTP this boot".</li>
+<li><strong>SNMP contract.</strong> With MQTT in the build, our agent can register <code>.3.1.0</code> (connected
+   slots), <code>.3.2.0</code> (queue depth) and <code>.3.3.0</code> (skipped publishes) with the observer's
+   meaning and types. That stays inside the contract (observer owns .1 to .8, companion
+   adds .9 and .10) and needs a <code>docs/companion_snmp.md</code> update.</li>
+<li><strong>Libraries.</strong> New: PsychicMqttClient (esp-mqtt based), ArduinoJson 7.4.3, NTPClient,
+   Timezone, Time, the cert bundle pre-script and embedded bundle. DMC pins
+   <code>ESPAsyncWebServer 3.11.2</code> / <code>AsyncTCP 3.5.0</code>, we pin <code>3.10.3</code>; only relevant if the
+   web portal were ported (it should not be).</li>
+<li><strong>After the dev sync.</strong> UIs move to <code>src/helpers/ui/companion-*</code>, <code>ui_task</code> moves to
+   <code>target.cpp</code>, GPS becomes <code>NmeaGpsDriver</code>. The observer touches only one UI line and no
+   GPS code, and <code>Dispatcher.h</code> should converge with DMC's after the sync, so doing this
+   <strong>after</strong> the sync lands is cheaper than before.</li>
+<li><strong>Cross-flash with DMC.</strong> Identity files match. DMC's <code>MeshcomodImport</code> reads our
+    141-byte <code>/new_prefs</code>; any future <code>NodePrefs</code> growth here should be announced to it.
+    Going from DMC back to meshcomod leaves <code>/prefs.json</code> and <code>/mqtt.json</code> unused and
+    reads the stale <code>/new_prefs</code> DMC left behind.</li>
+</ol>
+<hr />
+<h2 id="5-options">5. Options</h2>
+<h3 id="a-do-nothing-here-point-to-dmcs-build">A. Do nothing here, point to DMC's build</h3>
+<p>The Toolbox flasher already offers both. Zero work. Users who want MQTT lose BLE,
+WebSocket, USB app link, SNMP and OTA.</p>
+<h3 id="b-vendor-dmcs-whole-companion-as-a-second-example-examplescompanion_observer">B. Vendor DMC's whole companion as a second example (<code>examples/companion_observer</code>)</h3>
+<p>Builds DMC's companion as-is from this tree. It brings DMC's <code>/prefs.json</code> DataStore, its
+own filter, SNMP and OTA copies, and its <code>CommonCLI</code> changes, so two companion codebases
+diverge in one repo, and devices flipping between them hit the binary/JSON prefs split.
+High maintenance, little gain over option A. <strong>Not recommended.</strong></p>
+<h3 id="c-port-the-observer-into-our-companion-behind-a-build-flag-recommended">C. Port the observer into our companion behind a build flag (recommended)</h3>
+<p><code>-D WITH_MQTT_BRIDGE=1</code> on new <code>*_companion_radio_usb_tcp_mqtt</code> envs (or on the existing
+PSRAM envs once proven), keeping USB + TCP + WS (+ BLE where RAM allows), SNMP, manifest
+OTA and full capture.</p>
+<ul>
+<li>Vendor the observer helper set unchanged from a pinned DMC commit into <code>src/helpers/</code>
+  (and <code>lib/PsychicMqttClient</code> if DMC's vendored copy has patches), recorded with the
+  source commit so later syncs are a file refresh, not a merge. Do not merge DMC branches:
+  they carry the whole DMC repeater stack.</li>
+<li>Add our own <code>CompanionObserver</code> glue in <code>examples/companion_radio/</code> (DMC's wrapper is a
+  good template), a passive <code>NetworkLink</code>, CLI routing, SNMP <code>.3.1</code> to <code>.3.3</code>, OLED line.</li>
+<li>Release through <code>companion_boards.ini</code> like every other env; README table regenerated;
+  <code>changelog_ev.md</code> entry.</li>
+</ul>
+<p>Rough size:</p>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Content</th>
+<th>Size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Vendor helpers, passive link, glue, CLI routing, Heltec V4 env, build green</td>
+<td>about 22k lines copied, 400 to 700 lines written; 2 to 3 days</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Heap work: mesh in PSRAM, slot cap, BLE policy, hardware soak on V4</td>
+<td>1 to 2 days plus soak time</td>
+</tr>
+<tr>
+<td>3</td>
+<td>SNMP <code>.3.x</code>, docs (<code>companion_mqtt.md</code>, SNMP doc), more boards</td>
+<td>1 day</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Optional: mirror Wi-Fi creds into <code>/mqtt.json</code> for DMC cross-flash</td>
+<td>half a day</td>
+</tr>
+</tbody>
+</table>
+<h3 id="d-upstream-contribution-instead">D. Upstream contribution instead</h3>
+<p>Offer meshcomod's multi-transport to DMC so their Companion Observer gains BLE/WS/USB.
+Larger and against DMC's "downstream-only" stance; not a fit for this repo's goals.</p>
+<hr />
+<h2 id="6-decisions-user-2026-11-23">6. Decisions (user, 2026-11-23)</h2>
+<ul>
+<li><strong>BLE must stay toggleable</strong> on the MQTT builds.</li>
+<li><strong>Separate <code>_mqtt</code> envs</strong>, for example <code>heltec_v4_companion_radio_usb_tcp_mqtt</code>. The
+  existing <code>usb_tcp</code> envs stay as they are.</li>
+<li><strong>Base: <code>dmc-observer-dev</code>.</strong> The helpers are copied from a pinned DMC commit, not from
+  agessaman's branches.</li>
+<li><strong>The mbedTLS side finding (7.1) is part of the MQTT work</strong>, not a separate PR.</li>
+</ul>
+<hr />
+<h2 id="7-how-dmc-fits-the-heltec-v3-and-the-other-no-psram-limits">7. How DMC fits the Heltec V3 (and the other no-PSRAM limits)</h2>
+<p>DMC (agessaman's work, merged into <code>dmc-observer-dev</code>) uses several measures together. All
+of them are in the tree at <code>24c6636a</code>.</p>
+<h3 id="71-reduced-tls-mbedtls-archives-the-big-one">7.1 Reduced-TLS mbedTLS archives (the big one)</h3>
+<p><code>docs/mbedtls-tls-footprint.md</code> (commit <code>fda23612</code>, 2026-11-10):</p>
+<ul>
+<li>Root cause: <code>framework-arduinoespressif32</code> for <code>espressif32@6.11.0</code> (Arduino 2.0.17,
+  IDF 4.4) ships mbedTLS precompiled with symmetric 16 KiB in and out record buffers. Each
+  TLS session therefore needs <strong>2 x 16 KiB of contiguous internal DRAM</strong>. Every reconnect
+  frees and reallocates those buffers, so the largest free block shrinks over time:
+  measured on a V3 with two WSS slots, it fell from 62,452 to 16,372 bytes over 50
+  reconnects.</li>
+<li><strong>A project <code>-D</code> cannot change this</strong>, because the buffer sizes are compiled into
+  <code>libmbedtls.a</code>. DMC rebuilds the four mbedTLS archives with
+  <code>ASYMMETRIC_CONTENT_LEN=y</code>, <code>OUT_CONTENT_LEN=4096</code> (IN stays 16384) and
+  <code>KEEP_PEER_CERTIFICATE=n</code>. That saves about 16 KiB per connection.</li>
+<li>Plumbing: <code>scripts/mbedtls_4k.py</code> (a pre-script in <code>esp32_base.extra_scripts</code>),
+  <code>scripts/fetch_mbedtls_4k.sh</code>, and <code>scripts/mbedtls_4k_manifest.txt</code>, which pins
+  sha256 hashes of the replacement archives and fingerprints of the stock archives. The
+  build stops if the framework changes underneath. <code>MESHCORE_REDUCED_TLS=auto</code> applies
+  it to every env that has <code>WITH_MQTT_BRIDGE</code> and no <code>BOARD_HAS_PSRAM</code>. <code>build.sh</code> sets
+  <code>auto</code> for observer builds. Only <code>esp32s3</code> archives exist; classic ESP32 builds stock.
+  A link-map check prints <code>reduced-TLS: &lt;env&gt;: active</code>, and the boot log prints
+  <code>TLS outbound record: 4096 bytes (reduced)</code>.</li>
+<li>The archives are downloaded from <strong><code>agessaman/MeshCore</code> releases, tag <code>mbedtls-4k</code></strong>
+  (the default <code>BASE_URL</code>; <code>MBEDTLS_4K_BASE_URL</code> overrides it). Same platform pin as ours
+  (<code>platformio/espressif32@6.11.0</code>), so the same archives fit our builds.</li>
+<li>Measured on a V3 with two WSS slots, repeater observer: boot free heap went from 70.3 K
+  to 94.9 K and the largest block from 52.2 K to 75.8 K. After four slot reconfigures the
+  reduced build still had a 73.7 K block, while the stock build was down to 37.9 K after
+  two.</li>
+</ul>
+<p><strong>Side finding for this fork:</strong> our <code>usb_tcp</code> envs set
+<code>-D CONFIG_MBEDTLS_ASYMMETRIC_CONTENT_LEN=1</code>, <code>-D CONFIG_MBEDTLS_SSL_IN_CONTENT_LEN=16384</code>
+and <code>-D CONFIG_MBEDTLS_SSL_OUT_CONTENT_LEN=4096</code> (for example <code>variants/heltec_v3/platformio.ini</code>,
+<code>Heltec_v3_companion_radio_usb_tcp</code>). By DMC's analysis these are no-ops: the linked
+archive still uses 16 KiB out buffers. That probably explains part of
+<code>docs/COMPANION_OTA_MEMORY_ROOT_CAUSE.md</code>. It still has to be confirmed with a link map
+or a heap reading. The reduced-TLS archives would help our HTTPS OTA too, with or without MQTT.</p>
+<h3 id="72-static-caps-on-the-v3-companion-observer">7.2 Static caps on the V3 companion observer</h3>
+<p><code>Heltec_v3_companion_observer_wifi</code> (commit <code>2eb0414d</code>, measured on hardware by agessaman
+with the app connected):</p>
+<ul>
+<li><code>MAX_CONTACTS=150</code> (we ship 350 on V3), <code>OFFLINE_QUEUE_SIZE=32</code>, <code>MAX_GROUP_CHANNELS=40</code>.</li>
+<li>At most 2 active MQTT slots: <code>MQTTBridge::getMaxActiveSlots()</code> returns
+  <code>MQTT_MAX_ACTIVE_SLOTS_NO_PSRAM</code> (default 2) without PSRAM and 5 with it. Further
+  slots stay saved and show <code>(inactive)</code>.</li>
+<li>Result with two TLS slots up: 51 KB free internal heap, 34.8 KB largest block, 36 KB
+  minimum since boot. One slot left 114 KB free. These numbers were taken <strong>before</strong> the
+  reduced-TLS archives existed, so with them V3 should have roughly 25 KB more.</li>
+<li>No <code>ENABLE_ESP_MDNS</code> on V3 (V4 has it).</li>
+<li>The smaller <code>adafruit</code> cert bundle on V3. V4 and Xiao use <code>adafruit-full</code> (commit
+  <code>5addae82</code>), so a broker that verifies on the repeater observer also verifies on the
+  companion.</li>
+<li>No BLE at all.</li>
+</ul>
+<h3 id="73-other-memory-measures-in-the-observer-stack">7.3 Other memory measures in the observer stack</h3>
+<ul>
+<li><code>scripts/asynctcp_stack.py</code> (commit <code>dedb33bd</code>): caps AsyncTCP's never-deleted service
+  task stack from 16 KiB to 8 KiB on <code>WITH_MQTT_BRIDGE</code> builds without PSRAM (measured
+  peak 2.2 KB). We link AsyncTCP through <code>esp32_ota</code>, so this applies to us too.</li>
+<li><code>mbedtls_platform_set_calloc_free(psram_calloc, psram_free)</code> once per boot on PSRAM
+  boards (commit <code>6d1e7bec</code>). All TLS, ours included, then allocates from PSRAM. That
+  would also remove the OTA TLS allocation failure on PSRAM boards.</li>
+<li><code>COMPANION_MESH_IN_PSRAM</code> (commits <code>3a9f5eaa</code>, <code>cca5dd4a</code>): on a V4.2 with five brokers,
+  internal heap had dropped to 29 KB free with a 14 KB largest block. Moving <code>MyMesh</code>
+  (contacts, offline queue, frame buffers, about 120 KB) into PSRAM, allocated at the
+  start of <code>setup()</code>, cut static internal RAM from 177 KB to 54 KB.</li>
+<li>JSON scratch pools and bridge text buffers in PSRAM; no stack fallback buffers on the
+  MQTT task (a missing buffer skips the publish and counts as a drop, SNMP <code>.3.3.0</code>).</li>
+<li>Wi-Fi: <code>ESP32_CPU_FREQ=160</code>, and a TX power cap of <code>MQTT_WIFI_TX_POWER=WIFI_POWER_11dBm</code>,
+  adjustable at runtime with <code>set wifi.txpower</code> and reapplied after every association.</li>
+<li>Self-heal reboots, the neighbour table, the web portal and fault alerts are left out of
+  the companion build.</li>
+</ul>
+<h3 id="74-what-this-means-with-ble-kept">7.4 What this means with BLE kept</h3>
+<p>Our V3 <code>usb_tcp</code> image already runs BLE + Wi-Fi + TCP + WS with 350 contacts, and our own
+touch build gates BLE co-init on 50 KB free / 20 KB largest block. Our BLE toggle
+(<code>MultiTransportCompanionInterface::enableBle/disableBle</code>, persisted with
+<code>wifiConfigSetBleEnabled</code>) <strong>does not free RAM when switched off</strong>: NimBLE stays
+resident, because deinit while Wi-Fi coexistence is active crashes. Only the OTA path
+calls <code>NimBLEDevice::deinit(true)</code>. So on the MQTT builds the toggle has to work like this:</p>
+<ul>
+<li><strong>BLE off at boot</strong>: NimBLE is never started and its RAM goes to TLS. Switching it on
+  later brings it up lazily (the code already does that through the stored
+  <code>prepareBle()</code> params), but only if the heap gate passes.</li>
+<li><strong>BLE switched off at runtime</strong>: advertising stops at once; the RAM comes back after
+  the next reboot. The UI and CLI should say so.</li>
+<li><strong>Slot budget follows BLE</strong>: with BLE on at boot, the active-slot cap on no-PSRAM boards
+  drops by one (2 becomes 1 on V3). This needs a small hook in <code>getMaxActiveSlots()</code> or a
+  value set before the bridge starts.</li>
+<li><strong>Runtime heap gate</strong> before a slot connects or BLE comes up (DMC has only the static
+  cap). Reuse our touch thresholds for BLE (50 KB free, 20 KB block) and require about
+  40 KB contiguous (20 KB with reduced TLS) before opening a TLS slot.</li>
+</ul>
+<hr />
+<h2 id="8-recommendation-updated">8. Recommendation (updated)</h2>
+<p>Option C with the decisions above. Order of work:</p>
+<ol>
+<li><strong>After</strong> <code>Chore/meshcore-dev-sync-2026-11</code> is merged, copy the observer helper set,
+   <code>lib/PsychicMqttClient</code>, <code>scripts/generate_cert_bundle.py</code>, <code>scripts/mbedtls_4k.py</code>,
+   <code>scripts/fetch_mbedtls_4k.sh</code>, <code>scripts/mbedtls_4k_manifest.txt</code> and
+   <code>scripts/asynctcp_stack.py</code> from a pinned <code>dmc-observer-dev</code> commit. Record that commit
+   in a short <code>docs/</code> note so the next refresh is a diff.</li>
+<li>Our own glue: a <code>CompanionObserver</code>-style wrapper, a passive <code>NetworkLink</code> (our Wi-Fi
+   manager stays the owner), the <code>logRx</code>/<code>logTx</code> hooks, CLI routing, and
+   <code>COMPANION_MESH_IN_PSRAM</code> plus the PSRAM mbedTLS allocator on PSRAM boards.</li>
+<li><strong>Heltec V4</strong> <code>heltec_v4_companion_radio_usb_tcp_mqtt</code> first: BLE on, 5 slots, mesh in
+   PSRAM. Hardware soak with BLE on and off.</li>
+<li>Heltec V4 R8, Xiao S3 WIO (and other PSRAM S3 boards on request).</li>
+<li><strong>Heltec V3</strong> <code>Heltec_v3_companion_radio_usb_tcp_mqtt</code> last, using DMC's recipe:
+   reduced-TLS archives (<code>MESHCORE_REDUCED_TLS=auto</code>), AsyncTCP 8 KiB stack,
+   <code>MAX_CONTACTS=150</code>, <code>OFFLINE_QUEUE_SIZE=32</code>, <code>adafruit</code> bundle, no mDNS, 2 slots with
+   BLE off and 1 with BLE on, plus the heap gates from 7.4. Go or no-go after a heap
+   reading on hardware with BLE, the app on BLE and one WSS slot all up.</li>
+<li>SNMP <code>.3.1</code> to <code>.3.3</code>, <code>docs/companion_mqtt.md</code>, <code>docs/companion_snmp.md</code>,
+   <code>companion_boards.ini</code> sections for the <code>_mqtt</code> envs, README table, changelog.</li>
+</ol>
+<h3 id="risks-to-note-in-the-docs-and-on-the-release">Risks to note in the docs and on the release</h3>
+<ul>
+<li><strong>Contact cap on V3.</strong> Flashing the V3 <code>_mqtt</code> image over a V3 <code>usb_tcp</code> node with more
+  than 150 contacts loads only the first 150, and the next save drops the rest. The
+  release notes need a warning, or the V3 <code>_mqtt</code> image should refuse to save while the
+  file still holds more contacts than it loaded.</li>
+<li><strong>Release CI.</strong> Release CI must fetch the reduced-TLS archives. That means a binary
+  download from <code>agessaman/MeshCore</code> during the build, checked against the pinned hashes.
+  Mirroring the four archives to a release in this repo (the fetch script honours
+  <code>MBEDTLS_4K_BASE_URL</code>) avoids depending on a third-party release staying online.</li>
+<li><strong>Not tested on hardware.</strong> The DMC docs list the Companion Observer as not hardware
+  tested, though agessaman's commits include V3 and V4.2 heap measurements. Our BLE, WS
+  and SNMP additions on top are untested anyway.</li>
+</ul>
+<h2 id="9-open-questions-and-decisions">9. Open questions and decisions</h2>
+<p>Decided (user, 2026-11-23):</p>
+<ul>
+<li>V3 <code>_mqtt</code> image: <code>MAX_CONTACTS=150</code>, as DMC does.</li>
+<li>
+<p>The reduced-TLS archives are mirrored to a release in this repo; the build sets
+  <code>MBEDTLS_4K_BASE_URL</code> to it. The hashes in <code>mbedtls_4k_manifest.txt</code> stay the check.</p>
+</li>
+<li>
+<p>Wi-Fi: <strong>one-way adopt</strong>. On boot, if our NVS has no SSID and <code>/mqtt.json</code> has one,
+  copy it into NVS once. We never write Wi-Fi into <code>/mqtt.json</code>. The table below
+  describes what that means per reflash direction.</p>
+</li>
+</ul>
+<p>Background, why Wi-Fi creds are not written into <code>/mqtt.json</code>:</p>
+<p>Our Wi-Fi creds stay in NVS (<code>WifiRuntimeStore</code>, namespace <code>meshcomod</code>), and DMC's firmwares
+read Wi-Fi from <code>/mqtt.json</code>. The observer's <code>wifi.*</code> commands are routed to our store, so
+the Wi-Fi fields in <code>/mqtt.json</code> stay at whatever was there before. Brokers, slots, IATA,
+timezone and identity are shared either way.</p>
+<table>
+<thead>
+<tr>
+<th>Reflash</th>
+<th>Without mirroring</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>meshcomod <code>_mqtt</code> to DMC <strong>Companion Observer</strong></td>
+<td>Wi-Fi still comes up. On first boot DMC's <code>importMeshcomodSettings()</code> (<code>MyMesh::begin</code>) reads our NVS <code>wifi_ssid</code> / <code>wifi_pwd</code> when <code>/prefs.json</code> is absent and <code>/new_prefs</code> is present. <code>CompanionObserver::loadPrefs</code> then adopts it into <code>/mqtt.json</code> if that has no SSID.</td>
+</tr>
+<tr>
+<td>meshcomod <code>_mqtt</code> to DMC <strong>repeater observer</strong></td>
+<td>No import exists there. With an empty SSID in <code>/mqtt.json</code> the node has no Wi-Fi: set <code>wifi.ssid</code> / <code>wifi.pwd</code> over USB, or use the repeater's setup AP and web portal. If <code>/mqtt.json</code> still holds an SSID from an earlier DMC flash, the repeater joins that <strong>old</strong> network, which may be wrong.</td>
+</tr>
+<tr>
+<td>DMC (either) to meshcomod <code>_mqtt</code></td>
+<td>NVS survives an update flash, so our old creds come back. They may be stale if Wi-Fi was changed on the DMC side. After a full erase, set Wi-Fi as on any meshcomod companion.</td>
+</tr>
+</tbody>
+</table>
+<p>Cheaper middle ground, recommended: a <strong>one-way adopt</strong> on our side, mirroring what DMC
+does. On boot, if our NVS has no SSID and <code>/mqtt.json</code> has one, copy it into NVS once.
+That covers DMC to meshcomod. Full mirroring (writing <code>/mqtt.json</code> on every <code>wifi.apply</code>)
+is only needed for a smooth meshcomod to DMC repeater observer flash. It also brings two
+copies of the creds that can drift apart.</p>
+<p>Also decided: the side finding in 7.1 (our <code>-D CONFIG_MBEDTLS_*</code> flags are probably no-ops) is
+<strong>folded into the MQTT work</strong>, not a separate PR. The MQTT PR brings in the reduced-TLS
+plumbing (<code>mbedtls_4k.py</code>, fetch script, manifest) for the <code>_mqtt</code> envs. The same PR
+confirms with a link map whether the existing <code>-D CONFIG_MBEDTLS_*</code> flags in the
+<code>usb_tcp</code> envs are no-ops. Moving those envs to the reduced archives as well, and
+dropping the dead flags, can then be done in that work too.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.action.edit", "content.code.copy", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>

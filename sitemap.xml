@@ -65,6 +65,10 @@
          <lastmod>2026-11-23</lastmod>
     </url>
     <url>
+         <loc>https://elektr0vodka.github.io/meshcomod/companion_mqtt/</loc>
+         <lastmod>2026-11-23</lastmod>
+    </url>
+    <url>
          <loc>https://elektr0vodka.github.io/meshcomod/companion_protocol/</loc>
          <lastmod>2026-11-23</lastmod>
     </url>
@@ -77,6 +81,10 @@
          <lastmod>2026-11-23</lastmod>
     </url>
     <url>
+         <loc>https://elektr0vodka.github.io/meshcomod/dmc_observer_vendor/</loc>
+         <lastmod>2026-11-23</lastmod>
+    </url>
+    <url>
          <loc>https://elektr0vodka.github.io/meshcomod/docs/</loc>
          <lastmod>2026-11-23</lastmod>
     </url>
@@ -86,6 +94,10 @@
     </url>
     <url>
          <loc>https://elektr0vodka.github.io/meshcomod/kiss_modem_protocol/</loc>
+         <lastmod>2026-11-23</lastmod>
+    </url>
+    <url>
+         <loc>https://elektr0vodka.github.io/meshcomod/mbedtls-tls-footprint/</loc>
          <lastmod>2026-11-23</lastmod>
     </url>
     <url>
@@ -122,6 +134,14 @@
     </url>
     <url>
          <loc>https://elektr0vodka.github.io/meshcomod/touch-txt-trace-repro/</loc>
+         <lastmod>2026-11-23</lastmod>
+    </url>
+    <url>
+         <loc>https://elektr0vodka.github.io/meshcomod/superpowers/dmc-observer-investigation/</loc>
+         <lastmod>2026-11-23</lastmod>
+    </url>
+    <url>
+         <loc>https://elektr0vodka.github.io/meshcomod/superpowers/plans/2026-11-23-companion-mqtt-observer/</loc>
          <lastmod>2026-11-23</lastmod>
     </url>
     <url>

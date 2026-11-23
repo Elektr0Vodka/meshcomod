@@ -1,0 +1,1886 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Elektr0Vodka fork of meshcomod, the multi-transport MeshCore companion firmware">
+      
+      
+      
+        <link rel="canonical" href="https://elektr0vodka.github.io/meshcomod/superpowers/plans/2026-11-23-companion-mqtt-observer/">
+      
+      
+        <link rel="prev" href="../../dmc-observer-investigation/">
+      
+      
+        <link rel="next" href="../../specs/2026-09-09-companion-cad-toggle-design/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>Companion MQTT Observer Implementation Plan - meshcomod Docs (Elektr0Vodka fork)</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../_stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#companion-mqtt-observer-implementation-plan" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="meshcomod Docs (Elektr0Vodka fork)" class="md-header__button md-logo" aria-label="meshcomod Docs (Elektr0Vodka fork)" data-md-component="logo">
+      
+  <img src="../../../_assets/meshcore.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            meshcomod Docs (Elektr0Vodka fork)
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Companion MQTT Observer Implementation Plan
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark theme"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark theme" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light theme"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light theme" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/Elektr0Vodka/meshcomod/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Elektr0Vodka/meshcomod
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="meshcomod Docs (Elektr0Vodka fork)" class="md-nav__button md-logo" aria-label="meshcomod Docs (Elektr0Vodka fork)" data-md-component="logo">
+      
+  <img src="../../../_assets/meshcore.svg" alt="logo">
+
+    </a>
+    meshcomod Docs (Elektr0Vodka fork)
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/Elektr0Vodka/meshcomod/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Elektr0Vodka/meshcomod
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../CI_RELEASES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI releases (GitHub Actions + GitHub Releases)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../COMPANION_OTA_MEMORY_ROOT_CAUSE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion OTA HTTPS Memory Root Cause
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../DEVICE_WEBSOCKET_WIFI/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Device WebSocket over Wi‑Fi (plain WS)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../HARDWARE_TOUCH_PARITY_CHECKLIST/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Heltec V4 touch UI — hardware parity acceptance checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../LOCAL_BUILD_M7/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Elecrow ThinkNode M7
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../RELEASE_PROCEDURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release procedure (companion firmware)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../REPEATER_MESHCOMOD_CLIENT_INTEGRATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Meshcomod / custom client ↔ Wi‑Fi repeater (TCP &amp; WebSocket)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../REPEATER_RELEASE_PROCEDURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TCP repeater release procedure (prebuilt / flasher)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../REPEATER_TCP_COMPANION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Repeater TCP companion protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../V3_BOOT_DEBUG/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Heltec V3 boot-loop debug build
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../WEBCLIENT_TOUCH_PARITY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Web client ↔ Heltec V4 touch UI — functionality parity matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../cli_commands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../companion_cad_toggle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion CAD toggle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../companion_cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../companion_manifest_ota/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion manifest OTA (ota check / ota update)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../companion_mqtt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion MQTT observer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../companion_protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion Protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../companion_receive_filter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion receive filter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../companion_snmp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion SNMP agent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dmc_observer_vendor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vendored Dutch-MeshCore observer code
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../docs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local Documentation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Frequently Asked Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../kiss_modem_protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MeshCore KISS Modem Protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../mbedtls-tls-footprint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shrinking the per-connection TLS footprint on non-PSRAM observers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../nrf52_power_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    nRF52 Power Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../number_allocations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Number Allocations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../packet_format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Packet Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../payloads/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payload Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../qr_codes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    QR Codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../radio_presets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Radio Presets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../stats_binary_frames/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stats Binary Frame Structures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../terminal_chat_cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Terminal Chat CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../touch-txt-trace-repro/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Touch TXT send forensics — repro and decision tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_35" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_35" id="__nav_35_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Superpowers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_35_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_35">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Superpowers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dmc-observer-investigation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Investigation: adding the DMC observer companion to meshcomod
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_35_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_35_2" id="__nav_35_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plans
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_35_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_35_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Plans
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion MQTT Observer Implementation Plan
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion MQTT Observer Implementation Plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#global-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global Constraints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#review-focus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Review Focus
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Review Focus">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#task-1-vendor-the-observer-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 1: Vendor the observer helpers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-2-build-plumbing-reduced-tls-asynctcp-stack-cert-bundle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 2: Build plumbing (reduced TLS, AsyncTCP stack, cert bundle)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-3-passive-network-link-and-wi-fi-adopt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 3: Passive network link and Wi-Fi adopt
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-4-companion-glue-and-the-heltec-v4-_mqtt-env" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 4: Companion glue and the Heltec V4 _mqtt env
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-5-more-boards-v4-r8-xiao-s3-wio-heltec-v3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 5: More boards (V4 R8, Xiao S3 WIO, Heltec V3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-6-snmp-ui-line-docs-release-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 6: SNMP, UI line, docs, release list
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_35_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_35_3" id="__nav_35_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Specs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_35_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_35_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Specs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specs/2026-09-09-companion-cad-toggle-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion CAD runtime toggle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#global-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global Constraints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#review-focus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Review Focus
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Review Focus">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#task-1-vendor-the-observer-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 1: Vendor the observer helpers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-2-build-plumbing-reduced-tls-asynctcp-stack-cert-bundle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 2: Build plumbing (reduced TLS, AsyncTCP stack, cert bundle)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-3-passive-network-link-and-wi-fi-adopt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 3: Passive network link and Wi-Fi adopt
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-4-companion-glue-and-the-heltec-v4-_mqtt-env" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 4: Companion glue and the Heltec V4 _mqtt env
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-5-more-boards-v4-r8-xiao-s3-wio-heltec-v3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 5: More boards (V4 R8, Xiao S3 WIO, Heltec V3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-6-snmp-ui-line-docs-release-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 6: SNMP, UI line, docs, release list
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/Elektr0Vodka/meshcomod/edit/main/docs/superpowers/plans/2026-11-23-companion-mqtt-observer.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="companion-mqtt-observer-implementation-plan">Companion MQTT Observer Implementation Plan</h1>
+<blockquote>
+<p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (<code>- [ ]</code>) syntax for tracking.</p>
+</blockquote>
+<p><strong>Goal:</strong> New <code>*_companion_radio_usb_tcp_mqtt</code> envs that run our multi-transport companion (USB + TCP + WS + toggleable BLE, SNMP, manifest OTA, full capture) plus DMC's MQTT observer uplink.</p>
+<p><strong>Architecture:</strong> DMC's observer helpers are copied unchanged, apart from three small local patches, from a pinned <code>Dutch-MeshCore/MeshCore</code> <code>dmc-observer-dev</code> commit by a script. They are compiled only under <code>WITH_MQTT_BRIDGE</code>. Our own glue (<code>examples/companion_radio/CompanionMqtt.*</code>) drives DMC's <code>CompanionObserver</code>. A passive <code>NetworkLink</code> lets our existing Wi-Fi manager stay the owner of Wi-Fi. Boards without PSRAM use DMC's reduced-TLS mbedTLS archives, mirrored to a release in this repo.</p>
+<p><strong>Tech Stack:</strong> PlatformIO <code>espressif32@6.11.0</code> (Arduino 2.0.17, IDF 4.4), PsychicMqttClient (esp-mqtt), ArduinoJson 7.4.3, NTPClient, Timezone, Time, googletest (native).</p>
+<p><strong>Spec:</strong> <code>docs/superpowers/dmc-observer-investigation.md</code> (sections 6 to 9 hold the decisions).</p>
+<p><strong>Base branch:</strong> <code>Chore/meshcore-dev-sync-2026-11</code> once merged to <code>main</code>; work on <code>Feat/companion-mqtt-observer</code>.</p>
+<h2 id="global-constraints">Global Constraints</h2>
+<ul>
+<li>No em-dashes or en-dashes in any text; no co-authoring trailers; conventional-commit prefixes (AGENTS.md).</li>
+<li>Vendored source: <code>Dutch-MeshCore/MeshCore</code> branch <code>dmc-observer-dev</code>, pinned commit <code>24c6636a</code> (refresh = rerun the script with a new commit).</li>
+<li>Existing envs (all <code>usb_tcp</code>, BLE, nRF52, RP2040) must build byte-for-byte unchanged in behavior: every vendored <code>.cpp</code> is guarded by <code>WITH_MQTT_BRIDGE</code> or <code>ESP_PLATFORM</code> and must compile to nothing elsewhere.</li>
+<li>BLE stays toggleable on <code>_mqtt</code> envs.</li>
+<li>Wi-Fi creds stay in NVS (<code>WifiRuntimeStore</code>). One-way adopt from <code>/mqtt.json</code> only; never write Wi-Fi into <code>/mqtt.json</code>.</li>
+<li>V3 <code>_mqtt</code>: <code>MAX_CONTACTS=150</code>, <code>OFFLINE_QUEUE_SIZE=32</code>, no <code>ENABLE_ESP_MDNS</code>, cert source <code>adafruit</code>, reduced TLS, AsyncTCP stack 8192, 2 MQTT slots with BLE off at boot and 1 with BLE on.</li>
+<li>PSRAM <code>_mqtt</code> envs: cert source <code>adafruit-full</code>, mesh object in PSRAM, PSRAM mbedTLS allocator, 5 slots.</li>
+<li>Reduced-TLS archives come from this repo's release tag <code>mbedtls-4k</code> (<code>MBEDTLS_4K_BASE_URL</code>), checked against the pinned hashes in <code>scripts/mbedtls_4k_manifest.txt</code>.</li>
+<li>SNMP contract: observer owns <code>.1</code> to <code>.8</code>, companion <code>.9</code> and <code>.10</code>. New: <code>.3.1.0</code> connected slots, <code>.3.2.0</code> queue depth, <code>.3.3.0</code> skipped publishes, all INTEGER as in <code>MQTT_SNMP.md</code>.</li>
+<li>Every PR adds a <code>changelog_ev.md</code> entry under Unreleased with its PR number.</li>
+</ul>
+<h2 id="review-focus">Review Focus</h2>
+<ol>
+<li>Flashing V3 <code>_mqtt</code> over a node with more than 150 contacts: the extra contacts must survive on flash until the user saves contacts. The release note must warn about this.</li>
+<li>Empty or missing <code>/mqtt.json</code> on first boot: the bridge must start with the DMC default presets (analyzer-us, analyzer-eu) and must not touch Wi-Fi.</li>
+<li>Wi-Fi down or credentials changed at runtime (<code>wifi.apply</code>): MQTT reconnects through the passive link without a reboot, and the app TCP/WS servers keep working.</li>
+<li>BLE toggled on at runtime on V3 with 2 slots up: the heap gate must refuse BLE cleanly, with a reply that says why, and must never crash.</li>
+<li>A remote admin <code>get mqtt1.password</code> or <code>get mqtt1.token</code>: the secret is masked (sender_timestamp != 0), as in DMC.</li>
+</ol>
+<hr />
+<h3 id="task-1-vendor-the-observer-helpers">Task 1: Vendor the observer helpers</h3>
+<p><strong>Files:</strong>
+- Create: <code>scripts/vendor_dmc_observer.sh</code>, <code>scripts/dmc_observer_files.txt</code>, <code>scripts/dmc_observer_patches/0001-snmp-guard.patch</code>, <code>scripts/dmc_observer_patches/0002-external-network-link.patch</code>, <code>scripts/dmc_observer_patches/0003-slot-cap-and-skipped.patch</code>, <code>docs/dmc_observer_vendor.md</code>
+- Create (by the script): the files listed in <code>dmc_observer_files.txt</code> under <code>src/helpers/</code> and <code>lib/PsychicMqttClient/</code>
+- Modify: <code>platformio.ini</code> (<code>[arduino_base]</code> excludes <code>-&lt;helpers/MQTTMessageBuilder.cpp&gt;</code> and <code>-&lt;helpers/JWTHelper.cpp&gt;</code>; <code>[env:native]</code> adds <code>+&lt;../src/helpers/MQTTPayloadBuilder.cpp&gt;</code>)
+- Test: DMC's native suites copied unchanged: <code>test/test_mqtt_*</code> (all), <code>test/test_observer_bridge_control</code>, <code>test/test_observer_validation</code>, <code>test/test_network_policy</code>, <code>test/test_network_hostname</code>, <code>test/test_ntp_validation</code>, <code>test/test_wifi_tx_power_policy</code>, <code>test/test_wifi_power_save_policy</code>, plus any mocks they need from DMC <code>test/mocks/</code></p>
+<p><strong>Interfaces:</strong>
+- Produces: <code>scripts/vendor_dmc_observer.sh &lt;dmc-checkout-dir&gt; &lt;commit&gt;</code> (copies the list, applies the patches in order, writes the commit into <code>docs/dmc_observer_vendor.md</code>).
+- Produces (patch 0001): every <code>WITH_SNMP</code> guard in the vendored <code>MQTTBridge.{h,cpp}</code> becomes <code>DMC_OBSERVER_SNMP</code>, so our <code>WITH_SNMP</code> companion agent never pulls in DMC's <code>SNMPAgent</code>. <code>SNMPAgent.*</code> is not vendored.
+- Produces (patch 0002): <code>activeNetworkLink()</code> in <code>NetworkLink.cpp</code> returns <code>externalNetworkLink()</code> when <code>NETWORK_LINK_EXTERNAL_WIFI</code> is defined; declaration <code>NetworkLink&amp; externalNetworkLink();</code> in <code>NetworkLink.h</code>.
+- Produces (patch 0003): <code>static void MQTTBridge::setActiveSlotCap(int cap)</code> (0 = no extra cap; <code>getMaxActiveSlots()</code> returns <code>min(cap, default)</code> when cap &gt; 0) and <code>int MQTTBridge::getSkippedPublishes() const</code>.</p>
+<p>The file list is the include closure of <code>CompanionObserver.cpp</code>, <code>bridges/MQTTBridge.cpp</code>, <code>ObserverConfig.cpp</code>, <code>ObserverCLI.cpp</code>, <code>NetworkLink.cpp</code>, <code>JWTHelper.cpp</code>, <code>MQTTMessageBuilder.cpp</code>, <code>MQTTPayloadBuilder.cpp</code>, <code>CrashReport.cpp</code> and the four <code>ESP32*Fix</code> / <code>ESP32Ipv6Preference</code> / <code>ESP32TcpBindReuse</code> sources, minus files already in our tree, minus <code>SNMPAgent.*</code>, <code>NodeDiagCLI.*</code>, <code>esp32/WebConfigServer.*</code>, <code>ESP32ManifestOTA.*</code>, <code>CommonGpsPrefs.*</code>, <code>sensors/GpsGuard.h</code>. If a dropped file turns out to be needed to compile, add it to the list rather than editing vendored code. If <code>ObserverCLI.cpp</code> fails only because of DMC's larger <code>CommonCLI.h</code>, add a fourth patch that switches its include to <code>TxtDataHelpers.h</code>.</p>
+<ul>
+<li>[ ] <strong>Step 1:</strong> Copy the DMC test suites above into <code>test/</code>, add <code>MQTTPayloadBuilder.cpp</code> to <code>[env:native]</code>. Run <code>pio test -e native</code>. Expected: the new suites FAIL to compile (headers missing).</li>
+<li>[ ] <strong>Step 2:</strong> Write the script, file list and three patches; run <code>bash scripts/vendor_dmc_observer.sh &lt;scratch&gt;/dmc 24c6636a</code>.</li>
+<li>[ ] <strong>Step 3:</strong> Run <code>pio test -e native</code>. Expected: all suites PASS, including the existing ones.</li>
+<li>[ ] <strong>Step 4:</strong> Guard check, sequentially: <code>FIRMWARE_VERSION=v0.0.0.0-probe bash build.sh build-firmware &lt;env&gt;</code> for <code>heltec_v4_companion_radio_usb_tcp</code>, <code>Heltec_v2_companion_radio_ble</code>, <code>RAK_4631_companion_radio_ble</code>. Expected: all OK. The V4 <code>usb_tcp</code> flash size moves by less than 1 KB from the base branch, because the vendored files compile to nothing without <code>WITH_MQTT_BRIDGE</code>.</li>
+<li>[ ] <strong>Step 5:</strong> Commit <code>chore(mqtt): vendor DMC observer helpers at 24c6636a</code>.</li>
+</ul>
+<h3 id="task-2-build-plumbing-reduced-tls-asynctcp-stack-cert-bundle">Task 2: Build plumbing (reduced TLS, AsyncTCP stack, cert bundle)</h3>
+<p><strong>Files:</strong>
+- Create: <code>scripts/mbedtls_4k.py</code>, <code>scripts/fetch_mbedtls_4k.sh</code>, <code>scripts/mbedtls_4k_manifest.txt</code>, <code>scripts/asynctcp_stack.py</code>, <code>scripts/generate_cert_bundle.py</code> (all copied from DMC; manifest <code>release mbedtls-4k</code>, same hashes)
+- Modify: <code>platformio.ini</code> <code>[esp32_base]</code> <code>extra_scripts</code> add <code>pre:scripts/mbedtls_4k.py</code> and <code>pre:scripts/asynctcp_stack.py</code>; <code>build.sh</code> <code>build_firmware()</code>: for envs ending in <code>_mqtt</code>, run <code>scripts/fetch_mbedtls_4k.sh --all</code> and default <code>MESHCORE_REDUCED_TLS=auto</code>; <code>MBEDTLS_4K_BASE_URL</code> default is this repo's release URL; <code>.gitignore</code> adds <code>.mbedtls-4k/</code> and <code>src/certs/</code>
+- Release: GitHub release <code>mbedtls-4k</code> on Elektr0Vodka/meshcomod with the four esp32s3 archives (tarball name as the fetch script expects), hashes verified before upload</p>
+<p><strong>Interfaces:</strong>
+- Produces: any env with <code>WITH_MQTT_BRIDGE</code> and no <code>BOARD_HAS_PSRAM</code>, built through <code>build.sh</code>, links the reduced archives and prints <code>reduced-TLS: &lt;env&gt;: active</code>.</p>
+<ul>
+<li>[ ] <strong>Step 1:</strong> Fetch the tarball from agessaman's <code>mbedtls-4k</code> release, check the sha256 values against the manifest, then publish the same file to this repo's <code>mbedtls-4k</code> release.</li>
+<li>[ ] <strong>Step 2:</strong> Add the scripts and the <code>build.sh</code> change.</li>
+<li>[ ] <strong>Step 3:</strong> Run <code>FIRMWARE_VERSION=v0.0.0.0-probe bash build.sh build-firmware Heltec_v3_companion_radio_usb_tcp</code>. Expected: OK, with no <code>reduced-TLS</code> line and no <code>asynctcp:</code> line (not an MQTT env).</li>
+<li>[ ] <strong>Step 4:</strong> Verify the side finding: in <code>.pio/build/Heltec_v3_companion_radio_usb_tcp/firmware.map</code>, <code>libmbedtls.a</code> resolves to the framework path. Record the result in the PR text. No change to <code>usb_tcp</code> images in this PR.</li>
+<li>[ ] <strong>Step 5:</strong> Commit <code>build(mqtt): reduced-TLS archives and AsyncTCP stack cap for no-PSRAM MQTT builds</code>.</li>
+</ul>
+<h3 id="task-3-passive-network-link-and-wi-fi-adopt">Task 3: Passive network link and Wi-Fi adopt</h3>
+<p><strong>Files:</strong>
+- Create: <code>src/helpers/esp32/ExternalWiFiNetworkLink.{h,cpp}</code>, <code>examples/companion_radio/CompanionMqttPolicy.h</code> (header-only, native-testable)
+- Test: <code>test/test_companion_mqtt_policy/test_companion_mqtt_policy.cpp</code></p>
+<p><strong>Interfaces:</strong>
+- Produces: <code>class ExternalWiFiNetworkLink : public NetworkLink</code>. <code>begin()</code> and <code>bootstrap()</code> do not touch the radio and return <code>WiFi.status() == WL_CONNECTED</code>. <code>configValid()</code> returns true. <code>maintain()</code> reports connect and disconnect transitions from <code>WiFi.status()</code>. <code>isConnected</code>, <code>localIP</code>, <code>rssi</code>, <code>resolveHost</code> and diagnostics read from <code>WiFi</code>. <code>setWifiTxPower</code> returns <code>WifiTxPowerPolicy::kNotRunning</code>. <code>NetworkLink&amp; externalNetworkLink()</code> returns a static instance.
+- Produces in <code>CompanionMqttPolicy.h</code>, namespace <code>CompanionMqttPolicy</code>:
+  - <code>bool shouldAdoptObserverWifi(const char* nvs_ssid, const char* observer_ssid)</code>: true only when <code>nvs_ssid</code> is null or empty and <code>observer_ssid</code> is non-empty and shorter than <code>WIFI_CONFIG_SSID_MAX</code>.
+  - <code>int slotCap(bool has_psram, bool ble_on_at_boot)</code>: 0 when <code>has_psram</code>, else 1 when <code>ble_on_at_boot</code>, else 2.
+  - <code>bool isObserverCommand(const char* cmd)</code>: true for <code>get</code>/<code>set</code> followed by a key starting with <code>mqtt</code> or equal to <code>timezone</code>, and for <code>get link.status</code>; false for every <code>wifi.*</code>, <code>ota</code>, <code>snmp*</code> and everything else.</p>
+<ul>
+<li>[ ] <strong>Step 1:</strong> Write the tests: <code>shouldAdoptObserverWifi("", "home")</code> true; <code>("home", "other")</code> false; <code>("", "")</code> false; <code>(nullptr, "home")</code> true; 32-char SSID false. <code>slotCap(true, true)</code> 0, <code>slotCap(false, true)</code> 1, <code>slotCap(false, false)</code> 2. <code>isObserverCommand("set mqtt1.preset analyzer-eu")</code> true, <code>("get mqtt.status")</code> true, <code>("set timezone Europe/Amsterdam")</code> true, <code>("get link.status")</code> true, <code>("set wifi.ssid x")</code> false, <code>("get wifi.txpower")</code> false, <code>("ota check")</code> false, <code>("get snmp")</code> false.</li>
+<li>[ ] <strong>Step 2:</strong> Run <code>pio test -e native -f test_companion_mqtt_policy</code>. Expected: FAIL (header missing).</li>
+<li>[ ] <strong>Step 3:</strong> Implement <code>CompanionMqttPolicy.h</code> and <code>ExternalWiFiNetworkLink</code>.</li>
+<li>[ ] <strong>Step 4:</strong> Run the native tests. Expected: PASS.</li>
+<li>[ ] <strong>Step 5:</strong> Commit <code>feat(companion): passive Wi-Fi link and MQTT policy helpers</code>.</li>
+</ul>
+<h3 id="task-4-companion-glue-and-the-heltec-v4-_mqtt-env">Task 4: Companion glue and the Heltec V4 <code>_mqtt</code> env</h3>
+<p><strong>Files:</strong>
+- Create: <code>examples/companion_radio/CompanionMqtt.{h,cpp}</code> (all <code>#ifdef WITH_MQTT_BRIDGE</code>)
+- Modify: <code>examples/companion_radio/MyMesh.{h,cpp}</code> (<code>MQTTBridgeHost</code> base; <code>logRx</code>/<code>logTx</code> overrides; <code>logRxRaw</code> forwards; observer dispatch in <code>handleCommand</code>; <code>cli_command</code> 161 bytes under <code>WITH_MQTT_BRIDGE</code>; restart the bridge after a key import), <code>examples/companion_radio/main.cpp</code> (<code>CrashReport::captureAtBoot()</code>, mesh in PSRAM, adopt after <code>wifiConfigBegin()</code>, slot cap before <code>the_mesh.begin</code>'s observer start, BLE heap gate also on <code>_mqtt</code> builds), <code>variants/heltec_v4/platformio.ini</code> (new env)
+- Test: build only (hardware later)</p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>CompanionObserver</code> (vendored), <code>externalNetworkLink()</code>, <code>CompanionMqttPolicy::*</code>, <code>MQTTBridge::setActiveSlotCap</code>.
+- Produces: <code>void companionMqttBegin(MyMesh&amp; mesh, FILESYSTEM* fs)</code>, <code>void companionMqttLoop()</code>, <code>bool companionMqttCommand(uint32_t sender_timestamp, const char* cmd, char* reply)</code> (false when not an observer command), <code>void companionMqttAdoptWifi()</code>, <code>int companionMqttConnectedSlots()</code>, <code>int companionMqttConfiguredSlots()</code>, <code>int companionMqttQueueSize()</code>, <code>int companionMqttSkippedPublishes()</code>, <code>bool companionMqttRunning()</code>.
+- BLE heap gate: <code>MultiTransportCompanionInterface::enableBle()</code> becomes <code>bool enableBle()</code>. On <code>WITH_MQTT_BRIDGE</code> builds, when NimBLE is not started yet, it requires <code>ESP.getFreeHeap() &gt;= 50 * 1024</code> and <code>ESP.getMaxAllocHeap() &gt;= 20 * 1024</code> (the touch build's thresholds). Otherwise it leaves BLE off, does not persist the toggle, and returns false. Callers (the <code>MyMesh</code> CLI, <code>companion-new</code> and touch UI) show <code>BLE needs more free memory, reboot with fewer MQTT slots</code>. The boot co-init uses the same gate on <code>_mqtt</code> builds.
+- <code>MyMesh</code> implements <code>MQTTBridgeHost</code>: <code>getObserverNodeName()</code> returns <code>_prefs.node_name</code>, <code>getObserverRadioParams()</code> returns the prefs radio values, <code>isObserverForwarding()</code> returns the client-repeat state, <code>getObserverRole()</code> returns <code>"companion"</code>.
+- Env <code>heltec_v4_companion_radio_usb_tcp_mqtt</code>: extends the V4 <code>usb_tcp</code> env flags plus <code>-D WITH_MQTT_BRIDGE=1 -D NETWORK_LINK_EXTERNAL_WIFI=1 -D MQTT_MAX_PACKET_SIZE=1024 -D CONFIG_MBEDTLS_CERTIFICATE_BUNDLE=y</code>, <code>board_ssl_cert_source = adafruit-full</code>, <code>board_build.embed_files = src/certs/x509_crt_bundle.bin</code>, extra scripts <code>pre:scripts/generate_cert_bundle.py</code>, src <code>+&lt;helpers/bridges/MQTTBridge.cpp&gt; +&lt;helpers/MQTTMessageBuilder.cpp&gt; +&lt;helpers/JWTHelper.cpp&gt;</code>, the DMC lib_deps (PsychicMqttClient 0.2.4, ArduinoJson 7.4.3, NTPClient, Timezone, Time 1.6.1). The <code>linker --wrap</code> flags from DMC's <code>esp32_base</code> (<code>esp_transport_ws_init</code>, <code>lwip_getaddrinfo</code>, <code>dns_gethostbyname</code>, <code>tcp_bind</code>) go in this env only. Our SNTP kick stays; the observer's NTP runs too, and <code>.3.4.0</code> keeps our meaning.</p>
+<ul>
+<li>[ ] <strong>Step 1:</strong> Add the env; build it. Expected: FAIL (glue missing).</li>
+<li>[ ] <strong>Step 2:</strong> Implement the glue and the <code>MyMesh</code>/<code>main.cpp</code> hooks.</li>
+<li>[ ] <strong>Step 3:</strong> Build <code>heltec_v4_companion_radio_usb_tcp_mqtt</code>. Expected: OK; record flash and static RAM in the PR. Static internal RAM must be lower than the V4 <code>usb_tcp</code> image, because the mesh object is in PSRAM.</li>
+<li>[ ] <strong>Step 4:</strong> Rebuild <code>heltec_v4_companion_radio_usb_tcp</code> and <code>Heltec_v3_companion_radio_usb_tcp</code>. Expected: OK, unchanged sizes.</li>
+<li>[ ] <strong>Step 5:</strong> Commit <code>feat(companion): MQTT observer uplink on Heltec V4 (_mqtt env)</code>.</li>
+</ul>
+<h3 id="task-5-more-boards-v4-r8-xiao-s3-wio-heltec-v3">Task 5: More boards (V4 R8, Xiao S3 WIO, Heltec V3)</h3>
+<p><strong>Files:</strong>
+- Modify: <code>variants/heltec_v4/platformio.ini</code> (<code>heltec_v4_r8_companion_radio_usb_tcp_mqtt</code>), <code>variants/xiao_s3_wio/platformio.ini</code> (<code>Xiao_S3_WIO_companion_radio_usb_tcp_mqtt</code>), <code>variants/heltec_v3/platformio.ini</code> (<code>Heltec_v3_companion_radio_usb_tcp_mqtt</code> with the V3 values from Global Constraints)</p>
+<ul>
+<li>[ ] <strong>Step 1:</strong> Add the three envs; build each through <code>build.sh</code>. Expected: OK; the V3 log shows <code>reduced-TLS: Heltec_v3_companion_radio_usb_tcp_mqtt: active</code> and <code>asynctcp: CONFIG_ASYNC_TCP_STACK_SIZE=8192</code>.</li>
+<li>[ ] <strong>Step 2:</strong> Commit <code>feat(companion): _mqtt envs for V4 R8, Xiao S3 WIO and Heltec V3</code>.</li>
+</ul>
+<h3 id="task-6-snmp-ui-line-docs-release-list">Task 6: SNMP, UI line, docs, release list</h3>
+<p><strong>Files:</strong>
+- Modify: <code>examples/companion_radio/CompanionSNMP.cpp</code> (under <code>WITH_MQTT_BRIDGE</code>: register <code>.3.1.0</code>, <code>.3.2.0</code>, <code>.3.3.0</code> via <code>addDynamicIntegerHandler</code> reading the <code>companionMqtt*</code> getters), <code>src/helpers/ui/companion-new/UITask.cpp</code> (<code>MQTT n/m up</code> line, as DMC), <code>docs/companion_snmp.md</code>, <code>docs/companion_mqtt.md</code> (new: setup, presets, slots, BLE and slot budget, V3 limits and the contact-cap warning, cross-flash with DMC, one-way Wi-Fi adopt), <code>companion_boards.ini</code> (add the four <code>_mqtt</code> envs to their boards; status <code>Build only, experimental</code>), README table via <code>python3 scripts/companion_boards.py readme --write</code>, <code>changelog_ev.md</code>
+- Test: <code>python3 scripts/companion_boards.py check</code></p>
+<ul>
+<li>[ ] <strong>Step 1:</strong> Implement the SNMP and UI changes; rebuild the V4 <code>_mqtt</code> env. Expected: OK.</li>
+<li>[ ] <strong>Step 2:</strong> Write the docs and the board list; run <code>python3 scripts/companion_boards.py readme --write</code> and <code>python3 scripts/companion_boards.py check</code>. Expected: check passes.</li>
+<li>[ ] <strong>Step 3:</strong> Run <code>pio test -e native</code>. Expected: PASS.</li>
+<li>[ ] <strong>Step 4:</strong> Commit <code>docs(companion): MQTT observer setup, SNMP .3 group, release envs</code>; push and open the PR (<code>feat(companion): MQTT observer uplink (_mqtt envs)</code>), linking the investigation report and listing hardware tests still to do: V4 soak with BLE on and off, a V3 heap reading with BLE plus one WSS slot.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["content.action.edit", "content.code.copy", "search.highlight", "search.suggest"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>
