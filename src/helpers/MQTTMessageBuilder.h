@@ -1,0 +1,373 @@
+#pragma once
+
+#include "MeshCore.h"
+#include <ArduinoJson.h>
+#include "MQTTPayloadBuilder.h"
+#include "MQTTWireScratch.h"
+#include <Mesh.h>
+#include <Timezone.h>
+
+/**
+ * @brief Utility class for building MQTT JSON messages
+ *
+ * This class handles the formatting of mesh packets and device status
+ * into JSON messages for MQTT publishing according to the MeshCore
+ * packet capture specification.
+ *
+ * Timestamps in the JSON `timestamp` field are emitted in UTC with an explicit
+ * "+00:00" offset (equivalent to Python datetime.now(timezone.utc).isoformat()) for
+ * status, packet, and raw topics. Packet payloads also include separate `time` and
+ * `date` strings in UTC (gmtime) so they stay aligned with meshcoretomqtt serial
+ * regex fields.
+ */
+#include "MQTTFilterStatsView.h"
+
+// Plain snapshot of the node's non-sensitive configuration for the opt-in
+// `config` topic. Strings may be nullptr/empty (the builder omits those). All
+// values are in the units the JSON publishes (the repeater converts pref
+// encodings before filling this, e.g. advert_interval is already in minutes).
+// Sensitive settings (keys, passwords, WiFi/broker creds, PSKs, email) are never
+// placed here; GPS lat/lon are included only when has_location is set (the node
+// already broadcasts its location via adverts).
+struct MQTTNodeConfigView {
+  static const int MAX_SCOPES = 16;
+  static const int MAX_SLOTS = 6;
+
+  const char* origin = nullptr;
+  const char* origin_id = nullptr;
+  const char* timestamp = nullptr;
+  uint32_t uptime_secs = 0;
+  uint16_t boot_id = 0;
+
+  const char* node_name = nullptr;
+  const char* owner_info = nullptr;   // free text; omitted when empty
+  const char* owner_key = nullptr;    // public companion key; omitted when empty
+  uint16_t advert_interval_min = 0;
+  uint16_t flood_advert_interval_hrs = 0;
+
+  // radio
+  float freq = 0; float bw = 0; uint8_t sf = 0; uint8_t cr = 0;
+  int8_t tx_power = 0; uint8_t cad = 0; uint8_t interference_threshold = 0;
+  uint8_t rxgain = 0; uint8_t fem_rxgain = 0; uint8_t fem_txgain = 0;
+  float airtime_factor = 0; float rx_delay = 0; float tx_delay_factor = 0; float direct_tx_delay_factor = 0;
+  uint16_t agc_reset_interval = 0; uint8_t path_hash_mode = 0; uint8_t multi_acks = 0;
+  uint8_t extra_sf[4] = {};
+
+  // repeat
+  uint8_t disable_fwd = 0; uint8_t flood_max = 0; uint8_t flood_max_unscoped = 0;
+  uint8_t flood_max_advert = 0; uint8_t loop_detect = 0;
+
+  // region gate (config only; live duty/level ride the filter topic)
+  bool rg_enabled = false; uint8_t rg_threshold = 0; uint8_t rg_hysteresis = 0;
+
+  // region scopes tree
+  const char* region_home = nullptr;
+  const char* region_default = nullptr;
+  bool region_wildcard_flood = false;
+  struct Scope { const char* name; bool flood; const char* parent; };
+  Scope scopes[MAX_SCOPES] = {};
+  int scope_count = 0;
+
+  // bridge (secret excluded)
+  uint8_t bridge_enabled = 0; uint16_t bridge_delay = 0; uint8_t bridge_source = 0;
+  uint32_t bridge_baud = 0; uint8_t bridge_channel = 0;
+
+  // gps (lat/lon only when has_location)
+  uint8_t gps_enabled = 0; uint32_t gps_interval = 0; uint8_t advert_loc_policy = 0;
+  bool has_location = false; double lat = 0; double lon = 0;
+
+  // power / room
+  uint8_t powersaving = 0; float adc_multiplier = 0; uint8_t allow_read_only = 0;
+
+  // mqtt publishing (broker host/port/creds excluded)
+  uint8_t mqtt_status = 0, mqtt_packets = 0, mqtt_raw = 0, mqtt_tx = 0, mqtt_rx = 0;
+  uint32_t mqtt_status_interval = 0; uint32_t mqtt_filter_interval = 0;
+  uint8_t mqtt_neighbors = 0; uint32_t mqtt_neighbors_interval = 0;
+  const char* mqtt_iata = nullptr; const char* ntp_server = nullptr;
+  uint8_t watchdog_minutes = 0;
+  const char* slot_presets[MAX_SLOTS] = {};
+  const char* slot_topics[MAX_SLOTS] = {};
+  uint16_t slot_filters[MAX_SLOTS] = {};
+  int slot_count = 0;
+
+  // timezone
+  const char* timezone_string = nullptr; int8_t timezone_offset = 0;
+
+  // alert (psk excluded)
+  uint8_t alert_enabled = 0; const char* alert_region = nullptr; const char* alert_hashtag = nullptr;
+  uint16_t alert_wifi_minutes = 0; uint16_t alert_mqtt_minutes = 0; uint16_t alert_interval_min = 0;
+
+  // snmp (community excluded)
+  uint8_t snmp_enabled = 0;
+};
+
+class MQTTMessageBuilder {
+public:
+  // Build the packet-filter drop-statistics JSON (see MSG_FILTER topic).
+  static int buildFilterStatsMessage(JsonDocument& doc, const MQTTFilterStatsView& v,
+                                     char* buffer, size_t buffer_size);
+
+  // Build the opt-in node-config JSON (see MSG_CONFIG topic).
+  static int buildConfigMessage(JsonDocument& doc, const MQTTNodeConfigView& v,
+                                char* buffer, size_t buffer_size);
+
+  // Wire-format scratch sizing and validation live in the pure, host-tested
+  // MQTTWireScratch; these are the firmware-facing aliases.
+  static const size_t WIRE_SCRATCH_SIZE = MQTTWireScratch::kWireBytes;
+  static const size_t WIRE_HEX_SCRATCH_SIZE = MQTTWireScratch::kWireHexChars;
+
+  static bool canSerializePacket(const mesh::Packet* packet, size_t dest_size) {
+    return packet != nullptr && MQTTWireScratch::canSerialize(*packet, dest_size);
+  }
+
+  /**
+   * Format the MQTT JSON `timestamp` field (same rule for status, packet, raw).
+   * Always UTC with an explicit "+00:00" offset, ISO-8601
+   * "%Y-%m-%dT%H:%M:%S.uuuuuu+00:00" (matches Python
+   * datetime.now(timezone.utc).isoformat()). The `timezone` parameter is retained
+   * for API compatibility but ignored — the system clock is UTC.
+   *
+   * `usec` is the sub-second component in microseconds (0..999999), normally taken
+   * from the same gettimeofday() read as `now` so the two don't tear at a second
+   * boundary. It is a real sub-second (SNTP-maintained wall clock), not a literal;
+   * pass 0 if no sub-second source is available.
+   */
+  static void formatIsoTimestampForMqtt(time_t now, long usec, Timezone* timezone, char* buffer, size_t buffer_size);
+
+  /**
+   * Build status message JSON
+   *
+   * @param origin Device name
+   * @param origin_id Device public key (hex string)
+   * @param model Device model
+   * @param firmware_version Firmware version
+   * @param radio Radio information
+   * @param client_version Client version
+   * @param status Connection status ("online" or "offline")
+   * @param timestamp ISO-like timestamp (see formatIsoTimestampForMqtt)
+   * @param buffer Output buffer for JSON string
+   * @param buffer_size Size of output buffer
+   * @param battery_mv Battery voltage in millivolts (optional, -1 to omit)
+   * @param uptime_secs Uptime in seconds (optional, -1 to omit)
+   * @param errors Error flags (optional, -1 to omit)
+   * @param queue_len Queue length (optional, -1 to omit)
+   * @param noise_floor Noise floor in dBm (optional, -999 to omit)
+   * @param tx_air_secs TX air time in seconds (optional, -1 to omit)
+   * @param rx_air_secs RX air time in seconds (optional, -1 to omit)
+   * @param recv_errors Radio receive/CRC errors (optional, -1 to omit)
+   * @param internal_heap Internal heap free bytes (optional, -1 to omit)
+   * @param repeat Repeat/forwarding status ("on" or "off"); nullptr omits the field
+   * @param conn_health MQTT slot connection health; defaults omit every field
+   * @param heap_min Smallest free internal heap since boot (optional, -1 to omit)
+   * @param reset_reason Short token for the reset that booted this image; nullptr omits it
+   * @param crash_json Pre-formatted `crash` object; dropped if it would overflow the buffer
+   * @param crash_included Set true when the `crash` field made it into the output
+   * @param selfheal Last self-heal cause and selfheal_n its consecutive count; omitted when 0
+   * @param role Observer host role ("repeater", "room_server", "companion"); omitted when null
+   * @return Length of JSON string, or 0 on error
+   */
+  static int buildStatusMessage(
+    JsonDocument& doc,
+    const char* origin,
+    const char* origin_id,
+    const char* model,
+    const char* firmware_version,
+    const char* radio,
+    const char* client_version,
+    const char* status,
+    const char* timestamp,
+    char* buffer,
+    size_t buffer_size,
+    int battery_mv = -1,
+    int uptime_secs = -1,
+    int errors = -1,
+    int queue_len = -1,
+    int noise_floor = -999,
+    int tx_air_secs = -1,
+    int rx_air_secs = -1,
+    int recv_errors = -1,
+    int internal_heap = -1,
+    int packets_sent = -1,
+    int packets_received = -1,
+    const char* repeat = nullptr,
+    const MQTTConnHealth& conn_health = MQTTConnHealth(),
+    int heap_min = -1,
+    const char* reset_reason = nullptr,
+    const char* crash_json = nullptr,
+    bool* crash_included = nullptr,
+    const char* selfheal = nullptr, int selfheal_n = 0,
+    const char* role = nullptr
+  );
+
+  /**
+   * Build packet message JSON
+   *
+   * @param origin Device name
+   * @param origin_id Device public key (hex string)
+   * @param timestamp ISO-like timestamp (see formatIsoTimestampForMqtt)
+   * @param direction Packet direction ("rx" or "tx")
+   * @param time Time in HH:MM:SS (UTC, gmtime; meshcoretomqtt serial parity)
+   * @param date Date in DD/MM/YYYY (UTC, gmtime)
+   * @param len Total packet length
+   * @param packet_type Packet type code
+   * @param route Routing type
+   * @param payload_len Payload length
+   * @param raw Raw packet data (hex string)
+   * @param snr Signal-to-noise ratio
+   * @param rssi Received signal strength
+   * @param hash Packet hash
+   * @param path_bytes Raw routing-path bytes (direct packets only; nullptr to omit)
+   * @param path_hop_count Number of path hops (0 to omit the path field)
+   * @param path_hash_size Bytes per hop hash (1-4)
+   * @param buffer Output buffer for JSON string
+   * @param buffer_size Size of output buffer
+   * @return Length of JSON string, or 0 on error
+   */
+  static int buildPacketMessage(
+    JsonDocument& doc,
+    const char* origin,
+    const char* origin_id,
+    const char* timestamp,
+    const char* direction,
+    const char* time,
+    const char* date,
+    int len,
+    int packet_type,
+    const char* route,
+    int payload_len,
+    const char* raw,
+    float snr,
+    int rssi,
+    float score,
+    const char* hash,
+    const uint8_t* path_bytes,
+    int path_hop_count,
+    int path_hash_size,
+    char* buffer,
+    size_t buffer_size
+  );
+
+  /**
+   * Build raw message JSON
+   *
+   * @param origin Device name
+   * @param origin_id Device public key (hex string)
+   * @param timestamp ISO-like timestamp (see formatIsoTimestampForMqtt)
+   * @param raw Raw packet data (hex string)
+   * @param buffer Output buffer for JSON string
+   * @param buffer_size Size of output buffer
+   * @return Length of JSON string, or 0 on error
+   */
+  static int buildRawMessage(
+    JsonDocument& doc,
+    const char* origin,
+    const char* origin_id,
+    const char* timestamp,
+    const char* raw,
+    char* buffer,
+    size_t buffer_size
+  );
+
+  // Neighbors table entry + JSON builder. The layout logic lives in the pure,
+  // host-tested MQTTPayloadBuilder; this is the firmware-facing alias/delegate,
+  // matching the status/packet/raw builders.
+  using NeighborsMessageEntry = MQTTPayloadBuilder::NeighborsMessageEntry;
+  static int buildNeighborsMessage(
+    JsonDocument& doc,
+    const char* origin,
+    const char* origin_id,
+    const char* timestamp,
+    const char* self_scopes,
+    const char* self_default_scope,
+    const NeighborsMessageEntry* neighbors,
+    int neighbor_count,
+    char* buffer,
+    size_t buffer_size,
+    int total_neighbors = -1,
+    int queried_neighbors = -1,
+    bool truncated = false
+  );
+  static size_t measureNeighborsMessageBase(
+    const char* origin,
+    const char* origin_id,
+    const char* timestamp,
+    const char* self_scopes,
+    const char* self_default_scope,
+    int total_neighbors
+  );
+  static size_t measureNeighborsMessageEntry(const NeighborsMessageEntry& neighbor);
+
+  /**
+   * Convert packet to JSON message
+   *
+   * @param packet Mesh packet
+   * @param is_tx Whether packet was transmitted (true) or received (false)
+   * @param origin Device name
+   * @param origin_id Device public key (hex string)
+   * @param buffer Output buffer for JSON string
+   * @param buffer_size Size of output buffer
+   * @return Length of JSON string, or 0 on error
+   */
+  static int buildPacketJSON(
+    JsonDocument& doc,
+    mesh::Packet* packet,
+    bool is_tx,
+    const char* origin,
+    const char* origin_id,
+    Timezone* timezone,
+    char* buffer,
+    size_t buffer_size
+  );
+
+  static int buildPacketJSONFromRaw(
+    JsonDocument& doc,
+    const uint8_t* raw_data,
+    int raw_len,
+    mesh::Packet* packet,
+    bool is_tx,
+    const char* origin,
+    const char* origin_id,
+    float snr,
+    float rssi,
+    float score,
+    Timezone* timezone,
+    char* buffer,
+    size_t buffer_size
+  );
+
+  /**
+   * Convert packet to raw JSON message
+   *
+   * @param packet Mesh packet
+   * @param origin Device name
+   * @param origin_id Device public key (hex string)
+   * @param buffer Output buffer for JSON string
+   * @param buffer_size Size of output buffer
+   * @return Length of JSON string, or 0 on error
+   */
+  static int buildRawJSON(
+    JsonDocument& doc,
+    mesh::Packet* packet,
+    const char* origin,
+    const char* origin_id,
+    Timezone* timezone,
+    char* buffer,
+    size_t buffer_size
+  );
+
+private:
+  /**
+   * Convert route type to string
+   */
+  static const char* getRouteTypeString(int route_type);
+
+  /**
+   * Convert bytes to hex string (uppercase)
+   */
+  static void bytesToHex(const uint8_t* data, size_t len, char* hex, size_t hex_size);
+
+  /**
+   * Convert packet to hex string
+   */
+  static void packetToHex(mesh::Packet* packet, char* hex, size_t hex_size);
+};

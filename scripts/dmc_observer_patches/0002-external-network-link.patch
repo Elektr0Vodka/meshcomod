@@ -1,0 +1,35 @@
+diff --git a/src/helpers/NetworkLink.cpp b/src/helpers/NetworkLink.cpp
+index 110619e8..7387b419 100644
+--- a/src/helpers/NetworkLink.cpp
++++ b/src/helpers/NetworkLink.cpp
+@@ -1190,11 +1190,16 @@ class AutomaticNetworkLink final : public NetworkLink {
+ }  // namespace
+ 
+ NetworkLink& activeNetworkLink() {
++#if defined(NETWORK_LINK_EXTERNAL_WIFI)
++  // meshcomod: the companion's own Wi-Fi manager owns the radio; this link only reports.
++  return externalNetworkLink();
++#else
+ #if defined(NETWORK_PREFER_ETHERNET)
+   static AutomaticNetworkLink network;
+ #else
+   static WiFiNetworkLink network;
+ #endif
+   return network;
++#endif
+ }
+ #endif
+diff --git a/src/helpers/NetworkLink.h b/src/helpers/NetworkLink.h
+index 347ed0ab..fdf5e70d 100644
+--- a/src/helpers/NetworkLink.h
++++ b/src/helpers/NetworkLink.h
+@@ -101,4 +101,9 @@ class NetworkLink {
+ /** Build-selected singleton. Wi-Fi is the compatibility default. */
+ NetworkLink& activeNetworkLink();
+ 
++#if defined(NETWORK_LINK_EXTERNAL_WIFI)
++/** meshcomod: passive link over a Wi-Fi station the companion manages itself. */
++NetworkLink& externalNetworkLink();
++#endif
++
+ #endif
