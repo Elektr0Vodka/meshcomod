@@ -16,7 +16,8 @@ poller reads both.
 * Library: [0neblock/SNMP_Agent](https://github.com/0neblock/Arduino_SNMP) 2.1.0.
 * **Off by default.** `set snmp on` starts it, no reboot needed.
 
-Builds with the agent (compile flag `-D WITH_SNMP=1`):
+Builds with the agent (compile flag `-D WITH_SNMP=1`), plus the `_mqtt` variant of each
+board that has one ([companion_mqtt.md](companion_mqtt.md)):
 
 * `heltec_v4_companion_radio_usb_tcp`
 * `Heltec_v3_companion_radio_usb_tcp` (and its `_boot_debug` variant)
@@ -145,9 +146,14 @@ companion has no radio watchdog.
 
 | OID | Type | Description |
 | --- | --- | --- |
+| `.3.1.0` | INTEGER | Connected MQTT slots (`_mqtt` builds only) |
+| `.3.2.0` | INTEGER | Packets waiting in the MQTT publish queue (`_mqtt` builds only) |
+| `.3.3.0` | INTEGER | MQTT publishes skipped under memory pressure (`_mqtt` builds only) |
 | `.3.4.0` | INTEGER | Clock set by NTP this boot (1 yes, 0 no) |
 
-The companion has no MQTT bridge, so `.3.1.0` to `.3.3.0` are not present.
+`.3.1.0` to `.3.3.0` are present only on the `_mqtt` builds, which carry the
+observer's MQTT bridge ([companion_mqtt.md](companion_mqtt.md)); they keep the
+observer's meaning and types. Other builds have no bridge and do not register them.
 `.3.4.0` is, because the companion sets its clock over SNTP once Wi-Fi is up.
 Time pushed from the app does not count.
 
