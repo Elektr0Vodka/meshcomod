@@ -1,0 +1,3084 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Elektr0Vodka fork of meshcomod, the multi-transport MeshCore companion firmware">
+      
+      
+      
+        <link rel="canonical" href="https://elektr0vodka.github.io/meshcomod/companion_cli/">
+      
+      
+        <link rel="prev" href="../companion_cad_toggle/">
+      
+      
+        <link rel="next" href="../companion_manifest_ota/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>Companion CLI - meshcomod Docs (Elektr0Vodka fork)</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../_stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#companion-cli" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="meshcomod Docs (Elektr0Vodka fork)" class="md-header__button md-logo" aria-label="meshcomod Docs (Elektr0Vodka fork)" data-md-component="logo">
+      
+  <img src="../_assets/meshcore.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            meshcomod Docs (Elektr0Vodka fork)
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Companion CLI
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark theme"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark theme" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light theme"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light theme" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/Elektr0Vodka/meshcomod/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Elektr0Vodka/meshcomod
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="meshcomod Docs (Elektr0Vodka fork)" class="md-nav__button md-logo" aria-label="meshcomod Docs (Elektr0Vodka fork)" data-md-component="logo">
+      
+  <img src="../_assets/meshcore.svg" alt="logo">
+
+    </a>
+    meshcomod Docs (Elektr0Vodka fork)
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/Elektr0Vodka/meshcomod/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Elektr0Vodka/meshcomod
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CI_RELEASES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI releases (GitHub Actions + GitHub Releases)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../COMPANION_OTA_MEMORY_ROOT_CAUSE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion OTA HTTPS Memory Root Cause
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEVICE_WEBSOCKET_WIFI/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Device WebSocket over Wi‑Fi (plain WS)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../HARDWARE_TOUCH_PARITY_CHECKLIST/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Heltec V4 touch UI — hardware parity acceptance checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../LOCAL_BUILD_M7/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Elecrow ThinkNode M7
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RELEASE_PROCEDURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release procedure (companion firmware)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../REPEATER_MESHCOMOD_CLIENT_INTEGRATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Meshcomod / custom client ↔ Wi‑Fi repeater (TCP &amp; WebSocket)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../REPEATER_RELEASE_PROCEDURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TCP repeater release procedure (prebuilt / flasher)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../REPEATER_TCP_COMPANION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Repeater TCP companion protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../V3_BOOT_DEBUG/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Heltec V3 boot-loop debug build
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../WEBCLIENT_TOUCH_PARITY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Web client ↔ Heltec V4 touch UI — functionality parity matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli_commands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../companion_cad_toggle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion CAD toggle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion CLI
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Navigation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operational" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operational
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Operational">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reboot-the-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reboot the node
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#power-off-the-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Power-off the node
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        System
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="System">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-this-nodes-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change this node's name
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-this-nodes-firmware-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View this node's firmware version
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure-this-nodes-timezone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configure this node's timezone
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fine-tune-the-battery-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fine-tune the battery reading
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-the-buzzer-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change the buzzer state
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#radio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Radio
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Radio">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-this-nodes-radio-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change this node's radio parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-this-nodes-transmit-power" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change this node's transmit power
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-this-nodes-frequency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change this node's frequency
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GPS
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GPS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#view-gps-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View GPS state
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#change-gps-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Change GPS state
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-the-gps-acquisition-period" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change the GPS acquisition period
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-the-last-gps-fix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View the last GPS fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sync-this-nodes-clock-with-gps-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sync this node's clock with GPS time
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on-demand-gps-fix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        On demand GPS fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-gps-time-to-first-fix-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View GPS time to first fix statistics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-gps-diagnostics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View GPS diagnostics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-this-nodes-rx-boosted-gain-mode-sx12xx-and-lr1110" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change this node's rx boosted gain mode (SX12xx and LR1110)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-the-lora-fem-receive-path-gain-state-on-supported-boards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change the LoRa FEM receive-path gain state on supported boards
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-the-lora-fem-transmit-path-gain-state-on-supported-boards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change the LoRa FEM transmit-path gain state on supported boards
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-the-duty-cycle-limit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change the duty cycle limit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-the-airtime-factor-duty-cycle-limit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change the airtime factor (duty cycle limit)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-the-local-interference-threshold" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change the local interference threshold
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enable-or-disable-hardware-channel-activity-detection-cad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enable or disable hardware Channel Activity Detection (CAD)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-the-agc-reset-interval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change the AGC Reset Interval
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enable-or-disable-multi-acks-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enable or disable Multi-Acks support
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-this-nodes-advert-path-hash-size" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change this node's advert path hash size
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-the-retransmit-delay-factor-for-flood-traffic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change the retransmit delay factor for flood traffic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-the-retransmit-delay-factor-for-direct-traffic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change the retransmit delay factor for direct traffic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#experimental-view-or-change-the-processing-delay-for-received-traffic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [Experimental] View or change the processing delay for received traffic
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ble" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BLE
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="BLE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#change-ble-pin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Change BLE PIN
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#change-ble-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Change BLE name
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wifi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wifi
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Wifi">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Get status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#toggle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Toggle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set-ssid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Set SSID
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set-password" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Set password
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UI
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="UI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#show-clock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Show clock
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gps-key-action" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GPS key action
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#node-discovery-screen-shows-nodes-names" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Node discovery screen shows nodes names
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auto-off-screen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auto-off screen
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#display-backlight-timeout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Display backlight timeout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-turn-backlight-on" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to turn backlight on
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#control-if-eink-screen-should-be-blanked" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Control if eink screen should be blanked
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maximum-number-of-partial-refreshes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Maximum number of partial refreshes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../companion_manifest_ota/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion manifest OTA (ota check / ota update)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../companion_protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion Protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../companion_receive_filter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion receive filter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../companion_snmp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion SNMP agent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local Documentation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Frequently Asked Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kiss_modem_protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MeshCore KISS Modem Protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nrf52_power_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    nRF52 Power Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../number_allocations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Number Allocations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../packet_format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Packet Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../payloads/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payload Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qr_codes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    QR Codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../radio_presets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Radio Presets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stats_binary_frames/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stats Binary Frame Structures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terminal_chat_cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Terminal Chat CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../touch-txt-trace-repro/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Touch TXT send forensics — repro and decision tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_32" >
+        
+          
+          <label class="md-nav__link" for="__nav_32" id="__nav_32_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Superpowers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_32_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_32">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Superpowers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_32_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_32_1" id="__nav_32_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Specs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_32_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_32_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Specs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../superpowers/specs/2026-09-09-companion-cad-toggle-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Companion CAD runtime toggle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Navigation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operational" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operational
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Operational">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reboot-the-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reboot the node
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#power-off-the-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Power-off the node
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        System
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="System">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-this-nodes-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change this node's name
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-this-nodes-firmware-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View this node's firmware version
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure-this-nodes-timezone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configure this node's timezone
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fine-tune-the-battery-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fine-tune the battery reading
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-the-buzzer-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change the buzzer state
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#radio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Radio
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Radio">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-this-nodes-radio-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change this node's radio parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-this-nodes-transmit-power" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change this node's transmit power
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-this-nodes-frequency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change this node's frequency
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GPS
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GPS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#view-gps-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View GPS state
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#change-gps-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Change GPS state
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-the-gps-acquisition-period" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change the GPS acquisition period
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-the-last-gps-fix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View the last GPS fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sync-this-nodes-clock-with-gps-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sync this node's clock with GPS time
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on-demand-gps-fix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        On demand GPS fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-gps-time-to-first-fix-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View GPS time to first fix statistics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-gps-diagnostics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View GPS diagnostics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-this-nodes-rx-boosted-gain-mode-sx12xx-and-lr1110" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change this node's rx boosted gain mode (SX12xx and LR1110)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-the-lora-fem-receive-path-gain-state-on-supported-boards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change the LoRa FEM receive-path gain state on supported boards
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-the-lora-fem-transmit-path-gain-state-on-supported-boards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change the LoRa FEM transmit-path gain state on supported boards
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-the-duty-cycle-limit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change the duty cycle limit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-the-airtime-factor-duty-cycle-limit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change the airtime factor (duty cycle limit)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-the-local-interference-threshold" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change the local interference threshold
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enable-or-disable-hardware-channel-activity-detection-cad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enable or disable hardware Channel Activity Detection (CAD)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-the-agc-reset-interval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change the AGC Reset Interval
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enable-or-disable-multi-acks-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enable or disable Multi-Acks support
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-this-nodes-advert-path-hash-size" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change this node's advert path hash size
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-the-retransmit-delay-factor-for-flood-traffic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change the retransmit delay factor for flood traffic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#view-or-change-the-retransmit-delay-factor-for-direct-traffic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        View or change the retransmit delay factor for direct traffic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#experimental-view-or-change-the-processing-delay-for-received-traffic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [Experimental] View or change the processing delay for received traffic
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ble" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BLE
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="BLE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#change-ble-pin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Change BLE PIN
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#change-ble-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Change BLE name
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wifi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wifi
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Wifi">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Get status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#toggle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Toggle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set-ssid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Set SSID
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set-password" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Set password
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UI
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="UI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#show-clock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Show clock
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gps-key-action" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GPS key action
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#node-discovery-screen-shows-nodes-names" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Node discovery screen shows nodes names
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auto-off-screen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auto-off screen
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#display-backlight-timeout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Display backlight timeout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-turn-backlight-on" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to turn backlight on
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#control-if-eink-screen-should-be-blanked" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Control if eink screen should be blanked
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maximum-number-of-partial-refreshes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Maximum number of partial refreshes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/Elektr0Vodka/meshcomod/edit/main/docs/companion_cli.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="companion-cli">Companion CLI</h1>
+<p>Since version 1.18 meshcore companion radio firmware has a CLI interface, which can be accessed locally (through companion radio protocol) or remotely via the network.</p>
+<h2 id="navigation">Navigation</h2>
+<ul>
+<li><a href="#operational">Operational</a></li>
+<li><a href="#configuration">Configuration</a></li>
+<li><a href="#system">System</a></li>
+<li><a href="#radio">Radio</a></li>
+<li><a href="#gps">GPS</a></li>
+<li><a href="#ble">BLE</a></li>
+<li><a href="#wifi">Wifi</a></li>
+<li><a href="#ui">UI</a></li>
+</ul>
+<h2 id="operational">Operational</h2>
+<h3 id="reboot-the-node">Reboot the node</h3>
+<p><strong>Usage:</strong> 
+- <code>reboot</code></p>
+<p><strong>Note:</strong> No reply is sent.</p>
+<hr />
+<h3 id="power-off-the-node">Power-off the node</h3>
+<p><strong>Usage:</strong>
+- <code>poweroff</code>, or
+- <code>shutdown</code></p>
+<p><strong>Note:</strong> No reply is sent.</p>
+<hr />
+<h2 id="configuration">Configuration</h2>
+<h3 id="system">System</h3>
+<h4 id="view-or-change-this-nodes-name">View or change this node's name</h4>
+<p><strong>Usage:</strong>
+- <code>get name</code>
+- <code>set name &lt;name&gt;</code></p>
+<p><strong>Parameters:</strong>
+- <code>name</code>: Node name</p>
+<p><strong>Set by build flag:</strong> <code>ADVERT_NAME</code></p>
+<p><strong>Default:</strong> Varies by board</p>
+<p><strong>Note:</strong> Advertised names can use up to 23 bytes when location is included and 31 bytes otherwise. Emoji and Unicode characters may take more than one byte. Names that exceed the available advert space are truncated at a valid UTF-8 code point boundary.</p>
+<hr />
+<h4 id="view-this-nodes-firmware-version">View this node's firmware version</h4>
+<p><strong>Usage:</strong> <code>ver</code></p>
+<hr />
+<h4 id="configure-this-nodes-timezone">Configure this node's timezone</h4>
+<p><strong>Usage:</strong> 
+- <code>set tz.offset &lt;offset&gt;</code>
+- <code>get tz.offset</code></p>
+<p><strong>Parameters:</strong>
+- <code>offset</code>: float value of the offset in hours</p>
+<hr />
+<h4 id="fine-tune-the-battery-reading">Fine-tune the battery reading</h4>
+<p><strong>Usage:</strong>
+- <code>get adc.multiplier</code>
+- <code>set adc.multiplier &lt;value&gt;</code></p>
+<p><strong>Parameters:</strong>
+- <code>value</code>: ADC multiplier (0.0-10.0)</p>
+<p><strong>Default:</strong> <code>0.0</code> (value defined by board)</p>
+<p><strong>Note:</strong> Returns "Error: unsupported" if the board doesn't support it. Same command as on repeaters, for boards whose battery divider resistors vary (e.g. DIY ProMicro / Faketec).</p>
+<hr />
+<h4 id="view-or-change-the-buzzer-state">View or change the buzzer state</h4>
+<p><strong>Usage:</strong>
+- <code>get buzzer</code>
+- <code>set buzzer &lt;state&gt;</code></p>
+<p><strong>Parameters:</strong>
+- <code>state</code>: <code>on</code>|<code>off</code></p>
+<p><strong>Default:</strong> <code>on</code></p>
+<p><strong>Note:</strong> Only available on boards with a buzzer (<code>PIN_BUZZER</code>). This is the same setting as the buzzer toggle in the device UI.</p>
+<hr />
+<h3 id="radio">Radio</h3>
+<p>Radio parameters are common to all roles and handled by <code>CommonRadioPrefs</code>.</p>
+<h4 id="view-or-change-this-nodes-radio-parameters">View or change this node's radio parameters</h4>
+<p><strong>Usage:</strong>
+- <code>get radio</code>
+- <code>set radio &lt;freq&gt;,&lt;bw&gt;,&lt;sf&gt;,&lt;cr&gt;</code></p>
+<p><strong>Parameters:</strong>
+- <code>freq</code>: Frequency in MHz
+- <code>bw</code>: Bandwidth in kHz
+- <code>sf</code>: Spreading factor (5-12)
+- <code>cr</code>: Coding rate (5-8)</p>
+<p><strong>Set by build flag:</strong> <code>LORA_FREQ</code>, <code>LORA_BW</code>, <code>LORA_SF</code>, <code>LORA_CR</code></p>
+<p><strong>Default:</strong> <code>869.618,62.5,8,5</code></p>
+<p><strong>Note:</strong> Requires reboot to apply</p>
+<hr />
+<h4 id="view-or-change-this-nodes-transmit-power">View or change this node's transmit power</h4>
+<p><strong>Usage:</strong>
+- <code>get tx</code>
+- <code>set tx &lt;dbm&gt;</code></p>
+<p><strong>Parameters:</strong>
+- <code>dbm</code>: Power level in dBm (1-22)</p>
+<p><strong>Set by build flag:</strong> <code>LORA_TX_POWER</code></p>
+<p><strong>Default:</strong> Varies by board</p>
+<p><strong>Notes:</strong> This setting only controls the power level of the LoRa chip. Some nodes have an additional power amplifier stage which increases the total output. Refer to the node's manual for the correct setting to use. <strong>Setting a value too high may violate the laws in your country.</strong></p>
+<hr />
+<h4 id="view-or-change-this-nodes-frequency">View or change this node's frequency</h4>
+<p><strong>Usage:</strong>
+- <code>get freq</code>
+- <code>set freq &lt;frequency&gt;</code></p>
+<p><strong>Parameters:</strong>
+- <code>frequency</code>: Frequency in MHz</p>
+<p><strong>Default:</strong> <code>869.618</code></p>
+<p><strong>Note:</strong> Requires reboot to apply
+<strong>Serial Only:</strong> <code>set freq &lt;frequency&gt;</code></p>
+<hr />
+<h3 id="gps">GPS</h3>
+<h4 id="view-gps-state">View GPS state</h4>
+<p><strong>Usage:</strong>
+- <code>gps</code></p>
+<p><strong>Note:</strong> Reports the requested state, receiver activity, last-fix status (last fix gives number of sats and how long ago was the fix), and mode. In periodic mode, <code>waiting</code> means the receiver is off between acquisitions; the last fix remains available. <code>off(hw)</code> means a hardware GPS switch is off.</p>
+<hr />
+<h4 id="change-gps-state">Change GPS state</h4>
+<p><strong>Usage:</strong>
+- <code>gps &lt;state&gt;</code></p>
+<p><strong>Parameters:</strong>
+- <code>state</code>: <code>on</code>|<code>off</code></p>
+<hr />
+<h4 id="view-or-change-the-gps-acquisition-period">View or change the GPS acquisition period</h4>
+<p><strong>Usage:</strong>
+- <code>gps period</code>
+- <code>gps period &lt;value&gt;</code></p>
+<p><strong>Parameters:</strong>
+- <code>value</code>: <code>0</code> for continuous tracking, or a period. The value can be postfixed with <code>s</code>, <code>m</code>, <code>h</code> or <code>d</code> to specify the unit (seconds by default).</p>
+<p><strong>Note:</strong> A periodic acquisition stops after receiving a valid fix, then resumes after the configured period.</p>
+<hr />
+<h4 id="view-the-last-gps-fix">View the last GPS fix</h4>
+<p><strong>Usage:</strong>
+- <code>gps fix</code></p>
+<p><strong>Output:</strong>
+- <code>&gt; Fix (n sat): &lt;lat&gt;, &lt;lon&gt;</code>: the GPS currently has a fix.
+- <code>&gt; Last fix &lt;age&gt; ago (n sat)[, acq &lt;time&gt;]: &lt;lat&gt;, &lt;lon&gt;</code>: position of the last valid fix; <code>acq</code> is shown only while the receiver is running and shows how for how long the gps has been trying to get a fix.
+- <code>&gt; No fix[, acq &lt;time&gt;]</code>: no valid fix since the node started.</p>
+<p><strong>Note:</strong> Ages and durations are given in <code>s</code>, <code>m</code> or <code>h</code>.</p>
+<hr />
+<h4 id="sync-this-nodes-clock-with-gps-time">Sync this node's clock with GPS time</h4>
+<p><strong>Usage:</strong>
+- <code>gps sync</code></p>
+<hr />
+<h4 id="on-demand-gps-fix">On demand GPS fix</h4>
+<p><strong>Usage:</strong>
+- <code>gps once</code>
+- <code>gps once -s</code></p>
+<p><strong>Parameters:</strong>
+- <code>-s</code>: also sync this node's clock with GPS time (as <code>gps sync</code>)</p>
+<p><strong>Note:</strong> Starts an acquisition now. If the GPS is off, it is switched and kept on until a valid fix and then turned off.</p>
+<p><strong>Reply:</strong> <code>OK - turning on and acquiring</code> (GPS was off), <code>OK - waking gps</code> (periodic mode, receiver off between acquisitions) or <code>OK - gps already on</code>. <code>Error, gps hw switch off</code> if a hardware GPS switch is off, <code>Error, gps once not supported</code>.</p>
+<hr />
+<h4 id="view-gps-time-to-first-fix-statistics">View GPS time to first fix statistics</h4>
+<p><strong>Usage:</strong>
+- <code>gps fix_stats</code></p>
+<p><strong>Output:</strong> <code>&gt; ttf:&lt;last&gt;/&lt;max&gt; ok:&lt;n&gt; miss:&lt;n&gt;</code>: last and maximum time between a start of the GPS and its first valid fix, then the last count of consecutive starts with a fix (<code>ok</code>) or without one (<code>miss</code>).</p>
+<hr />
+<h4 id="view-gps-diagnostics">View GPS diagnostics</h4>
+<p><strong>Usage:</strong>
+- <code>gps diag</code></p>
+<hr />
+<h4 id="view-or-change-this-nodes-rx-boosted-gain-mode-sx12xx-and-lr1110">View or change this node's rx boosted gain mode (SX12xx and LR1110)</h4>
+<p><strong>Usage:</strong>
+- <code>get radio.rxgain</code>
+- <code>set radio.rxgain &lt;state&gt;</code></p>
+<p><strong>Parameters:</strong>
+  - <code>state</code>: <code>on</code>|<code>off</code></p>
+<p><strong>Default:</strong> <code>on</code></p>
+<hr />
+<h4 id="view-or-change-the-lora-fem-receive-path-gain-state-on-supported-boards">View or change the LoRa FEM receive-path gain state on supported boards</h4>
+<p><strong>Usage:</strong>
+- <code>get radio.fem.rxgain</code>
+- <code>set radio.fem.rxgain &lt;state&gt;</code></p>
+<p><strong>Parameters:</strong>
+- <code>state</code>: <code>on</code>|<code>off</code></p>
+<p><strong>Notes:</strong>
+- This controls the external LoRa FEM receive-path LNA where the board supports it.
+- This is separate from <code>radio.rxgain</code>, which controls the radio chip receive gain mode.</p>
+<hr />
+<h4 id="view-or-change-the-lora-fem-transmit-path-gain-state-on-supported-boards">View or change the LoRa FEM transmit-path gain state on supported boards</h4>
+<p><strong>Usage:</strong>
+- <code>get radio.fem.txgain</code>
+- <code>set radio.fem.txgain &lt;state&gt;</code></p>
+<p><strong>Parameters:</strong>
+- <code>state</code>: <code>on</code>|<code>off</code></p>
+<p><strong>Notes:</strong>
+- This controls a software-selectable external LoRa FEM transmit gain where the board supports it.
+- On Station G3, remove the PA PL1 jumper to allow software control. <code>on</code> selects PA PL1 high/short and <code>off</code> selects PA PL1 low/open. The PA PL2 hardware jumper determines whether this switches between power levels 1/3 or 2/4.
+- Select an operating level and SX1262 transmit power that comply with local RF limits and the Station G3 power-supply requirements.
+- The setting is saved immediately, but on Station G3 the level is applied to the hardware at the start of the next transmit, so that the PA supply rail is never re-targeted while the PA is being driven. <code>get</code> reports the configured state, which may lead the hardware until the node next transmits.</p>
+<hr />
+<h4 id="view-or-change-the-duty-cycle-limit">View or change the duty cycle limit</h4>
+<p><strong>Usage:</strong>
+- <code>get dutycycle</code>
+- <code>set dutycycle &lt;value&gt;</code></p>
+<p><strong>Parameters:</strong>
+- <code>value</code>: Duty cycle percentage (1-100)</p>
+<p><strong>Default:</strong> <code>50%</code> (equivalent to airtime factor 1.0)</p>
+<p><strong>Examples:</strong>
+- <code>set dutycycle 100</code> — no duty cycle limit
+- <code>set dutycycle 50</code> — 50% duty cycle (default)
+- <code>set dutycycle 10</code> — 10% duty cycle
+- <code>set dutycycle 1</code> — 1% duty cycle (strictest EU requirement)</p>
+<blockquote>
+<p><strong>Note:</strong> Added in firmware v1.15.0</p>
+</blockquote>
+<hr />
+<h4 id="view-or-change-the-airtime-factor-duty-cycle-limit">View or change the airtime factor (duty cycle limit)</h4>
+<blockquote>
+<p><strong>Deprecated</strong> as of firmware v1.15.0. Use <a href="#view-or-change-the-duty-cycle-limit"><code>get/set dutycycle</code></a> instead.</p>
+</blockquote>
+<p><strong>Usage:</strong>
+- <code>get af</code>
+- <code>set af &lt;value&gt;</code></p>
+<p><strong>Parameters:</strong>
+- <code>value</code>: Airtime factor (0-9). After each transmission, the repeater enforces a silent period of approximately the on-air transmission time multiplied by the value. This results in a long-term duty cycle of roughly 1 divided by (1 plus the value). For example:
+  - <code>af = 1</code> → ~50% duty
+  - <code>af = 2</code> → ~33% duty
+  - <code>af = 3</code> → ~25% duty
+  - <code>af = 9</code> → ~10% duty
+  You are responsible for choosing a value that is appropriate for your jurisdiction and channel plan (for example EU 868 Mhz 10% duty cycle regulation).</p>
+<p><strong>Default:</strong> <code>1.0</code></p>
+<hr />
+<h4 id="view-or-change-the-local-interference-threshold">View or change the local interference threshold</h4>
+<p><strong>Usage:</strong>
+- <code>get int.thresh</code>
+- <code>set int.thresh &lt;value&gt;</code></p>
+<p><strong>Parameters:</strong>
+- <code>value</code>: Interference threshold value</p>
+<p><strong>Default:</strong> <code>0.0</code></p>
+<hr />
+<h4 id="enable-or-disable-hardware-channel-activity-detection-cad">Enable or disable hardware Channel Activity Detection (CAD)</h4>
+<p><strong>Usage:</strong>
+- <code>get cad</code>
+- <code>set cad &lt;on|off&gt;</code></p>
+<p><strong>Description:</strong> When enabled, the radio performs a hardware Channel Activity Detection scan before transmitting and defers if the channel is busy. Runs independently of <code>int.thresh</code> — either, both, or none may be active.</p>
+<p><strong>Parameters:</strong>
+- <code>on|off</code>: Enable or disable hardware CAD</p>
+<p><strong>Default:</strong> <code>off</code></p>
+<hr />
+<h4 id="view-or-change-the-agc-reset-interval">View or change the AGC Reset Interval</h4>
+<p><strong>Usage:</strong>
+- <code>get agc.reset.interval</code>
+- <code>set agc.reset.interval &lt;value&gt;</code></p>
+<p><strong>Parameters:</strong>
+- <code>value</code>: Interval in seconds, 0-1020, rounded down to a multiple of 4 (17 becomes 16). 0 to disable.</p>
+<p><strong>Default:</strong> <code>0.0</code></p>
+<hr />
+<h4 id="enable-or-disable-multi-acks-support">Enable or disable Multi-Acks support</h4>
+<p><strong>Usage:</strong>
+- <code>get multi.acks</code>
+- <code>set multi.acks &lt;state&gt;</code></p>
+<p><strong>Parameters:</strong>
+- <code>state</code>: <code>0</code> (disable) or <code>1</code> (enable)</p>
+<p><strong>Default:</strong> <code>0</code></p>
+<hr />
+<h4 id="view-or-change-this-nodes-advert-path-hash-size">View or change this node's advert path hash size</h4>
+<p><strong>Usage:</strong>
+- <code>get path.hash.mode</code>
+- <code>set path.hash.mode &lt;value&gt;</code></p>
+<p><strong>Parameters:</strong>
+- <code>value</code>: Path hash size (0-2)
+  - <code>0</code>: 1 Byte hash size (256 unique ids)[64 max flood]
+  - <code>1</code>: 2 Byte hash size (65,536 unique ids)[32 max flood]
+  - <code>2</code>: 3 Byte hash size (16,777,216 unique ids)[21 max flood]
+  - <code>3</code>: DO NOT USE (Reserved) </p>
+<p><strong>Default:</strong> <code>0</code></p>
+<p><strong>Note:</strong> the 'path.hash.mode' sets the low-level ID/hash encoding size used when the repeater adverts. This setting has no impact on what packet ID/hash size this repeater forwards, all sizes should be forwarded on firmware &gt;= 1.14. This feature was added in firmware 1.14</p>
+<h4 id="view-or-change-the-retransmit-delay-factor-for-flood-traffic">View or change the retransmit delay factor for flood traffic</h4>
+<p><strong>Usage:</strong>
+- <code>get txdelay</code>
+- <code>set txdelay &lt;value&gt;</code></p>
+<p><strong>Parameters:</strong>
+- <code>value</code>: Transmit delay factor (0-2)</p>
+<p><strong>Default:</strong> <code>0.5</code></p>
+<p><strong>Note:</strong> When multiple nearby repeaters all hear the same flood packet, each waits a random amount of time before retransmitting to avoid simultaneous collisions. This factor scales the size of that random window. Higher values reduce collision risk at the cost of added latency. <code>0</code> disables the window entirely.</p>
+<hr />
+<h4 id="view-or-change-the-retransmit-delay-factor-for-direct-traffic">View or change the retransmit delay factor for direct traffic</h4>
+<p><strong>Usage:</strong>
+- <code>get direct.txdelay</code>
+- <code>set direct.txdelay &lt;value&gt;</code></p>
+<p><strong>Parameters:</strong>
+- <code>value</code>: Direct transmit delay factor (0-2)</p>
+<p><strong>Default:</strong> <code>0.3</code> (Repeater) - <code>0.2</code> (Room Server, Sensor)</p>
+<p><strong>Note:</strong> Same collision-avoidance random window as <code>txdelay</code>, but applied to direct (non-flood, routed) traffic. The default is lower because direct packets are addressed to a specific next hop, so far fewer nodes compete to retransmit them.</p>
+<hr />
+<h4 id="experimental-view-or-change-the-processing-delay-for-received-traffic">[Experimental] View or change the processing delay for received traffic</h4>
+<p><strong>Usage:</strong>
+- <code>get rxdelay</code>
+- <code>set rxdelay &lt;value&gt;</code></p>
+<p><strong>Parameters:</strong>
+- <code>value</code>: Receive delay base (0-20)</p>
+<p><strong>Default:</strong> <code>0.0</code></p>
+<p><strong>Note:</strong> When enabled, repeaters that received a flood packet with a weak signal are held in a delay queue before processing, while those that received it with a strong signal process it immediately. This gives strong-signal paths forwarding priority. By the time weak-signal nodes process their copy, the packet may have already propagated and will be suppressed as a duplicate, reducing redundant retransmissions.</p>
+<hr />
+<h3 id="ble">BLE</h3>
+<h4 id="change-ble-pin">Change BLE PIN</h4>
+<p><strong>Usage:</strong>
+- <code>set pin &lt;pin&gt;</code></p>
+<p><strong>Parameters:</strong>
+- <code>pin</code>: New BLE PIN</p>
+<p><strong>Set by build flag:</strong> <code>BLE_PIN_CODE</code></p>
+<hr />
+<h4 id="change-ble-name">Change BLE name</h4>
+<p><strong>Usage:</strong>
+- <code>get ble.name</code>
+- <code>set ble.name &lt;name&gt;</code></p>
+<p><strong>Parameters:</strong>
+- <code>name</code>: New BLE name</p>
+<p><strong>Note:</strong> By default the BLE name is <code>Meshcore-</code> followed by the node name. If <code>&lt;name&gt;</code> is empty the BLE name will be reset to the aforementioned default. These commands require a reboot to take effect.</p>
+<hr />
+<h3 id="wifi">Wifi</h3>
+<h4 id="get-status">Get status</h4>
+<p><strong>Usage:</strong>
+- <code>get wifi.status</code>
+- <code>get wifi.ip</code></p>
+<hr />
+<h4 id="toggle">Toggle</h4>
+<p><strong>Usage:</strong>
+- <code>set wifi.enabled &lt;value&gt;</code>
+- <code>get wifi.enabled</code></p>
+<p><strong>Parameters:</strong>
+- <code>value</code>: <code>0</code> (disable) or <code>1</code> (enable)</p>
+<hr />
+<h4 id="set-ssid">Set SSID</h4>
+<p><strong>Usage:</strong>
+- <code>set wifi.ssid &lt;value&gt;</code>
+- <code>get wifi.ssid</code></p>
+<p><strong>Parameters:</strong>
+- <code>value</code>: ssid as a string</p>
+<hr />
+<h4 id="set-password">Set password</h4>
+<p><strong>Usage:</strong>
+- <code>set wifi.pwd &lt;value&gt;</code>
+- <code>get wifi.pwd</code></p>
+<p><strong>Parameters:</strong>
+- <code>value</code>: password string</p>
+<hr />
+<h3 id="ui">UI</h3>
+<h4 id="show-clock">Show clock</h4>
+<p><strong>Usage:</strong>
+- <code>set ui.show_clock &lt;state&gt;</code>
+- <code>get ui.show_clock</code></p>
+<p><strong>Parameters:</strong>
+- <code>state</code>: <code>0</code> (disable) or <code>1</code> (enable)</p>
+<p><strong>Default:</strong> <code>0</code> (or <code>UI_SHOW_CLOCK</code> build flag)</p>
+<hr />
+<h4 id="gps-key-action">GPS key action</h4>
+<p><strong>Usage:</strong>
+- <code>set ui.gps_action &lt;action&gt;</code>
+- <code>get ui.gps_action</code></p>
+<p><strong>Parameters:</strong>
+- <code>action</code>: <code>toggle</code> (or <code>0</code>) to switch the GPS on and off, <code>once</code> (or <code>trigger</code>, <code>1</code>) to acquire a fix on demand, as <code>gps once</code></p>
+<p><strong>Default:</strong> <code>toggle</code>, or <code>once</code> on boards with a GPS switch</p>
+<p><strong>Note:</strong> Only used by the <code>ui-new</code> screens for now.</p>
+<hr />
+<h4 id="node-discovery-screen-shows-nodes-names">Node discovery screen shows nodes names</h4>
+<p><strong>Usage:</strong>
+- <code>set ui.nd_name &lt;state&gt;</code>
+- <code>get ui.nd_name</code></p>
+<p><strong>Parameters:</strong>
+- <code>state</code>: <code>1</code> (show name) or <code>0</code> (show pubkey_prefix)</p>
+<p><strong>Default:</strong> <code>1</code></p>
+<p><strong>Note:</strong> When showing name, there is not always enough space to draw both incoming and outgoing snr values.</p>
+<hr />
+<h4 id="auto-off-screen">Auto-off screen</h4>
+<p><strong>Usage:</strong>
+- <code>set ui.auto_off_delay &lt;delay&gt;</code>
+- <code>get ui.auto_off_delay</code></p>
+<p><strong>Parameters:</strong>
+- <code>delay</code>: in seconds (<code>0</code> means always on)</p>
+<p><strong>Default:</strong> <code>15</code> (or set by <code>AUTO_OFF_MILLIS</code> build flag (in ms))</p>
+<p><strong>Note:</strong>
+On e-ink displays, when turned off, the screen is not necessarily blanked, see <code>ui.auto_off_blank</code> and <code>ui.backlight_delay</code>.</p>
+<p>When screen is not blanked, it is not refreshed any more. To let the user aware of that, a sleep icon is shown.</p>
+<hr />
+<h4 id="display-backlight-timeout">Display backlight timeout</h4>
+<p><strong>Usage:</strong>
+- <code>set ui.backlight_delay &lt;delay&gt;</code>
+- <code>get ui.backlight_delay</code></p>
+<p><strong>Parameters:</strong>
+- <code>delay</code>: in seconds 
+  - <code>0</code> means no timeout
+  - <code>-2</code> means always off
+  - <code>-1</code> means always on</p>
+<p><strong>Note:</strong>
+When set to <code>0</code>, backlight can only be triggered using backlight btn.</p>
+<hr />
+<h4 id="when-to-turn-backlight-on">When to turn backlight on</h4>
+<p><strong>Usage:</strong>
+- <code>set ui.backlight_on_keys &lt;state&gt;</code>
+- <code>get ui.backlight_on_keys</code>
+- <code>set ui.backlight_on_msgs &lt;state&gt;</code>
+- <code>get ui.backlight_on_msgs</code></p>
+<p><strong>Parameters:</strong>
+- <code>state</code>: <code>0</code> (disable) or <code>1</code> (enable)</p>
+<p><strong>Default:</strong> 
+- <code>ui.backlight_on_msgs = 0</code>
+- <code>ui.backlight_on_keys = 0</code> if there is a backlight button on the board, else <code>1</code></p>
+<p><strong>Note:</strong>
+By default backlight is triggered by backlight button if present (as long as the button is pressed backlight is on, and is turned off after a delay).
+These toggles permits to toggle backlight when keys are pressed or when a message arrives (it acts as a notification signal).
+If <code>backlight_delay</code> is set to <code>0</code> then this setting has no effect, backlight won't be turned on.</p>
+<hr />
+<h4 id="control-if-eink-screen-should-be-blanked">Control if eink screen should be blanked</h4>
+<p><strong>Usage:</strong>
+- <code>set ui.auto_off_blank &lt;state&gt;</code>
+- <code>get ui.auto_off_blank</code></p>
+<p><strong>Parameters:</strong>
+- <code>state</code>: <code>0</code> (disable) or <code>1</code> (enable)</p>
+<p><strong>Default:</strong> <code>0</code> (or set by <code>UI_SCREENOFF_BLANK</code> build flag) </p>
+<p><strong>Note:</strong>
+If disabled, when screen is shut the displays stays on screen and is not updated (an sleep icons covers battery to show the screen is sleeping).</p>
+<p>When screen is blanked, the controller is also put into hibernation, which should preserve the screen a little and some battery ...</p>
+<hr />
+<h4 id="maximum-number-of-partial-refreshes">Maximum number of partial refreshes</h4>
+<p><strong>Usage:</strong>
+- <code>set ui.max_partial &lt;value&gt;</code>
+- <code>get ui.max_partial</code></p>
+<p><strong>Parmeters:</strong>
+- <code>value</code>: max partial refreshes before doing a full refresh</p>
+<p><strong>Default:</strong> 0 (no partial refresh or set by <code>EINK_MAX_PARTIAL_REFRESH</code> build flag)</p>
+<p><strong>Note:</strong>
+Forcing full refresh helps revives the screen when some tearing appears (under certain environmental conditions). If you see some tearing appearing, you can force full refresh on your screen manually by double clicking the backlight button. If tearing reappears often, use this setting to force full refresh every <code>value</code> partial refreshes.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.action.edit", "content.code.copy", "search.highlight", "search.suggest"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>
