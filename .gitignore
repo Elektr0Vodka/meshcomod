@@ -26,3 +26,9 @@ scripts/build/wifi_secrets.h
 
 # Local working notes (contains ops/infra details — never publish)
 CLAUDE.md
+
+# MQTT observer builds (docs/dmc_observer_vendor.md): generated cert bundle and the
+# reduced-TLS mbedTLS archives fetched by scripts/fetch_mbedtls_4k.sh.
+src/certs/x509_crt_bundle.bin
+ssl_certs/cacert.pem
+.mbedtls-4k/
