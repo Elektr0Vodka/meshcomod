@@ -13,6 +13,7 @@
 #include <helpers/RepeaterTcpOtaEmit.h>
 #include "WiFiConfig.h"
 #include "CompanionSNMP.h"
+#include "CompanionMqtt.h"
 #ifdef ESP32
 #if defined(WIFI_SSID) || defined(MULTI_TRANSPORT_COMPANION)
 #include <WiFi.h>
@@ -722,6 +723,15 @@ bool MyMesh::handleMeshcomodCommand(const char* text, int text_len) {
     while (*p == ' ' || *p == '\t') p++;
     if (strncasecmp(p, "on", 2) == 0 && (p[2] == '\0' || p[2] == ' ' || p[2] == '\t')) {
       _serial->enableBle();
+      if (!_serial->isBleEnabled()) {
+#ifdef WITH_MQTT_BRIDGE
+        // Refused: the broker connections hold the RAM NimBLE needs.
+        pushMeshcomodReply("ble: not started, not enough free memory. Use fewer MQTT slots and reboot.");
+#else
+        pushMeshcomodReply("ble: not started");
+#endif
+        return true;
+      }
       pushMeshcomodReply("OK\nble: on");
       return true;
     }
@@ -1398,7 +1408,27 @@ static inline bool isMsgFloodType(uint8_t t) {
   return t == PAYLOAD_TYPE_TXT_MSG || t == PAYLOAD_TYPE_GRP_TXT;
 }
 
+#ifdef WITH_MQTT_BRIDGE
+// Every packet the dispatcher accepts or sends also goes to the MQTT observer.
+void MyMesh::logRx(mesh::Packet* pkt, int len, float score) {
+  (void)len; (void)score;
+  companionMqttOnRx(pkt);
+}
+
+void MyMesh::logTx(mesh::Packet* pkt, int len) {
+  (void)len;
+  companionMqttOnTx(pkt);
+}
+
+void MyMesh::startMqttObserver(bool ble_on_at_boot) {
+  companionMqttStart(board, this, _radio, _ms, _mgr, getRTCClock(), &self_id, ble_on_at_boot);
+}
+#endif
+
 void MyMesh::logRxRaw(float snr, float rssi, const uint8_t raw[], int len) {
+#ifdef WITH_MQTT_BRIDGE
+  companionMqttOnRawRx(raw, len, snr, rssi);
+#endif
 #if defined(DISPLAY_CLASS)
   // Diagnostic: log EVERY received frame so we can prove what reaches the
   // radio. Header byte layout is
@@ -3424,6 +3454,9 @@ void MyMesh::handleCmdFrame(size_t len) {
           // re-load contacts, to invalidate ecdh shared_secrets
           resetContacts();
           _store->loadContacts(this);
+#ifdef WITH_MQTT_BRIDGE
+          companionMqttRestart();   // device ID and JWT username come from the key
+#endif
         } else {
           writeErrFrame(ERR_CODE_FILE_IO_ERROR);
         }
@@ -4137,6 +4170,10 @@ bool MyMesh::handleCommand(const char* command, uint32_t sender_timestamp, char*
 #ifdef WITH_SNMP
   if (companionSnmpCommand(command, sender_timestamp != 0, reply)) return true;
 #endif
+#ifdef WITH_MQTT_BRIDGE
+  // get|set mqtt*, timezone, get link.status (CompanionMqttPolicy::isObserverCommand).
+  if (companionMqttCommand(sender_timestamp, command, reply)) return true;
+#endif
 
   if (strcmp(command, "board") == 0) {
     strcpy(reply, board.getManufacturerName());
@@ -4770,6 +4807,9 @@ void MyMesh::checkSerialInterface() {
 void MyMesh::loop() {
   BaseChatMesh::loop();
   fcLoop();
+#ifdef WITH_MQTT_BRIDGE
+  companionMqttLoop();
+#endif
 
   if (_cli_rescue) {
     checkCLIRescueCmd();

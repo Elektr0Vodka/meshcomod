@@ -86,11 +86,26 @@ void MultiTransportCompanionInterface::beginBle(const char* prefix, char* name, 
   _ble.enable();
 }
 
+#ifdef WITH_MQTT_BRIDGE
+bool (*MultiTransportCompanionInterface::s_ble_start_guard)() = nullptr;
+#endif
+
 void MultiTransportCompanionInterface::enableBle() {
   if (!_ble_begun) {
     // Deferred at boot (heap guard) or toggled on from off: bring the stack up
     // now, live, from the params stashed by prepareBle()/beginBle().
     if (_ble_prefix[0] == '\0' && _ble_name[0] == '\0') return;   // no params known
+#ifdef WITH_MQTT_BRIDGE
+    // MQTT builds: the broker TLS sessions may already hold the internal RAM that
+    // NimBLE needs. Refuse instead of failing inside the BT controller; the caller
+    // sees isBleEnabled() still false. Same thresholds as the touch build's boot gate,
+    // plus the broker slot budget the MQTT glue sets (boards without PSRAM).
+    if (!bleHeapAvailable() || (s_ble_start_guard != nullptr && !s_ble_start_guard())) {
+      Serial.printf("BLE: not started, low heap or too many MQTT slots (free=%u maxblk=%u)\n",
+                    (unsigned)ESP.getFreeHeap(), (unsigned)ESP.getMaxAllocHeap());
+      return;
+    }
+#endif
     char name[sizeof(_ble_name)];
     strncpy(name, _ble_name, sizeof(name) - 1);
     name[sizeof(name) - 1] = '\0';

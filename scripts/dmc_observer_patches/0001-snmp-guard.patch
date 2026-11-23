@@ -1,0 +1,62 @@
+diff --git a/src/helpers/bridges/MQTTBridge.cpp b/src/helpers/bridges/MQTTBridge.cpp
+index 4c0f8822..b2af6d9d 100644
+--- a/src/helpers/bridges/MQTTBridge.cpp
++++ b/src/helpers/bridges/MQTTBridge.cpp
+@@ -21,7 +21,7 @@
+ #include <new>
+ #include <strings.h>
+ 
+-#ifdef WITH_SNMP
++#ifdef DMC_OBSERVER_SNMP
+ #include "../SNMPAgent.h"
+ #endif
+ 
+@@ -822,7 +822,7 @@ MQTTBridge::MQTTBridge(MQTTBridgeHost *host, MQTTPrefs *obs, mesh::PacketManager
+       _last_no_broker_log(0), _queue_disconnected_since(0),
+       _last_config_warning(0),
+       _dispatcher(nullptr), _radio(nullptr), _board(nullptr), _ms(nullptr),
+-#ifdef WITH_SNMP
++#ifdef DMC_OBSERVER_SNMP
+       _snmp_agent(nullptr),
+ #endif
+       _last_slot_reconnect_ms(0), _guard_armed_by_slot(-1), _guard_armer_first_setup(false),
+@@ -1735,7 +1735,7 @@ void MQTTBridge::mqttTaskLoop() {
+       _filter_publish_pending.store(false, std::memory_order_release);
+     }
+ 
+-#ifdef WITH_SNMP
++#ifdef DMC_OBSERVER_SNMP
+     // SNMP agent loop — process incoming UDP requests
+     if (_snmp_agent) {
+       if (!_snmp_agent->isRunning() && _network->isConnected() && _obs->snmp_enabled) {
+diff --git a/src/helpers/bridges/MQTTBridge.h b/src/helpers/bridges/MQTTBridge.h
+index 8488b0fb..96ba3ee8 100644
+--- a/src/helpers/bridges/MQTTBridge.h
++++ b/src/helpers/bridges/MQTTBridge.h
+@@ -21,7 +21,7 @@
+ #include "helpers/ObserverBuildDefaults.h"
+ #include <atomic>
+ 
+-#ifdef WITH_SNMP
++#ifdef DMC_OBSERVER_SNMP
+ class MeshSNMPAgent;  // Forward declaration
+ #endif
+ 
+@@ -526,7 +526,7 @@ private:
+   // Queue staleness tracking
+   unsigned long _queue_disconnected_since;  // 0 = has connected slots
+ 
+-#ifdef WITH_SNMP
++#ifdef DMC_OBSERVER_SNMP
+   MeshSNMPAgent* _snmp_agent;
+ #endif
+ 
+@@ -989,7 +989,7 @@ public:
+   void setStatsSources(mesh::Dispatcher* dispatcher, mesh::Radio* radio,
+                        mesh::MainBoard* board, mesh::MillisecondClock* ms);
+ 
+-#ifdef WITH_SNMP
++#ifdef DMC_OBSERVER_SNMP
+   void setSNMPAgent(MeshSNMPAgent* agent) { _snmp_agent = agent; }
+ #endif
+ };

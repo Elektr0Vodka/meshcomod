@@ -1,6 +1,10 @@
 #include <Arduino.h>
 #include <string.h>
 #include "DataStore.h"
+#include "ContactTail.h"
+
+// Contacts the table could not hold at load time (see loadContacts / saveContacts).
+#define CONTACTS_TAIL_FILE "/contacts3.tail"
 #if defined(ESP32)
 #include <SD.h>
 #endif
@@ -357,11 +361,13 @@ void DataStore::loadContacts(DataStoreHost* host) {
 File file = openRead(_getContactsChannelsFS(), "/contacts3");
     if (file) {
       bool full = false;
+      uint32_t rec_start = 0;
       while (!full) {
         ContactInfo c;
         uint8_t pub_key[32];
         uint8_t unused;
 
+        rec_start = file.position();
         bool success = (file.read(pub_key, 32) == 32);
         success = success && (file.read((uint8_t *)&c.name, 32) == 32);
         success = success && (file.read(&c.type, 1) == 1);
@@ -379,6 +385,22 @@ File file = openRead(_getContactsChannelsFS(), "/contacts3");
 
         c.id = mesh::Identity(pub_key);
         if (!host->onContactLoaded(c)) full = true;
+      }
+      // The table is full but the file has more (a build with a smaller
+      // MAX_CONTACTS). Keep the unread records, from the one that did not fit, in
+      // /contacts3.tail; saveContacts() appends them back. Without it the next
+      // save would drop them for good.
+      FILESYSTEM* fs = _getContactsChannelsFS();
+      if (full) {
+        file.seek(rec_start);
+        File tail = openWrite(fs, CONTACTS_TAIL_FILE);
+        if (tail) {
+          size_t kept = ContactTail::copyRecords(file, tail);
+          tail.close();
+          MESH_DEBUG_PRINTLN("contacts: table full, %u more kept in %s", (unsigned)kept, CONTACTS_TAIL_FILE);
+        }
+      } else if (fs->exists(_rp(CONTACTS_TAIL_FILE))) {
+        fs->remove(_rp(CONTACTS_TAIL_FILE));   // everything fits now
       }
       file.close();
     }
@@ -412,6 +434,22 @@ void DataStore::saveContacts(DataStoreHost* host, bool (*filter)(const ContactIn
       if (!success) break; // write failed
 
       idx++;  // advance to next contact
+    }
+    // Contacts that did not fit the table at load (see loadContacts) go back at
+    // the end, minus any the table holds now.
+    FILESYSTEM* fs = _getContactsChannelsFS();
+    if (fs->exists(_rp(CONTACTS_TAIL_FILE))) {
+      File tail = openRead(fs, CONTACTS_TAIL_FILE);
+      if (tail) {
+        ContactTail::appendTail(tail, file, [host](const uint8_t* pub_key) {
+          ContactInfo held;
+          for (uint32_t i = 0; host->getContactForSave(i, held); i++) {
+            if (memcmp(held.id.pub_key, pub_key, PUB_KEY_SIZE) == 0) return true;
+          }
+          return false;
+        });
+        tail.close();
+      }
     }
     file.close();
   }

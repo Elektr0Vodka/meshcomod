@@ -41,6 +41,16 @@ public:
   bool isBleEnabled() const override { return _ble_enabled; }
   bool hasBleCapability() const override { return true; }
   bool getBlePeerAddress(char* buf, size_t len) const override;
+  // Enough internal RAM left to start NimBLE next to Wi-Fi: 50 KB free and a 20 KB
+  // block. The touch build gates boot on it; MQTT builds also gate the live toggle.
+  static bool bleHeapAvailable() {
+    return ESP.getFreeHeap() >= 50 * 1024 && ESP.getMaxAllocHeap() >= 20 * 1024;
+  }
+#ifdef WITH_MQTT_BRIDGE
+  // Extra condition for a live BLE start, set by the MQTT glue (broker slot budget
+  // on boards without PSRAM). Null means none.
+  static void setBleStartGuard(bool (*guard)()) { s_ble_start_guard = guard; }
+#endif
 #endif
 
   void enableTcp() override;
@@ -95,6 +105,9 @@ private:
 #ifdef BLE_PIN_CODE
   SerialBLEInterface _ble;
   bool _ble_begun;    // beginBle() was called
+#if defined(BLE_PIN_CODE) && defined(WITH_MQTT_BRIDGE)
+  static bool (*s_ble_start_guard)();
+#endif
   bool _ble_enabled;  // user has BLE on (toggle via UI)
   bool _ota_ble_released;
   char _ble_prefix[24];

@@ -55,4 +55,9 @@ void wifiConfigSetSnmpEnabled(bool enabled);
 void wifiConfigGetSnmpCommunity(char *buf, size_t len);
 bool wifiConfigSetSnmpCommunity(const char *community);
 
+/* MQTT observer builds (_mqtt envs): set after the first boot of such an image, so
+ * the one-way Wi-Fi adopt from /mqtt.json happens on that boot only. */
+bool wifiConfigGetMqttBooted();
+void wifiConfigSetMqttBooted();
+
 #endif

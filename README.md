@@ -58,11 +58,11 @@ Boards marked **experimental** go one step further out: their env is the board's
 
 | Device | MCU | Display | Build env | Fork build |
 |---|---|---|---|---|
-| **Heltec WiFi LoRa 32 V4** | ESP32-S3 | 128×64 OLED | `heltec_v4_companion_radio_usb_tcp` | Hardware tested (v1.17.0.4-DMC-EV) |
-| **Heltec WiFi LoRa 32 V3** | ESP32-S3 | 128×64 OLED | `Heltec_v3_companion_radio_usb_tcp` | Hardware tested (v1.17.0.4-DMC-EV) |
+| **Heltec WiFi LoRa 32 V4** | ESP32-S3 | 128×64 OLED | `heltec_v4_companion_radio_usb_tcp`, `heltec_v4_companion_radio_usb_tcp_mqtt` (`_mqtt`: MQTT observer uplink, build only, see docs/companion_mqtt.md) | Hardware tested (v1.17.0.4-DMC-EV) |
+| **Heltec WiFi LoRa 32 V3** | ESP32-S3 | 128×64 OLED | `Heltec_v3_companion_radio_usb_tcp`, `Heltec_v3_companion_radio_usb_tcp_mqtt` (`_mqtt`: MQTT observer uplink, build only, see docs/companion_mqtt.md) | Hardware tested (v1.17.0.4-DMC-EV) |
 | **Heltec Wireless Paper** | ESP32-S3 | 213×104 e-ink | `Heltec_Wireless_Paper_companion_radio_usb_tcp` | Build only |
-| **Seeed Xiao S3 WIO** | ESP32-S3 | optional 128×64 OLED | `Xiao_S3_WIO_companion_radio_usb_tcp` | Build only |
-| **Heltec WiFi LoRa 32 V4 R8** (16 MB flash, 8 MB PSRAM) | ESP32-S3 | 128×64 OLED | `heltec_v4_r8_companion_radio_usb_tcp` | Build only, new in fork |
+| **Seeed Xiao S3 WIO** | ESP32-S3 | optional 128×64 OLED | `Xiao_S3_WIO_companion_radio_usb_tcp`, `Xiao_S3_WIO_companion_radio_usb_tcp_mqtt` (`_mqtt`: MQTT observer uplink, build only, see docs/companion_mqtt.md) | Build only |
+| **Heltec WiFi LoRa 32 V4 R8** (16 MB flash, 8 MB PSRAM) | ESP32-S3 | 128×64 OLED | `heltec_v4_r8_companion_radio_usb_tcp`, `heltec_v4_r8_companion_radio_usb_tcp_mqtt` (`_mqtt`: MQTT observer uplink, build only, see docs/companion_mqtt.md) | Build only, new in fork |
 | **Heltec WiFi LoRa 32 V4 R8 TFT** | ESP32-S3 | 240×320 TFT (button UI) | `heltec_v4_r8_tft_companion_radio_usb_tcp` | Build only, new in fork |
 | **Heltec WiFi LoRa 32 V4 TFT** | ESP32-S3 | 240×320 TFT (button UI, no touch) | `heltec_v4_tft_companion_radio_usb_tcp` | Build only, new in fork |
 | **Heltec Wireless Stick Lite V3** | ESP32-S3 | none | `Heltec_WSL3_companion_radio_usb_tcp` | Build only, new in fork |

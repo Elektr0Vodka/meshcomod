@@ -1,6 +1,7 @@
 #include "UITask.h"
 #include <helpers/TxtDataHelpers.h>
 #include "../../../../examples/companion_radio/MyMesh.h"   // the companion app owns the_mesh
+#include "../../../../examples/companion_radio/CompanionMqtt.h"   // MQTT uplink line (_mqtt envs)
 #include "target.h"
 #if defined(HAS_HELTEC_V4_CAP_TOUCH) && defined(ESP32)
   #include <helpers/input/HeltecV4CapTouch.h>
@@ -315,6 +316,14 @@ public:
         display.setTextSize(1);
         display.drawTextCentered(display.width() / 2, 43, "< Connected >");
 
+#ifdef WITH_MQTT_BRIDGE
+      } else if (companionMqttConfiguredSlots() > 0) {   // MQTT observer uplink
+        display.setColor(UIColor::warning_txt);
+        display.setTextSize(1);
+        snprintf(tmp, sizeof(tmp), "MQTT %d/%d up", companionMqttConnectedSlots(),
+                 companionMqttConfiguredSlots());
+        display.drawTextCentered(display.width() / 2, 43, tmp);
+#endif
       } else if (the_mesh.getBLEPin() != 0) { // BT pin
         display.setColor(UIColor::warning_txt);
         // Size 1 (same as the IP line below) — size 2 was tall enough to
@@ -770,7 +779,8 @@ public:
         _task->showAlert("BLE disabled", 1500);
       } else {
         _task->enableBle();
-        _task->showAlert("BLE enabled", 1500);
+        // MQTT builds refuse when the broker connections hold the memory NimBLE needs.
+        _task->showAlert(_task->isBleEnabled() ? "BLE enabled" : "BLE: low memory", 1500);
       }
       return true;
     }

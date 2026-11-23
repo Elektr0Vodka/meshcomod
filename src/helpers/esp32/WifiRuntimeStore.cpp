@@ -14,6 +14,7 @@ static const char *WIFI_CONFIG_WIFI_CHOSEN_KEY = "wifi_chosen";
 static const char *WIFI_CONFIG_BLE_EN_KEY = "ble_en";   // BLE radio on/off (default on)
 static const char *WIFI_CONFIG_SNMP_EN_KEY = "snmp_en";       // SNMP agent on/off (default off)
 static const char *WIFI_CONFIG_SNMP_COMM_KEY = "snmp_comm";   // SNMP community (default "public")
+static const char *WIFI_CONFIG_MQTT_BOOTED_KEY = "mqtt_booted"; // an _mqtt image has booted here (Wi-Fi adopt done)
 
 static SdNvsPrefs s_prefs;
 static bool s_begun = false;
@@ -188,6 +189,20 @@ void wifiConfigSetSnmpEnabled(bool enabled) {
   s_prefs.end();
   if (!s_prefs.begin(WIFI_CONFIG_NAMESPACE, false)) return;
   s_prefs.putUChar(WIFI_CONFIG_SNMP_EN_KEY, enabled ? 1 : 0);
+  s_prefs.end();
+  s_begun = s_prefs.begin(WIFI_CONFIG_NAMESPACE, true);
+}
+
+bool wifiConfigGetMqttBooted() {
+  if (!s_begun) wifiConfigBegin();
+  return s_prefs.getUChar(WIFI_CONFIG_MQTT_BOOTED_KEY, 0) != 0;
+}
+
+void wifiConfigSetMqttBooted() {
+  if (!s_begun) wifiConfigBegin();
+  s_prefs.end();
+  if (!s_prefs.begin(WIFI_CONFIG_NAMESPACE, false)) return;
+  s_prefs.putUChar(WIFI_CONFIG_MQTT_BOOTED_KEY, 1);
   s_prefs.end();
   s_begun = s_prefs.begin(WIFI_CONFIG_NAMESPACE, true);
 }

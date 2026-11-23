@@ -49,6 +49,9 @@ $ sh build.sh build-kiss-radio-firmwares
 Environment Variables:
   DISABLE_DEBUG=1: Disables all debug logging flags (MESH_DEBUG, MESH_PACKET_LOGGING, etc.)
                    If not set, debug flags from variant platformio.ini files are used.
+  MESHCORE_REDUCED_TLS=0: For *_mqtt envs only, links the framework's own mbedTLS instead of
+                   the reduced-TLS archives (default auto: boards without PSRAM get them).
+                   See docs/dmc_observer_vendor.md.
   MERGE_BIN=1:     Also produce out/<env>-<version>-<sha>-merged.bin (bootloader + partitions
                    + app, flash at 0x0) for ESP32 targets whose env name isn't already merged
                    by default. Needed for boards outside the release matrix, e.g. ThinkNode M7.
@@ -217,6 +220,15 @@ build_firmware() {
   if [[ "$1" == *companion_radio_usb_tcp* ]]; then
     OTA_MANIFEST_BASE_URL="${OTA_MANIFEST_BASE_URL:-https://ota.dutchmeshcore.nl/meshcomod/v}"
     export PLATFORMIO_BUILD_FLAGS="${PLATFORMIO_BUILD_FLAGS} -DOTA_VARIANT='\"$1\"' -DOTA_MANIFEST_BASE='\"${OTA_MANIFEST_BASE_URL}\"'"
+  fi
+
+  # MQTT observer companions (*_mqtt): fetch and verify the reduced-TLS mbedTLS
+  # archives, which scripts/mbedtls_4k.py links into the envs without PSRAM.
+  # MESHCORE_REDUCED_TLS=0 builds with the framework's own archives instead.
+  if [[ "$1" == *_mqtt ]]; then
+    bash scripts/fetch_mbedtls_4k.sh --all
+    local MESHCORE_REDUCED_TLS="${MESHCORE_REDUCED_TLS-auto}"
+    export MESHCORE_REDUCED_TLS
   fi
 
   # disable debug flags if requested

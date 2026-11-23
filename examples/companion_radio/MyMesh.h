@@ -89,6 +89,9 @@
 #endif
 
 #include <helpers/BaseChatMesh.h>
+#ifdef WITH_MQTT_BRIDGE
+#include <helpers/bridges/MQTTBridgeHost.h>
+#endif
 #include <helpers/TransportKeyStore.h>
 
 /* -------------------------------------------------------------------------------------- */
@@ -109,7 +112,11 @@ struct AdvertPath {
   uint8_t path[MAX_PATH_SIZE];
 };
 
-class MyMesh : public BaseChatMesh, public DataStoreHost {
+class MyMesh : public BaseChatMesh, public DataStoreHost
+#ifdef WITH_MQTT_BRIDGE
+  , public MQTTBridgeHost
+#endif
+{
 public:
   class Listener {
     public:
@@ -200,6 +207,20 @@ public:
 #endif
 
   void loop();
+
+#ifdef WITH_MQTT_BRIDGE
+  // MQTT observer uplink (_mqtt envs, CompanionMqtt.cpp). Call once from setup(),
+  // after the boot-time BLE decision, so the slot cap matches what BLE uses.
+  void startMqttObserver(bool ble_on_at_boot);
+
+  // MQTTBridgeHost
+  const char* getObserverNodeName() const override { return _prefs.node_name; }
+  void getObserverRadioParams(float& freq, float& bw, uint8_t& sf, uint8_t& cr) const override {
+    freq = _prefs.freq; bw = _prefs.bw; sf = _prefs.sf; cr = _prefs.cr;
+  }
+  bool isObserverForwarding() const override { return _prefs.client_repeat != 0; }
+  const char* getObserverRole() const override { return "companion"; }
+#endif
   void handleCmdFrame(size_t len);
 
   // ---- Settings backup (MeshCore-app-compatible JSON) ----
@@ -284,6 +305,10 @@ protected:
   void sendFloodScoped(const mesh::GroupChannel& channel, mesh::Packet* pkt, uint32_t delay_millis=0) override;
 
   void logRxRaw(float snr, float rssi, const uint8_t raw[], int len) override;
+#ifdef WITH_MQTT_BRIDGE
+  void logRx(mesh::Packet* pkt, int len, float score) override;
+  void logTx(mesh::Packet* pkt, int len) override;
+#endif
   bool isAutoAddEnabled() const override;
   bool shouldAutoAddContactType(uint8_t type) const override;
   bool shouldOverwriteWhenFull() const override;
@@ -802,7 +827,11 @@ private:
   bool _iter_started;
   bool _cli_rescue;
   bool send_unscoped;   // force un-scoped flood (instead of using send_scope)
+#ifdef WITH_MQTT_BRIDGE
+  char cli_command[161];   // broker hostnames and tokens run long
+#else
   char cli_command[80];
+#endif
   char reply_buf[166];
   uint8_t app_target_ver;
   uint8_t *sign_data;
@@ -880,4 +909,13 @@ private:
   uint32_t _ui_trace_ping_tag = 0;
 };
 
+#if defined(ESP32) && defined(BOARD_HAS_PSRAM) && defined(WITH_MQTT_BRIDGE)
+  // MQTT builds need internal RAM for Wi-Fi and the TLS broker slots, so the mesh
+  // object (contacts, offline queue, frame buffers) lives in PSRAM instead. It is
+  // constructed at the start of setup(), because PSRAM is only up after static init.
+  #define COMPANION_MESH_IN_PSRAM 1
+extern MyMesh* g_companion_mesh;
+#define the_mesh (*g_companion_mesh)
+#else
 extern MyMesh the_mesh;
+#endif

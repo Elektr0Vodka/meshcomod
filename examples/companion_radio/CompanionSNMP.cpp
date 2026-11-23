@@ -17,6 +17,9 @@
 #include <helpers/esp32/MultiTransportCompanionInterface.h>
 #include <helpers/esp32/WifiRuntimeStore.h>
 #include "MyMesh.h"   // the_mesh, FIRMWARE_VERSION; pulls in target.h (radio_driver, board)
+#ifdef WITH_MQTT_BRIDGE
+#include "CompanionMqtt.h"
+#endif
 
 extern MultiTransportCompanionInterface serial_interface;
 
@@ -118,7 +121,16 @@ static void registerHandlers(SNMPAgent* a) {
   // Bits 1, 2 and 4 as on the observer. Bit 8 (radio watchdog) does not exist here and stays 0.
   a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".2.17.0", []() -> int { return (int)the_mesh.snmpErrFlags(); });
 
-  // MQTT (.3.x.0): no bridge on the companion, so only the NTP flag, which it does have.
+  // MQTT (.3.x.0). The _mqtt builds serve the observer's group with its meaning and
+  // types; other builds have no bridge and only the NTP flag.
+#ifdef WITH_MQTT_BRIDGE
+  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".3.1.0", []() -> int {
+    int up = companionMqttConnectedSlots();
+    return up < 0 ? 0 : up;
+  });
+  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".3.2.0", []() -> int { return companionMqttQueueSize(); });
+  a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".3.3.0", []() -> int { return companionMqttSkippedPublishes(); });
+#endif
   a->addDynamicIntegerHandler(MESHCORE_OID_BASE ".3.4.0", []() -> int { return s_ntp_synced ? 1 : 0; });
 
   // Memory (.4.x.0), from the board. PSRAM reads 0 on boards without it.
