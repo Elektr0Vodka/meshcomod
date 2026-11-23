@@ -1362,7 +1362,7 @@ It has not yet been tested on hardware.</p>
 <p>It filters on:</p>
 <ul>
 <li>Malformed group text (zero or implausible timestamp, empty text, invalid UTF-8)</li>
-<li>Message age (group text older than N minutes)</li>
+<li>Message age (group text stamped more than N minutes in the past or the future)</li>
 <li>Blocked path prefixes (anything relayed by one specific repeater)</li>
 <li>Sender name or message text of a group text (block, throttle, or dose)</li>
 </ul>
@@ -1463,9 +1463,11 @@ channel the companion holds rather than on Public only.</p>
 <pre><code class="language-text">filter age 60
 &gt; Filter: OK
 </code></pre>
-<p>Drops group text stamped more than this many minutes ago (1-10080, or <code>off</code>).
-Stale messages are what a misbehaving node replays hours later. Inactive while
-this node's clock is not set; companions usually get the time from the app.</p>
+<p>Drops group text stamped more than this many minutes ago or ahead (1-10080, or
+<code>off</code>). Stale messages are what a misbehaving node replays hours later; a stamp
+far in the future comes from a sender whose clock runs fast, which the malformed
+scan only catches beyond a week. Inactive while this node's clock is not set;
+companions usually get the time from the app.</p>
 <hr />
 <h1 id="blocked-path-prefixes">Blocked Path Prefixes</h1>
 <pre><code class="language-text">filter path add A1B2
