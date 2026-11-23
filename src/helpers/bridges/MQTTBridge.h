@@ -4,6 +4,7 @@
 #include "helpers/bridges/BridgeBase.h"
 #include "helpers/bridges/MQTTBridgeHost.h"
 #include "helpers/NetworkLink.h"
+#include "helpers/MQTTPrefsStorage.h"   // meshcomod: MQTTPrefs (DMC gets it through CommonCLI.h)
 #include <PsychicMqttClient.h>
 #include <WiFi.h>
 #include <WiFiUdp.h>
@@ -857,8 +858,8 @@ public:
 
   int getConnectedBrokers() const;
   int getQueueSize() const;
-  // meshcomod: publishes skipped under memory pressure, for SNMP .3.3.0.
-  int getSkippedPublishes() const { return _skipped_publishes; }
+  // meshcomod: publishes skipped under memory pressure, for SNMP .3.3.0 (0 when not running).
+  static int getSkippedPublishes();
   bool isReady() const;
   /** True only after a CLEAN cooperative stop — end() received the MQTT task's
    *  acknowledgment within the timeout. A timed-out/forced stop returns false so

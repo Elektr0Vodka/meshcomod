@@ -2,6 +2,10 @@
 #include <Mesh.h>
 #include "MyMesh.h"
 #include "CompanionSNMP.h"
+#ifdef WITH_MQTT_BRIDGE
+#include "CompanionMqtt.h"
+#include <helpers/CrashReport.h>
+#endif
 #if defined(ESP32_PLATFORM) && defined(HAS_TOUCH_UI)
 #include <Preferences.h>
 #include <esp_system.h>
@@ -175,11 +179,30 @@ static void toHostLabel(const char* name, size_t name_len, char* out, size_t out
 
 StdRNG fast_rng;
 SimpleMeshTables tables;
+#ifdef COMPANION_MESH_IN_PSRAM
+// MQTT builds on PSRAM boards: the mesh object goes to PSRAM (see MyMesh.h), built
+// at the start of setup() because PSRAM is only up after static init.
+#include <esp_heap_caps.h>
+#include <new>
+MyMesh* g_companion_mesh = nullptr;
+static void allocMesh() {
+  void* mem = heap_caps_malloc(sizeof(MyMesh), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+  if (mem == nullptr) mem = malloc(sizeof(MyMesh));   // board fitted without PSRAM
+  if (mem == nullptr) abort();
+  memset(mem, 0, sizeof(MyMesh));   // the zero-init a static object gets
+  g_companion_mesh = new (mem) MyMesh(radio_driver, fast_rng, rtc_clock, tables, store
+   #ifdef DISPLAY_CLASS
+      , &ui_task
+   #endif
+  );
+}
+#else
 MyMesh the_mesh(radio_driver, fast_rng, rtc_clock, tables, store
    #ifdef DISPLAY_CLASS
       , &ui_task
    #endif
 );
+#endif
 
 /* END GLOBAL OBJECTS */
 
@@ -223,12 +246,18 @@ static const char* meshcomodResetReasonStr() {
 #endif
 
 void setup() {
+#ifdef COMPANION_MESH_IN_PSRAM
+  allocMesh();   // before anything touches the_mesh
+#endif
 #ifdef DISPLAY_CLASS
   ui_task.setSerial(&serial_interface);   // before anything (contact loading, MyMesh) reaches the UI
 #endif
   Serial.begin(115200);
   delay(200);
   Serial.println("[BOOT] setup start");
+#ifdef WITH_MQTT_BRIDGE
+  CrashReport::captureAtBoot();   // `get mqtt.status` and the status topic report the last panic
+#endif
 #if defined(ESP32_PLATFORM)
   Serial.printf("[BOOT] reset reason: %s (%d)\n",
                 meshcomodResetReasonStr(), (int)esp_reset_reason());
@@ -432,6 +461,12 @@ void setup() {
 #if defined(WIFI_SSID) || defined(MULTI_TRANSPORT_COMPANION)
   wifiConfigBegin();
   Serial.println("[BOOT] wifiConfig ok");
+#ifdef WITH_MQTT_BRIDGE
+  // /mqtt.json before the Wi-Fi decision below, so an SSID left by a DMC observer
+  // firmware is adopted when this companion has none (one way only).
+  companionMqttLoad(store.getPrimaryFS());
+  companionMqttAdoptWifi();
+#endif
 #endif
 
 #ifdef MULTI_TRANSPORT_COMPANION
@@ -487,6 +522,17 @@ void setup() {
     } else {
       Serial.printf("[boot] BLE deferred: low heap (free=%u maxblk=%u) — toggle to retry\n", (unsigned)freeh, (unsigned)maxblk);
     }
+#elif defined(WITH_MQTT_BRIDGE)
+    /* MQTT builds: the broker TLS sessions start after this, so BLE normally fits
+     * here, but a board that is already short (no PSRAM) defers it rather than
+     * fail inside the BT controller. The live toggle retries with the same gate. */
+    if (!want_wifi || MultiTransportCompanionInterface::bleHeapAvailable()) {
+      serial_interface.beginBle(BLE_NAME_PREFIX, the_mesh.getNodePrefs()->node_name, the_mesh.getBLEPin());
+      Serial.printf("[boot] BLE co-init OK (wifi=%d free=%u)\n", (int)want_wifi, (unsigned)ESP.getFreeHeap());
+    } else {
+      Serial.printf("[boot] BLE deferred: low heap (free=%u maxblk=%u)\n",
+                    (unsigned)ESP.getFreeHeap(), (unsigned)ESP.getMaxAllocHeap());
+    }
 #else
     /* OLED / e-ink multi-transport companion (no LVGL framebuffers): NimBLE and
      * Wi-Fi coexist with plenty of internal-RAM headroom here, so co-init BLE
@@ -500,6 +546,10 @@ void setup() {
     Serial.printf("[boot] BLE co-init (wifi=%d free=%u)\n", (int)want_wifi, (unsigned)ESP.getFreeHeap());
 #endif
   }
+#endif
+#ifdef WITH_MQTT_BRIDGE
+  // After the BLE decision: on boards without PSRAM, BLE running costs one broker slot.
+  the_mesh.startMqttObserver(serial_interface.isBleEnabled());
 #endif
 #elif defined(WIFI_SSID)
   board.setInhibitSleep(true);   // prevent sleep when WiFi is active

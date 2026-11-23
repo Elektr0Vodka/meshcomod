@@ -23,6 +23,9 @@ class Radio {
 public:
   virtual void begin() { }
 
+  /** Packets that arrived with a CRC or header error; 0 when the driver does not count them. */
+  virtual uint32_t getPacketsRecvErrors() const { return 0; }
+
   /**
    * \brief  polls for incoming raw packet.
    * \param  bytes  destination to store incoming raw packet.
@@ -211,6 +214,7 @@ public:
   uint32_t getNumSentDirect() const { return n_sent_direct; }
   uint32_t getNumRecvFlood() const { return n_recv_flood; }
   uint32_t getNumRecvDirect() const { return n_recv_direct; }
+  uint16_t getErrFlags() const { return _err_flags; }   // ERR_EVENT_* bits since boot
   void resetStats() {
     n_sent_flood = n_sent_direct = n_recv_flood = n_recv_direct = 0;
     _err_flags = 0;

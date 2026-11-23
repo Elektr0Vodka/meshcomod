@@ -91,6 +91,16 @@ void MultiTransportCompanionInterface::enableBle() {
     // Deferred at boot (heap guard) or toggled on from off: bring the stack up
     // now, live, from the params stashed by prepareBle()/beginBle().
     if (_ble_prefix[0] == '\0' && _ble_name[0] == '\0') return;   // no params known
+#ifdef WITH_MQTT_BRIDGE
+    // MQTT builds: the broker TLS sessions may already hold the internal RAM that
+    // NimBLE needs. Refuse instead of failing inside the BT controller; the caller
+    // sees isBleEnabled() still false. Same thresholds as the touch build's boot gate.
+    if (!bleHeapAvailable()) {
+      Serial.printf("BLE: not started, low heap (free=%u maxblk=%u)\n",
+                    (unsigned)ESP.getFreeHeap(), (unsigned)ESP.getMaxAllocHeap());
+      return;
+    }
+#endif
     char name[sizeof(_ble_name)];
     strncpy(name, _ble_name, sizeof(name) - 1);
     name[sizeof(name) - 1] = '\0';

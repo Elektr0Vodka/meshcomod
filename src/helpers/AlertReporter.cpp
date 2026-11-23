@@ -30,7 +30,7 @@
 #define ALERT_DEBUG_PRINTLN(...) do {} while (0)
 #endif
 
-#ifdef WITH_MQTT_BRIDGE
+#if defined(WITH_MQTT_BRIDGE) && !defined(OBSERVER_NO_FAULT_ALERTS)  // meshcomod: no fault alerts on companions
 AlertReporter::AlertReporter()
     : _prefs(nullptr), _obs(nullptr), _mesh(nullptr), _callbacks(nullptr),
 #ifdef WITH_MQTT_BRIDGE
@@ -102,7 +102,7 @@ const char* alertReporterBannedChannelMatchHex(const char* psk_hex) {
   return alertReporterBannedChannelMatch(secret);
 }
 
-#ifdef WITH_MQTT_BRIDGE
+#if defined(WITH_MQTT_BRIDGE) && !defined(OBSERVER_NO_FAULT_ALERTS)  // meshcomod: no fault alerts on companions
 bool AlertReporter::resolveChannel(mesh::GroupChannel& out) const {
   if (!_prefs) return false;
 

@@ -50,7 +50,7 @@ const char* alertReporterBannedChannelMatchHex(const char* psk_hex);
  *  - WiFi/MQTT polling is #ifdef WITH_MQTT_BRIDGE-gated; without it, the
  *    reporter still supports manual `alert test` sends.
  */
-#ifdef WITH_MQTT_BRIDGE
+#if defined(WITH_MQTT_BRIDGE) && !defined(OBSERVER_NO_FAULT_ALERTS)  // meshcomod: no fault alerts on companions
 class AlertReporter {
 public:
   AlertReporter();

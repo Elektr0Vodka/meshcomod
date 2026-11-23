@@ -528,6 +528,10 @@ static int s_active_slot_cap = 0;
 
 void MQTTBridge::setActiveSlotCap(int cap) { s_active_slot_cap = cap < 0 ? 0 : cap; }
 
+int MQTTBridge::getSkippedPublishes() {
+  return s_mqtt_bridge_instance ? s_mqtt_bridge_instance->_skipped_publishes : 0;
+}
+
 int MQTTBridge::getMaxActiveSlots() {
   // Each WSS/TLS connection needs ~40KB for mbedTLS buffers. Without PSRAM even
   // 3 concurrent connections would exhaust internal heap, so cap at 2 (less on

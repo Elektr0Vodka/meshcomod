@@ -41,6 +41,11 @@ public:
   bool isBleEnabled() const override { return _ble_enabled; }
   bool hasBleCapability() const override { return true; }
   bool getBlePeerAddress(char* buf, size_t len) const override;
+  // Enough internal RAM left to start NimBLE next to Wi-Fi: 50 KB free and a 20 KB
+  // block. The touch build gates boot on it; MQTT builds also gate the live toggle.
+  static bool bleHeapAvailable() {
+    return ESP.getFreeHeap() >= 50 * 1024 && ESP.getMaxAllocHeap() >= 20 * 1024;
+  }
 #endif
 
   void enableTcp() override;

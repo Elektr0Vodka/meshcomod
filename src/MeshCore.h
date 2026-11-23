@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h>
 #include <math.h>
 
 #define MAX_HASH_SIZE        8
@@ -94,6 +95,18 @@ public:
   virtual bool canRebootToBootloader() const { return false; }
   /** Reboot into download mode. Does not return when supported; does nothing otherwise. */
   virtual void rebootToBootloader() { }
+  /** Pull OTA from a manifest server, as the Dutch-MeshCore observer firmware does
+   *  (the vendored MQTT observer CLI calls these). The companion has its own manifest
+   *  OTA, so boards here answer "not supported". */
+  virtual bool otaFromManifest(const char* manifest_base, const char* current_ver, bool dry_run, char reply[]) {
+    (void)manifest_base; (void)current_ver; (void)dry_run;
+    strcpy(reply, "ERR: not supported on this build");
+    return false;
+  }
+  virtual void otaCheck(uint8_t channel, const char* current_ver, char reply[]) {
+    (void)channel; (void)current_ver;
+    strcpy(reply, "ERR: not supported on this build");
+  }
   struct MemStats {
     uint32_t free_heap;       // bytes free now
     uint32_t max_alloc_heap;  // largest block that can be allocated
