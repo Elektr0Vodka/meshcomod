@@ -514,6 +514,87 @@ class WiFiNetworkLink final : public NetworkLinkBase {
   IPAddress gatewayIP() const { return WiFi.gatewayIP(); }
 };
 
+#if defined(NETWORK_LINK_EXTERNAL_WIFI)
+// meshcomod: reports on a Wi-Fi station that the companion firmware runs itself
+// (credentials in NVS, BLE coexistence, its own wifi.* commands). It never starts,
+// stops, reconnects or reconfigures the radio: begin() and maintain() only observe,
+// so the MQTT bridge follows whatever the companion's Wi-Fi manager does.
+class ExternalWiFiNetworkLink final : public NetworkLinkBase {
+ public:
+  const char* mediumName() const override { return "wifi"; }
+  NetworkMedium medium() const override { return NetworkMedium::WiFi; }
+  const char* statusName() const override {
+    switch (WiFi.status()) {
+      case WL_CONNECTED: return "connected";
+      case WL_NO_SSID_AVAIL: return "no_ssid";
+      case WL_CONNECT_FAILED: return "connect_failed";
+      case WL_CONNECTION_LOST: return "connection_lost";
+      case WL_DISCONNECTED: return "disconnected";
+      case 255: return "not_started";
+      default: return "unknown";
+    }
+  }
+  int statusCode() const override { return (int)WiFi.status(); }
+  // The companion keeps its own credentials; the bridge must not wait for /mqtt.json ones.
+  bool configValid(const char*) const override { return true; }
+  void setHostname(const char*) override {}
+
+  bool begin(const char*, const char*) override {
+    if (isConnected()) noteConnected(millis());
+    return true;
+  }
+
+  NetworkTransition maintain(uint32_t now_ms, uint8_t) override {
+    const bool connected = isConnected();
+    if (!_status_initialized) {
+      _last_connected = connected;
+      _status_initialized = true;
+      setOutage(AlertFaultPolicy::applyWifiStatus(now_ms, connected, outage(), false));
+      if (connected) {
+        noteConnected(now_ms);
+        snapshotDns();
+      }
+      return connected ? NetworkTransition::Up : NetworkTransition::None;
+    }
+    if (connected == _last_connected) {
+      if (connected && outage().down) noteConnected(now_ms);
+      return NetworkTransition::None;
+    }
+    _last_connected = connected;
+    if (connected) {
+      _connected_at.store(0, std::memory_order_relaxed);
+      noteConnected(now_ms);
+      setOutage(AlertFaultPolicy::applyWifiStatus(now_ms, true, outage(), true));
+      snapshotDns();
+      return NetworkTransition::Up;
+    }
+    _connected_at.store(0, std::memory_order_relaxed);
+    noteDisconnected(now_ms, 0);
+    setOutage(AlertFaultPolicy::applyWifiStatus(now_ms, false, outage(), true));
+    return NetworkTransition::Down;
+  }
+
+  bool isConnected() const override {
+    return WiFi.status() == WL_CONNECTED && (uint32_t)WiFi.localIP() != 0;
+  }
+  IPAddress localIP() const override { return WiFi.localIP(); }
+  bool localIPv6(char* out, size_t out_size) const override {
+    return Ipv6Preference::formatStationAddress(out, out_size);
+  }
+  int rssi() const override { return isConnected() ? WiFi.RSSI() : INT_MIN; }
+  bool resolveHost(const char* hostname, IPAddress& address) const override {
+    return WiFi.hostByName(hostname, address);
+  }
+  void formatDiagnostics(char* reply, size_t reply_size) const override {
+    snprintf(reply, reply_size, "> selected:wifi (run by the companion)\nwifi:state:%s ip:%s",
+             statusName(), localIP().toString().c_str());
+  }
+  void formatDns(char* reply, size_t reply_size) const override {
+    formatDnsFor(reply, reply_size, WiFi.gatewayIP());
+  }
+};
+#endif
+
 #if defined(NETWORK_PREFER_ETHERNET)
 class EthernetNetworkLink final : public NetworkLinkBase {
  public:
@@ -1202,4 +1283,11 @@ NetworkLink& activeNetworkLink() {
   return network;
 #endif
 }
+
+#if defined(NETWORK_LINK_EXTERNAL_WIFI)
+NetworkLink& externalNetworkLink() {
+  static ExternalWiFiNetworkLink network;
+  return network;
+}
+#endif
 #endif

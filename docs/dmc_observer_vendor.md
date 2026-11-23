@@ -45,5 +45,5 @@ at it.
 | Patch | Why |
 | --- | --- |
 | `0001-snmp-guard.patch` | DMC's bridge feeds its own SNMP agent under `WITH_SNMP`. The companion defines `WITH_SNMP` for its own agent, so the bridge's guards become `DMC_OBSERVER_SNMP`, which this fork never defines. |
-| `0002-external-network-link.patch` | With `NETWORK_LINK_EXTERNAL_WIFI`, `activeNetworkLink()` returns `externalNetworkLink()`, a passive link (`src/helpers/esp32/ExternalWiFiNetworkLink.cpp`). The companion's own Wi-Fi manager stays the owner of Wi-Fi. |
+| `0002-external-network-link.patch` | With `NETWORK_LINK_EXTERNAL_WIFI`, `activeNetworkLink()` returns `externalNetworkLink()`, a passive `ExternalWiFiNetworkLink` added to `NetworkLink.cpp` (it reuses that file's private base class for outage, DNS and diagnostics). It never starts, stops or reconnects Wi-Fi: the companion's own Wi-Fi manager stays the owner. |
 | `0003-slot-cap-and-skipped.patch` | `MQTTBridge::setActiveSlotCap()` lowers the active slot limit at run time (fewer slots while BLE is on, on boards without PSRAM), and `getSkippedPublishes()` exposes the count for SNMP `.3.3.0`. |
