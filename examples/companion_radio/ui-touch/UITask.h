@@ -19,8 +19,8 @@
   #include <helpers/ui/GenericVibration.h>
 #endif
 
-#include "../AbstractUITask.h"
-#include "../NodePrefs.h"
+#include <helpers/ui/AbstractUITask.h>
+#include <helpers/CompanionNodePrefs.h>
 
 struct ContactInfo;
 
@@ -222,8 +222,8 @@ private:
 
 public:
 
-  UITask(mesh::MainBoard* board, BaseSerialInterface* serial)
-      : AbstractUITask(board, serial), _display(NULL), _sensors(NULL), _touch_screen(TouchUiScreen::Home) {
+  UITask(mesh::MainBoard* board, DisplayDriver* display = NULL)
+      : AbstractUITask(board, display), _display(NULL), _sensors(NULL), _touch_screen(TouchUiScreen::Home) {
     next_batt_chck = _next_refresh = 0;
     ui_started_at = 0;
     curr = NULL;

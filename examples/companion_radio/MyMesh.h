@@ -4,7 +4,7 @@
 #include <Mesh.h>
 #include <helpers/AdvertDataHelpers.h>
 #include <helpers/MeshTouchTxTrace.h>
-#include "AbstractUITask.h"
+#include <helpers/ui/AbstractUITask.h>
 
 /*------------ Frame Protocol --------------*/
 // Keep the fork's companion-protocol lineage (27 — a superset of upstream's 13)
@@ -32,7 +32,7 @@
 #include "CompanionFilter.h"
 #include "FullCapture.h"
 #include "DataStore.h"
-#include "NodePrefs.h"
+#include <helpers/CompanionNodePrefs.h>
 
 /* Synthetic local command contact: appears in contact list, messages to it are intercepted and never sent over mesh. */
 #define MESHCOMOD_NAME "Meshcomod"

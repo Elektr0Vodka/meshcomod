@@ -170,7 +170,7 @@ static void toHostLabel(const char* name, size_t name_len, char* out, size_t out
 /* GLOBAL OBJECTS */
 #ifdef DISPLAY_CLASS
   #include "UITask.h"
-  UITask ui_task(&board, &serial_interface);
+  extern UITask ui_task;   // defined by the board's target.cpp (MeshCore's UI task refactor)
 #endif
 
 StdRNG fast_rng;
@@ -223,6 +223,9 @@ static const char* meshcomodResetReasonStr() {
 #endif
 
 void setup() {
+#ifdef DISPLAY_CLASS
+  ui_task.setSerial(&serial_interface);   // before anything (contact loading, MyMesh) reaches the UI
+#endif
   Serial.begin(115200);
   delay(200);
   Serial.println("[BOOT] setup start");

@@ -25,7 +25,7 @@ extern "C" void set_boot_phase(int phase) {
 
 #ifdef DISPLAY_CLASS
 #include "UITask.h"
-static UITask ui_task(board, display);
+extern UITask ui_task;   // defined by the board's target.cpp (src/helpers/ui/repeater-tcp)
 #endif
 
 #ifndef TCP_PORT
@@ -249,7 +249,7 @@ void setup() {
   the_mesh.begin(fs);
 
 #ifdef DISPLAY_CLASS
-  ui_task.begin(the_mesh.getNodePrefs(), FIRMWARE_BUILD_DATE, FIRMWARE_VERSION);
+  ui_task.begin(the_mesh.getNodePrefs(), FIRMWARE_BUILD_DATE, FIRMWARE_VERSION, "< Repeater >");
 #endif
 
 #if defined(ESP32) && defined(REPEATER_TCP_COMPANION)
