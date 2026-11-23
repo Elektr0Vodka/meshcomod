@@ -308,7 +308,8 @@ void BaseChatMesh::onPeerDataRecv(mesh::Packet* packet, uint8_t type, int sender
       onCommandDataRecv(from, packet, sender_timestamp, text);  // let UI know
       // NOTE: no ack expected for CLI_DATA replies
     } else if (flags == TXT_TYPE_CLI_COMMAND) {
-      uint8_t temp[166];
+      // 5-byte datagram header + 3-byte reflected CLI prefix + 160-byte reply text + NUL
+      uint8_t temp[169];
       char *command = (char *)&data[5];
       char *reply = (char *)&temp[5];
       *reply = 0;
@@ -421,12 +422,13 @@ void BaseChatMesh::onAckRecv(mesh::Packet* packet, uint32_t ack_crc) {
   ContactInfo* from;
   if ((from = processAck((uint8_t *)&ack_crc)) != NULL) {
     txt_send_timeout = 0;   // matched one we're waiting for, cancel timeout timer
-    packet->markDoNotRetransmit();   // ACK was for this node, so don't retransmit
 
     if (packet->isRouteFlood() && from->out_path_len != OUT_PATH_UNKNOWN) {
       // we have direct path, but other node is still sending flood, so maybe they didn't receive reciprocal path properly(?)
       handleReturnPathRetry(*from, packet->path, packet->path_len);
     }
+    // NOTE: must come after the isRouteFlood() test, as it overwrites the header
+    packet->markDoNotRetransmit();   // ACK was for this node, so don't retransmit
   }
 }
 
@@ -680,6 +682,11 @@ int  BaseChatMesh::sendCommandData(const ContactInfo& recipient, uint32_t timest
 }
 
 bool BaseChatMesh::sendGroupMessage(uint32_t timestamp, mesh::GroupChannel& channel, const char* sender_name, const char* text, int text_len) {
+  if (text_len < 0) {   // memcpy() below would read this as a size_t, so clamping cannot catch it
+    MESH_DEBUG_PRINTLN("sendGroupMessage: invalid negative text_len=%d", text_len);
+    return false;
+  }
+
   uint8_t temp[5+MAX_TEXT_LEN+32];   // already includes ample headroom for null + nonce + seq
   memcpy(temp, &timestamp, 4);   // mostly an extra blob to help make packet_hash unique
   temp[4] = 0;  // TXT_TYPE_PLAIN
@@ -688,7 +695,6 @@ bool BaseChatMesh::sendGroupMessage(uint32_t timestamp, mesh::GroupChannel& chan
   char *ep = strchr((char *) &temp[5], 0);
   int prefix_len = ep - (char *) &temp[5];
 
-  if (text_len < 0) return false;
   if (text_len + prefix_len > MAX_TEXT_LEN) text_len = MAX_TEXT_LEN - prefix_len;
   memcpy(ep, text, text_len);
   ep[text_len] = 0;  // C-string terminator in the buffer (NOT transmitted — payload_len excludes it)

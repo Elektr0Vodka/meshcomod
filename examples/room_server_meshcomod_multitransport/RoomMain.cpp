@@ -35,8 +35,8 @@ extern "C" void set_boot_phase(int phase) {
 #endif
 
 #ifdef DISPLAY_CLASS
-#include "../simple_room_server/UITask.h"
-static UITask ui_task(display);
+#include <UITask.h>   // src/helpers/ui/room-mt, via -I
+extern UITask ui_task;   // defined by the board's target.cpp
 #endif
 
 MultiTransportCompanionInterface serial_interface;
@@ -125,7 +125,7 @@ void setup() {
   the_mesh.begin(fs);
 
 #ifdef DISPLAY_CLASS
-  ui_task.begin(the_mesh.getNodePrefs(), FIRMWARE_BUILD_DATE, FIRMWARE_VERSION);
+  ui_task.begin(the_mesh.getNodePrefs(), FIRMWARE_BUILD_DATE, FIRMWARE_VERSION, "< Room Server >");
 #endif
 
 #if ENABLE_ADVERT_ON_BOOT == 1

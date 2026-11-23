@@ -1,5 +1,8 @@
 #include <Arduino.h>
 #include "target.h"
+#if defined(HAS_TOUCH_UI)
+  #include <helpers/esp32/TouchPrefsStore.h>   // touchPrefsGetGpsBaud
+#endif
 
 TDeckBoard board;
 
@@ -22,18 +25,25 @@ SPIClass* tdeckSharedSPI() {
 
 ESP32RTCClock fallback_clock;
 AutoDiscoverRTCClock rtc_clock(fallback_clock);
-MicroNMEALocationProvider gps(Serial1, &rtc_clock);
+NmeaGpsDriver gps_driver(Serial1);
+MicroNMEALocationProvider gps(gps_driver, &rtc_clock);
 EnvironmentSensorManager sensors(gps);
 
 #ifdef DISPLAY_CLASS
   DISPLAY_CLASS display;
   MomentaryButton user_btn(PIN_USER_BTN, 1000, true);
+  UITask ui_task(&board, &display);
 #endif
 
 bool radio_init() {
   fallback_clock.begin();
   rtc_clock.begin(Wire);
   Wire.begin(18, 8);
+#if defined(HAS_TOUCH_UI)
+  // Touch builds keep a user-selectable GPS baud in NVS (T-Deck Plus = 38400,
+  // T-Deck v1.0 = 9600), so it can be matched to the hardware without a rebuild.
+  gps_driver.setBaudRate(touchPrefsGetGpsBaud(GPS_BAUD_RATE));
+#endif
 
 #if defined(P_LORA_SCLK)
   return radio.std_init(&spi);

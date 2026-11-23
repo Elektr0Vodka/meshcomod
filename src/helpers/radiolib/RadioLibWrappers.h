@@ -26,6 +26,7 @@ protected:
   void startRecv();
   float packetScoreInt(float snr, int sf, int packet_len);
   virtual bool isReceivingPacket() =0;
+  virtual bool lastRxHadCRC() { return true; }
   virtual void doResetAGC();
 
   // Buffered-receive internals: one drained packet's link stats, returned by
@@ -39,7 +40,10 @@ protected:
 #endif
 
 public:
-  RadioLibWrapper(PhysicalLayer& radio, mesh::MainBoard& board) : _radio(&radio), _board(&board), _preamble_sf(0) { n_recv = n_sent = 0; }
+  RadioLibWrapper(PhysicalLayer& radio, mesh::MainBoard& board)
+    : _radio(&radio), _board(&board), _preamble_sf(0) {
+    n_recv = n_sent = n_recv_errors = 0;
+  }
 
   void begin() override;
   virtual void powerOff();
@@ -117,6 +121,7 @@ public:
 
   float packetScore(float snr, int packet_len) override { return packetScoreInt(snr, 10, packet_len); }  // assume sf=10
 
+  virtual bool supportsRxBoostedGain() const { return false; }
   virtual bool setRxBoostedGainMode(bool) { return false; }
   virtual bool getRxBoostedGainMode() const { return false; }
   

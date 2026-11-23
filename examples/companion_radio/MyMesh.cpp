@@ -1722,7 +1722,7 @@ bool MyMesh::shouldOverwriteWhenFull() const {
 
 void MyMesh::onContactOverwrite(const uint8_t* pub_key) {
     _store->deleteBlobByKey(pub_key, PUB_KEY_SIZE); // delete from storage
-  if (_serial->isConnected()) {
+  if (_serial && _serial->isConnected()) {   // NULL while contacts load at boot
     out_frame[0] = PUSH_CODE_CONTACT_DELETED;
     memcpy(&out_frame[1], pub_key, PUB_KEY_SIZE);
     _serial->writeFrameToAll(out_frame, 1 + PUB_KEY_SIZE);
@@ -1730,7 +1730,7 @@ void MyMesh::onContactOverwrite(const uint8_t* pub_key) {
 }
 
 void MyMesh::onContactsFull() {
-  if (_serial->isConnected()) {
+  if (_serial && _serial->isConnected()) {   // NULL while contacts load at boot
     out_frame[0] = PUSH_CODE_CONTACTS_FULL;
     _serial->writeFrameToAll(out_frame, 1);
   }
@@ -2587,6 +2587,7 @@ void MyMesh::begin(bool has_display) {
 
   // sanitise bad pref values
   _prefs.rx_delay_base = constrain(_prefs.rx_delay_base, 0, 20.0f);
+  if (isnan(_prefs.airtime_factor)) _prefs.airtime_factor = 1.0f;   // constrain() passes NaN through
   _prefs.airtime_factor = constrain(_prefs.airtime_factor, 0, 9.0f);
   _prefs.freq = constrain(_prefs.freq, 400.0f, 2500.0f);
   _prefs.bw = constrain(_prefs.bw, 7.8f, 500.0f);
@@ -4041,6 +4042,23 @@ bool MyMesh::handleCommand(const char* command, uint32_t sender_timestamp, char*
     return true;
   }
 
+#ifdef PIN_BUZZER
+  if (strcmp(command, "get buzzer") == 0) {
+    sprintf(reply, "> %s", _prefs.buzzer_quiet ? "off" : "on");
+    return true;
+  }
+  if (memcmp(command, "set buzzer ", 11) == 0) {
+    if (strcmp(&command[11], "on") == 0 || strcmp(&command[11], "off") == 0) {
+      _prefs.buzzer_quiet = strcmp(&command[11], "off") == 0;
+      savePrefs();
+      strcpy(reply, "OK");
+    } else {
+      strcpy(reply, "Error: state must be on or off");
+    }
+    return true;
+  }
+#endif
+
   if (memcmp(command, "set pin ", 8) == 0) {
     _prefs.ble_pin = atoi(&command[8]);
     savePrefs();
@@ -4204,7 +4222,7 @@ bool MyMesh::handleRadioCommand(const char* command, char* reply) {
   if (memcmp(command, "set af ", 7) == 0) {
     char* end;
     float af = strtof(&command[7], &end);
-    if (end == &command[7] || af < 0 || af > 9) {
+    if (end == &command[7] || !(af >= 0 && af <= 9)) {   // written so that NaN is refused too
       strcpy(reply, "ERROR: af must be 0-9");
     } else {
       _prefs.airtime_factor = af;
@@ -4222,7 +4240,7 @@ bool MyMesh::handleRadioCommand(const char* command, char* reply) {
   }
   if (memcmp(command, "set dutycycle ", 14) == 0) {
     float dc = atof(&command[14]);
-    if (dc < 1 || dc > 100) {
+    if (!(dc >= 1 && dc <= 100)) {   // written so that NaN is refused too
       strcpy(reply, "ERROR: dutycycle must be 1-100");
     } else {
       _prefs.airtime_factor = (100.0f / dc) - 1.0f;

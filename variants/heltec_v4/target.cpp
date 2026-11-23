@@ -24,7 +24,8 @@ AutoDiscoverRTCClock rtc_clock(fallback_clock);
 
 #if ENV_INCLUDE_GPS
   #include <helpers/sensors/MicroNMEALocationProvider.h>
-  MicroNMEALocationProvider nmea = MicroNMEALocationProvider(Serial1, &rtc_clock, GPS_RESET, GPS_EN, NULL, PIN_GPS_STANDBY);
+  NmeaGpsDriver gps_driver(Serial1);
+  MicroNMEALocationProvider nmea(gps_driver, &rtc_clock);
   EnvironmentSensorManager sensors = EnvironmentSensorManager(nmea);
 #else
   EnvironmentSensorManager sensors;
@@ -33,11 +34,17 @@ AutoDiscoverRTCClock rtc_clock(fallback_clock);
 #ifdef DISPLAY_CLASS
   DISPLAY_CLASS display(NULL);
   MomentaryButton user_btn(PIN_USER_BTN, 1000, true);
+  UITask ui_task(&board, &display);
 #endif
 
 bool radio_init() {
   fallback_clock.begin();
   rtc_clock.begin(Wire);
+#if ENV_INCLUDE_GPS && defined(PIN_GPS_STANDBY)
+  // The V4's L76K stays in standby unless this pin is driven, so the GPS never wakes.
+  // Opt-in per board: other variants wire PIN_GPS_STANDBY differently.
+  gps_driver.setStandbyPin(PIN_GPS_STANDBY);
+#endif
   
 #if defined(P_LORA_SCLK)
   return radio.std_init(&spi);
@@ -50,4 +57,3 @@ mesh::LocalIdentity radio_new_identity() {
   RadioNoiseListener rng(radio);
   return mesh::LocalIdentity(&rng);  // create new random identity
 }
-

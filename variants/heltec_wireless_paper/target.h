@@ -20,6 +20,7 @@ public:
 #ifdef DISPLAY_CLASS
 #include <helpers/ui/E213Display.h>
 #include <helpers/ui/MomentaryButton.h>
+#include <UITask.h>
 #endif
 
 extern HeltecWirelessPaperBoard board;
@@ -30,6 +31,7 @@ extern SensorManager sensors;
 #ifdef DISPLAY_CLASS
 extern DISPLAY_CLASS display;
 extern MomentaryButton user_btn;
+extern UITask ui_task;
 #endif
 
 bool radio_init();
