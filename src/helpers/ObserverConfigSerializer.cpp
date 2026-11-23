@@ -1,3 +1,4 @@
+#if defined(WITH_MQTT_BRIDGE) || !defined(ARDUINO)   // meshcomod: _mqtt envs and native tests only
 #include "ObserverConfigSerializer.h"
 
 #include <errno.h>
@@ -474,3 +475,5 @@ bool ObserverConfigSerializer::defStrict(const char* key, int32_t& value, bool& 
   value = static_cast<int32_t>(parsed);
   return true;
 }
+
+#endif  // meshcomod guard

@@ -1,3 +1,4 @@
+#if defined(WITH_MQTT_BRIDGE) || !defined(ARDUINO)   // meshcomod: _mqtt envs and native tests only
 // The raw lwIP API may only be called on the lwIP thread.
 // This framework builds with LWIP_TCPIP_CORE_LOCKING off, so there is no core lock to take.
 // Arduino 2.0.17 WiFiGenericClass::hostByName() calls dns_gethostbyname() from application tasks.
@@ -66,3 +67,5 @@ extern "C" err_t __wrap_dns_gethostbyname(const char* hostname, ip_addr_t* addr,
 #endif
 
 #endif  // ESP_PLATFORM
+
+#endif  // meshcomod guard

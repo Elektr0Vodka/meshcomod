@@ -1,3 +1,4 @@
+#if defined(WITH_MQTT_BRIDGE) || !defined(ARDUINO)   // meshcomod: _mqtt envs and native tests only
 #include "NetworkLink.h"
 
 #if defined(ESP_PLATFORM)
@@ -1291,3 +1292,5 @@ NetworkLink& externalNetworkLink() {
 }
 #endif
 #endif
+
+#endif  // meshcomod guard

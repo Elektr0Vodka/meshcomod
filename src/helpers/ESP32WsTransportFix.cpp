@@ -1,3 +1,4 @@
+#if defined(WITH_MQTT_BRIDGE) || !defined(ARDUINO)   // meshcomod: _mqtt envs and native tests only
 #ifdef ESP_PLATFORM
 
 // Link-time workaround for an off-by-one heap overflow in ESP-IDF v4.4's
@@ -139,3 +140,5 @@ esp_transport_handle_t __wrap_esp_transport_ws_init(esp_transport_handle_t paren
 #endif  // ESP_IDF_VERSION_MAJOR
 
 #endif  // ESP_PLATFORM
+
+#endif  // meshcomod guard

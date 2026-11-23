@@ -1,3 +1,4 @@
+#if defined(WITH_MQTT_BRIDGE) || !defined(ARDUINO)   // meshcomod: _mqtt envs and native tests only
 // Lets a new port-80 listener bind while an old HTTP connection is still in TIME_WAIT.
 
 #ifdef ESP_PLATFORM
@@ -27,3 +28,5 @@ extern "C" err_t __wrap_tcp_bind(struct tcp_pcb* pcb, const ip_addr_t* ipaddr, u
 }
 
 #endif  // ESP_PLATFORM
+
+#endif  // meshcomod guard

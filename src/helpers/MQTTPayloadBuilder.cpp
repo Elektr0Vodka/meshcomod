@@ -1,3 +1,4 @@
+#if defined(WITH_MQTT_BRIDGE) || !defined(ARDUINO)   // meshcomod: _mqtt envs and native tests only
 #include "MQTTPayloadBuilder.h"
 
 #include <math.h>
@@ -350,3 +351,5 @@ int MQTTPayloadBuilder::buildNeighborsMessage(
 
   return serializeComplete(doc.as<JsonObject>(), buffer, buffer_size);
 }
+
+#endif  // meshcomod guard

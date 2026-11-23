@@ -12,27 +12,34 @@ using namespace CompanionMqttPolicy;
 // ---- shouldAdoptObserverWifi --------------------------------------------------
 
 TEST(AdoptObserverWifi, AdoptsWhenCompanionHasNoSsid) {
-  EXPECT_TRUE(shouldAdoptObserverWifi("", "home"));
+  EXPECT_TRUE(shouldAdoptObserverWifi("", "home", true));
 }
 
 TEST(AdoptObserverWifi, AdoptsWhenCompanionSsidIsNull) {
-  EXPECT_TRUE(shouldAdoptObserverWifi(nullptr, "home"));
+  EXPECT_TRUE(shouldAdoptObserverWifi(nullptr, "home", true));
 }
 
 TEST(AdoptObserverWifi, KeepsTheCompanionsOwnSsid) {
-  EXPECT_FALSE(shouldAdoptObserverWifi("home", "other"));
+  EXPECT_FALSE(shouldAdoptObserverWifi("home", "other", true));
 }
 
 TEST(AdoptObserverWifi, NothingToAdoptFromAnEmptyObserverSsid) {
-  EXPECT_FALSE(shouldAdoptObserverWifi("", ""));
-  EXPECT_FALSE(shouldAdoptObserverWifi("", nullptr));
+  EXPECT_FALSE(shouldAdoptObserverWifi("", "", true));
+  EXPECT_FALSE(shouldAdoptObserverWifi("", nullptr, true));
 }
 
 TEST(AdoptObserverWifi, RefusesAnSsidTheCompanionStoreCannotHold) {
   const std::string max_fit(31, 'a');
   const std::string too_long(32, 'a');
-  EXPECT_TRUE(shouldAdoptObserverWifi("", max_fit.c_str()));
-  EXPECT_FALSE(shouldAdoptObserverWifi("", too_long.c_str()));
+  EXPECT_TRUE(shouldAdoptObserverWifi("", max_fit.c_str(), true));
+  EXPECT_FALSE(shouldAdoptObserverWifi("", too_long.c_str(), true));
+}
+
+TEST(AdoptObserverWifi, OnlyOnTheFirstBootOfAnMqttImage) {
+  // Later boots never adopt, so a companion whose Wi-Fi was cleared on purpose
+  // (wifi.clear, BLE only) does not get the DMC network back.
+  EXPECT_FALSE(shouldAdoptObserverWifi("", "home", false));
+  EXPECT_FALSE(shouldAdoptObserverWifi(nullptr, "home", false));
 }
 
 // ---- slotCap ------------------------------------------------------------------
@@ -48,6 +55,22 @@ TEST(SlotCap, NoPsramWithBleOnAllowsOneSlot) {
 
 TEST(SlotCap, NoPsramWithBleOffAllowsTwoSlots) {
   EXPECT_EQ(2, slotCap(false, false));
+}
+
+// ---- liveBleStartAllowed -----------------------------------------------------
+
+TEST(LiveBleStart, PsramBoardsAlwaysAllowIt) {
+  EXPECT_TRUE(liveBleStartAllowed(true, 5));
+}
+
+TEST(LiveBleStart, NoPsramAllowsItNextToOneBrokerSlot) {
+  EXPECT_TRUE(liveBleStartAllowed(false, 0));
+  EXPECT_TRUE(liveBleStartAllowed(false, 1));
+}
+
+TEST(LiveBleStart, NoPsramRefusesItNextToTwoBrokerSlots) {
+  // The slot budget for BLE on is one; two TLS sessions plus NimBLE do not fit.
+  EXPECT_FALSE(liveBleStartAllowed(false, 2));
 }
 
 // ---- isObserverCommand --------------------------------------------------------

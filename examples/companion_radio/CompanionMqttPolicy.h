@@ -11,9 +11,13 @@ namespace CompanionMqttPolicy {
   // the terminator). A longer one would be cut and join nothing.
   static const size_t kMaxSsidLen = 31;
 
-  // One-way Wi-Fi adopt: on boot, take the SSID a DMC observer firmware left in
-  // /mqtt.json only when the companion has none of its own. Never the other way.
-  inline bool shouldAdoptObserverWifi(const char* companion_ssid, const char* observer_ssid) {
+  // One-way Wi-Fi adopt: on the first boot of an _mqtt image, take the SSID a DMC
+  // observer firmware left in /mqtt.json when the companion has none of its own.
+  // Never on later boots (a companion whose Wi-Fi was cleared on purpose keeps it
+  // cleared), and never the other way.
+  inline bool shouldAdoptObserverWifi(const char* companion_ssid, const char* observer_ssid,
+                                      bool first_mqtt_boot) {
+    if (!first_mqtt_boot) return false;
     if (companion_ssid != nullptr && companion_ssid[0] != 0) return false;
     if (observer_ssid == nullptr || observer_ssid[0] == 0) return false;
     return strlen(observer_ssid) <= kMaxSsidLen;
@@ -26,6 +30,14 @@ namespace CompanionMqttPolicy {
   inline int slotCap(bool has_psram, bool ble_on_at_boot) {
     if (has_psram) return 0;
     return ble_on_at_boot ? 1 : 2;
+  }
+
+  // Turning BLE on while the bridge runs: the slot cap was set at boot, so on a
+  // board without PSRAM BLE may only start next to as many connected slots as
+  // the BLE-on budget allows (slotCap(false, true)). The heap gate still applies.
+  inline bool liveBleStartAllowed(bool has_psram, int connected_slots) {
+    if (has_psram) return true;
+    return connected_slots <= slotCap(false, true);
   }
 
   // True when `key_start` begins with `key` followed by the end of the command or a

@@ -522,18 +522,9 @@ void setup() {
     } else {
       Serial.printf("[boot] BLE deferred: low heap (free=%u maxblk=%u) — toggle to retry\n", (unsigned)freeh, (unsigned)maxblk);
     }
-#elif defined(WITH_MQTT_BRIDGE)
-    /* MQTT builds: the broker TLS sessions start after this, so BLE normally fits
-     * here, but a board that is already short (no PSRAM) defers it rather than
-     * fail inside the BT controller. The live toggle retries with the same gate. */
-    if (!want_wifi || MultiTransportCompanionInterface::bleHeapAvailable()) {
-      serial_interface.beginBle(BLE_NAME_PREFIX, the_mesh.getNodePrefs()->node_name, the_mesh.getBLEPin());
-      Serial.printf("[boot] BLE co-init OK (wifi=%d free=%u)\n", (int)want_wifi, (unsigned)ESP.getFreeHeap());
-    } else {
-      Serial.printf("[boot] BLE deferred: low heap (free=%u maxblk=%u)\n",
-                    (unsigned)ESP.getFreeHeap(), (unsigned)ESP.getMaxAllocHeap());
-    }
 #else
+    /* MQTT builds take this path too: the broker TLS sessions only start after
+     * it, and the slot cap set right below budgets for BLE (startMqttObserver). */
     /* OLED / e-ink multi-transport companion (no LVGL framebuffers): NimBLE and
      * Wi-Fi coexist with plenty of internal-RAM headroom here, so co-init BLE
      * at boot unconditionally — same as v1.15.x. Applying the touch heap-defer

@@ -1,3 +1,4 @@
+#if defined(WITH_MQTT_BRIDGE) || !defined(ARDUINO)   // meshcomod: _mqtt envs and native tests only
 #ifdef ESP_PLATFORM
 
 // Link-time wrap of lwip_getaddrinfo() that asks for a host's AAAA record
@@ -249,3 +250,5 @@ bool formatStationAddress(char* out, size_t out_size) {
 }  // namespace Ipv6Preference
 
 #endif  // ESP_PLATFORM
+
+#endif  // meshcomod guard

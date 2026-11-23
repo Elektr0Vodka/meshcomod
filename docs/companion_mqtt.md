@@ -45,7 +45,10 @@ wifi.ssid`, `set wifi.pwd`, `wifi.apply`, or the device UI). The observer starts
 its broker connections once Wi-Fi has an address, and follows the link when it
 drops and comes back. No reboot is needed for broker changes.
 
-Fresh installs start with `analyzer-us` in slot 1 and `analyzer-eu` in slot 2.
+Fresh installs start with DMC's defaults: `dutchmeshcore-1`, `dutchmeshcore-2` and
+`meshcore-analyzer-eu` in slots 1 to 3, timezone `Europe/Amsterdam`, and no region
+code. Every preset except `meshrank` puts the region code in its topics, so set
+`mqtt.iata` first. On the Heltec V3 the third slot stays inactive (see below).
 
 ---
 
@@ -96,12 +99,20 @@ BLE stays a toggle on every `_mqtt` build, with these rules:
 * Turning BLE off stops advertising at once, but its memory only comes back after
   a reboot.
 * Turning BLE on while the brokers already hold the memory is refused with
-  `ble: not started, not enough free memory`. Free a slot (`set mqtt2.preset
-  none`), reboot, and try again.
+  `ble: not started, not enough free memory` (the OLED shows `BLE: low memory`).
+  On the V3 it is also refused while two slots are connected. Free a slot (`set
+  mqtt2.preset none`), reboot, and try again.
 
-> **Heltec V3 contact limit:** the `_mqtt` image keeps 150 contacts. Flashing it
-> over a `usb_tcp` node with more contacts loads the first 150, and the next time
-> contacts are saved the rest are gone. Export the contacts first if they matter.
+> **Heltec V3 contact limit:** the `_mqtt` image holds 150 contacts. Flashed over
+> a `usb_tcp` node with more, it loads the first 150 and keeps the rest in
+> `/contacts3.tail`, which goes back into the contacts file on every save. They are
+> not visible or usable on the `_mqtt` image, but flashing the `usb_tcp` image
+> again brings them all back.
+
+> **Manifest OTA on the Heltec V3:** an HTTPS firmware download needs the same
+> internal RAM as the broker connections. With two slots up, `ota update` may fail
+> for memory. Set the slots to `none`, reboot, update, and set them back, or flash
+> over USB. The PSRAM boards keep TLS in PSRAM and are not affected.
 
 ---
 

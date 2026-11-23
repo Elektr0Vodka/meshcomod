@@ -57,5 +57,15 @@ for p in "$root"/scripts/dmc_observer_patches/*.patch; do
   echo "applied $(basename "$p")"
 done
 
+# Sources DMC compiles everywhere. Here only the _mqtt envs (and native tests) may:
+# about 30 variant files re-add +<helpers/*.cpp> after the base filter's excludes,
+# so each file also carries its own guard.
+guard='#if defined(WITH_MQTT_BRIDGE) || !defined(ARDUINO)   // meshcomod: _mqtt envs and native tests only'
+for f in DutyCycleLimits.cpp MQTTPayloadBuilder.cpp NetworkLink.cpp ObserverConfigSerializer.cpp \
+         ESP32DnsThreadFix.cpp ESP32Ipv6Preference.cpp ESP32TcpBindReuse.cpp ESP32WsTransportFix.cpp; do
+  p="$root/src/helpers/$f"
+  { printf '%s\n' "$guard"; cat "$p"; printf '\n#endif  // meshcomod guard\n'; } > "$p.tmp" && mv "$p.tmp" "$p"
+done
+
 sed -i "s/^Pinned commit: .*/Pinned commit: \`$full\`/" "$root/docs/dmc_observer_vendor.md"
 echo "vendored Dutch-MeshCore/MeshCore $full"

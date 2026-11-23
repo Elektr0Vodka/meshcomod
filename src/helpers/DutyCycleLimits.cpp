@@ -1,3 +1,4 @@
+#if defined(WITH_MQTT_BRIDGE) || !defined(ARDUINO)   // meshcomod: _mqtt envs and native tests only
 #include "DutyCycleLimits.h"
 
 #define SRD_BAND_START_MHZ    863.0f
@@ -47,3 +48,5 @@ float getEffectiveAirtimeFactor(uint8_t dutycycle_auto, float airtime_factor, fl
 
   return dutyCycleToAirtimeFactor(getMaxDutyCyclePercent(freq_mhz));
 }
+
+#endif  // meshcomod guard

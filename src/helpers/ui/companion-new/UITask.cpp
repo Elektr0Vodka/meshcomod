@@ -779,7 +779,8 @@ public:
         _task->showAlert("BLE disabled", 1500);
       } else {
         _task->enableBle();
-        _task->showAlert("BLE enabled", 1500);
+        // MQTT builds refuse when the broker connections hold the memory NimBLE needs.
+        _task->showAlert(_task->isBleEnabled() ? "BLE enabled" : "BLE: low memory", 1500);
       }
       return true;
     }

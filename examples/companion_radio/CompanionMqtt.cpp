@@ -9,6 +9,9 @@
 #include "CompanionMqttPolicy.h"
 #include <helpers/CompanionObserver.h>
 #include <helpers/esp32/WifiRuntimeStore.h>
+#if defined(MULTI_TRANSPORT_COMPANION) && defined(BLE_PIN_CODE)
+#include <helpers/esp32/MultiTransportCompanionInterface.h>
+#endif
 #include <helpers/TxtDataHelpers.h>
 #include <new>
 
@@ -19,6 +22,13 @@ int companionMqttBridgeSkippedPublishes();
 // Built in companionMqttLoad(), not at static init: it needs the mesh object,
 // which lives in PSRAM on PSRAM boards and only exists once setup() has run.
 static CompanionObserver* s_observer = nullptr;
+static bool s_has_psram = false;
+
+// Live BLE start (MultiTransportCompanionInterface::enableBle): on boards without
+// PSRAM only next to as many broker slots as the BLE-on budget allows.
+static bool bleStartGuard() {
+  return CompanionMqttPolicy::liveBleStartAllowed(s_has_psram, companionMqttConnectedSlots());
+}
 
 void companionMqttLoad(FILESYSTEM* fs) {
   if (s_observer == nullptr) {
@@ -37,7 +47,9 @@ bool companionMqttAdoptWifi() {
   char ssid[WIFI_CONFIG_SSID_MAX];
   wifiConfigGetSsid(ssid, sizeof(ssid));
   const MQTTPrefs* obs = s_observer->prefs();
-  if (!CompanionMqttPolicy::shouldAdoptObserverWifi(ssid, obs->wifi_ssid)) return false;
+  const bool first_boot = !wifiConfigGetMqttBooted();
+  if (first_boot) wifiConfigSetMqttBooted();   // decided once, whatever the outcome
+  if (!CompanionMqttPolicy::shouldAdoptObserverWifi(ssid, obs->wifi_ssid, first_boot)) return false;
   if (!wifiConfigSetSsid(obs->wifi_ssid) || !wifiConfigSetPwd(obs->wifi_password)) return false;
   Serial.printf("MQTT: adopted Wi-Fi '%s' from /mqtt.json\n", obs->wifi_ssid);
   return true;
@@ -53,8 +65,12 @@ void companionMqttStart(mesh::MainBoard& board_ref, mesh::Dispatcher* dispatcher
 #else
   const bool has_psram = false;
 #endif
+  s_has_psram = has_psram;
   const int cap = CompanionMqttPolicy::slotCap(has_psram, ble_on_at_boot);
   companionMqttBridgeSetSlotCap(cap);
+#if defined(MULTI_TRANSPORT_COMPANION) && defined(BLE_PIN_CODE)
+  MultiTransportCompanionInterface::setBleStartGuard(bleStartGuard);
+#endif
   Serial.printf("MQTT: starting observer (psram=%d ble=%d slot cap=%d)\n", (int)has_psram,
                 (int)ble_on_at_boot, cap);
   s_observer->begin(dispatcher, radio, ms, mgr, rtc, identity);

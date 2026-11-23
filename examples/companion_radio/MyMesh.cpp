@@ -724,8 +724,12 @@ bool MyMesh::handleMeshcomodCommand(const char* text, int text_len) {
     if (strncasecmp(p, "on", 2) == 0 && (p[2] == '\0' || p[2] == ' ' || p[2] == '\t')) {
       _serial->enableBle();
       if (!_serial->isBleEnabled()) {
-        // MQTT builds refuse when the broker connections hold the RAM NimBLE needs.
+#ifdef WITH_MQTT_BRIDGE
+        // Refused: the broker connections hold the RAM NimBLE needs.
         pushMeshcomodReply("ble: not started, not enough free memory. Use fewer MQTT slots and reboot.");
+#else
+        pushMeshcomodReply("ble: not started");
+#endif
         return true;
       }
       pushMeshcomodReply("OK\nble: on");
